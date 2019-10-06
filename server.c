@@ -6,34 +6,19 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+//#include <sys/types.h>
+//#include <sys/socket.h>
+//#include <netinet/in.h>
 #include <netdb.h>
-#include <arpa/inet.h>
 #include <sys/wait.h>
-#include <signal.h>
+//#include <signal.h>
+#include "network.h"
+
 #define PORT "3490" // the port users will be connecting to
 #define BACKLOG 10 // how many pending connections queue will hold
-void sigchld_handler(/*int s*/)
-{
-// waitpid() might overwrite errno, so we save and restore it:
-	int saved_errno = errno;
 
-	while (waitpid(-1, NULL, WNOHANG) > 0);
+void sigchld_handler(/*int s*/);
 
-	errno = saved_errno;
-}
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
-{
-	if (sa->sa_family == AF_INET)
-	{
-		return &(((struct sockaddr_in*)sa)->sin_addr);
-	}
-
-	return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
 int main(void)
 {
 	int sockfd, new_fd; // listen on sock_fd, new connection on new_fd
@@ -139,4 +124,19 @@ int main(void)
 	}
 
 	return 0;
+}
+
+/************************************************************************/
+/*  I : signal number                                                   */
+/*  P : Handles the SIGCHLD signal                                      */
+/*  O : /                                                               */
+/************************************************************************/
+void sigchld_handler(/*int s*/)
+{
+    // waitpid() might overwrite errno, so we save and restore it:
+	int saved_errno = errno;
+
+	while (waitpid(-1, NULL, WNOHANG) > 0);
+
+	errno = saved_errno;
 }
