@@ -18,13 +18,15 @@ void *get_in_addr(struct sockaddr *sa)
 /************************************************************************/
 /*  I : remote IP or hostname (other host)                              */
 /*      remote host's port or service name                              */
-/*      pointer to the final socket created
-/*  P : get sockaddr, IPv4 or IPv6                                      */
-/*  O : /                                                               */
+/*      pointer to the socket file descriptor created                   */
+/*      additional action to perform (bind, connect, all, none)         */
+/*  P : creates a socket with the desired values and binds/connects it  */
+/*  O : 0 if ok                                                         */
+/*      specific code otherwise                                         */
 /************************************************************************/
-int negociate_socket(const char* remote_ip, const char* port, struct addrinfo* final_socket, int ACTION){
-    struct addrinfo hints={0}, *servinfo=NULL;
-    int sockfd=0, rv=0, yes=1;
+int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char ACTION){
+    struct addrinfo hints={0}, *servinfo=NULL, *p=NULL;
+    int rv=0, yes=1;
 
     //prepare the structure holding socket information
 	// any potocol, stream socket, remote IP if any, rest to 0
@@ -40,44 +42,42 @@ int negociate_socket(const char* remote_ip, const char* port, struct addrinfo* f
 		return rv;
 	}
 
-    for (final_socket = servinfo; final_socket != NULL; final_socket = final_socket->ai_next)
+	//take the first solution available
+    for (p = servinfo; p != NULL; p = p->ai_next)
 	{
         //generate a socket file descriptor
-		if ((sockfd = socket(final_socket->ai_family, final_socket->ai_socktype, final_socket->ai_protocol)) == -1)
+		if ((*sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
 		{
 			perror("client: socket");
 			continue;
 		}
 
         //allow reconnections on the socket if still allocated in kernel
-		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+		if (setsockopt(*sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
 		{
 			perror("setsockopt");
 			exit(EXIT_FAILURE);
 		}
 
-		switch(ACTION){
-            case BIND:      //bind the socket to the desired port (useful in a server)
-                if (bind(sockfd, final_socket->ai_addr, final_socket->ai_addrlen) == -1)
-                {
-                    close(sockfd);
-                    perror("server: bind");
-                    continue;
-                }
-                break;
+		//bind the socket to the desired port (useful in a server)
+		if (ACTION & BIND){
+            if (bind(*sockfd, p->ai_addr, p->ai_addrlen) == -1)
+            {
+                close(*sockfd);
+                perror("server: bind");
+                continue;
+            }
+        }
 
-            case CONNECT:   //connect to the server via the socket created
-                if (connect(sockfd, final_socket->ai_addr, final_socket->ai_addrlen) == -1)
-                {
-                    close(sockfd);
-                    perror("client: connect");
-                    continue;
-                }
-                break;
-
-            default:
-                break;
-		}
+        //connect to the server via the socket created
+        if (ACTION & CONNECT){
+            if (connect(*sockfd, p->ai_addr, p->ai_addrlen) == -1)
+            {
+                close(*sockfd);
+                perror("client: connect");
+                continue;
+            }
+        }
 
 		break;
 	}
@@ -86,7 +86,7 @@ int negociate_socket(const char* remote_ip, const char* port, struct addrinfo* f
 	freeaddrinfo(servinfo);
 
     //no socket available
-	if (final_socket == NULL)
+	if (p == NULL)
 	{
 		fprintf(stderr, "client: failed to connect\n");
 		return 2;
