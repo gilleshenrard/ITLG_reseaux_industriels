@@ -5,16 +5,8 @@
 ** Modified by Gilles Henrard
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <arpa/inet.h>
-#include <sys/wait.h>
+#include "global.h"
 #include "network.h"
-
-#define PORT "3490" // the port users will be connecting to
-#define BACKLOG 10 // how many pending connections queue will hold
 
 void sigchld_handler(/*int s*/);
 

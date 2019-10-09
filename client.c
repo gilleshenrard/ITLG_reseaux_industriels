@@ -4,17 +4,8 @@
 ** Made by Brian 'Beej Jorgensen' Hall
 ** Modified by Gilles Henrard
 */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <arpa/inet.h>
-#include <netdb.h>
+#include "global.h"
 #include "network.h"
-
-#define PORT "3490" // the port client will be connecting to
-#define MAXDATASIZE 100 // max number of bytes we can get at once
 
 int main(int argc, char *argv[])
 {
