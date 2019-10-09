@@ -7,10 +7,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <netdb.h>
+#include <arpa/inet.h>
 #include <sys/wait.h>
 #include "network.h"
 
@@ -22,66 +21,14 @@ void sigchld_handler(/*int s*/);
 int main(/*int argc, char *argv[]*/)
 {
 	int sockfd, new_fd; // listen on sock_fd, new connection on new_fd
-	struct addrinfo hints, *servinfo, *p;
 	struct sockaddr_storage their_addr; // connector's address information
 	socklen_t sin_size;
 	struct sigaction sa;
-	int yes=1;
 	char s[INET6_ADDRSTRLEN];
-	int rv;
+	int ret = 0;
 
-	//prepare the structure holding socket information
-	// any potocol, stream socket, local IP, rest to 0
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE; // use my IP
-
-	//format socket information and store it in list servinfo
-	if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0)
-	{
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-		return 1;
-	}
-
-// loop through all the results and bind to the first we can
-	for (p = servinfo; p != NULL; p = p->ai_next)
-	{
-        //generate a socket file descriptor
-		if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
-		{
-			perror("server: socket");
-			continue;
-		}
-
-		//allow reconnections on the socket if still allocated in kernel
-		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
-				sizeof(int)) == -1)
-		{
-			perror("setsockopt");
-			exit(EXIT_FAILURE);
-		}
-
-		//bind the socket to the desired port (useful in a server)
-		if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
-		{
-			close(sockfd);
-			perror("server: bind");
-			continue;
-		}
-
-		break;
-	}
-
-	// no need for the serv structure list anymore
-	freeaddrinfo(servinfo);
-
-	//no socket available
-	if (p == NULL)
-	{
-		fprintf(stderr, "server: failed to bind\n");
-		exit(EXIT_FAILURE);
-	}
+    ret = negociate_socket(NULL, PORT, &sockfd, BIND);
+    printf("%d\n", ret);
 
 	//listen to socket created
 	if (listen(sockfd, BACKLOG) == -1)

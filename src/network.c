@@ -82,15 +82,15 @@ int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char 
 		break;
 	}
 
-	// no need for the serv structure list anymore
-	freeaddrinfo(servinfo);
-
     //no socket available
 	if (p == NULL)
 	{
 		fprintf(stderr, "client: failed to connect\n");
 		return 2;
 	}
+
+    // no need for the serv structure list anymore
+	freeaddrinfo(servinfo);
 
 	return 0;
 }
