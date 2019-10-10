@@ -18,9 +18,12 @@ void *get_in_addr(struct sockaddr *sa)
 /************************************************************************/
 /*  I : remote IP or hostname (other host)                              */
 /*      remote host's port or service name                              */
-/*      pointer to the socket file descriptor created                   */
-/*      additional action to perform (bind, connect, all, none)         */
-/*  P : creates a socket with the desired values and binds/connects it  */
+/*      file descriptor of the socket to be created                     */
+/*      additional action to perform (catenated with | operator)        */
+/*          MULTI   : make the socket able to reconnect if conn. exists */
+/*          BIND    : binds the socket to a port or a service           */
+/*          CONNECT : initiates a connection on the socket              */
+/*  P : creates a socket with the desired values and flags              */
 /*  O : 0 if ok                                                         */
 /*      specific code otherwise                                         */
 /************************************************************************/
