@@ -52,11 +52,13 @@ int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char 
 			continue;
 		}
 
-        //allow reconnections on the socket if still allocated in kernel
-		if (setsockopt(*sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
-		{
-			perror("setsockopt");
-			exit(EXIT_FAILURE);
+		//allow reconnections on the socket if still allocated in kernel
+		if (ACTION & MULTI){
+            if (setsockopt(*sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+            {
+                perror("setsockopt");
+                exit(EXIT_FAILURE);
+            }
 		}
 
 		//bind the socket to the desired port (useful in a server)

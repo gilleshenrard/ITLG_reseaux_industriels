@@ -19,7 +19,7 @@ int main(/*int argc, char *argv[]*/)
 	char s[INET6_ADDRSTRLEN];
 	int ret = 0;
 
-    ret = negociate_socket(NULL, PORT, &sockfd, BIND);
+    ret = negociate_socket(NULL, PORT, &sockfd, MULTI|BIND);
     printf("%d\n", ret);
 
 	//listen to socket created
