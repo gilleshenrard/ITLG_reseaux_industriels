@@ -20,7 +20,14 @@ int main(/*int argc, char *argv[]*/)
 	int ret = 0;
 
     ret = negociate_socket(NULL, PORT, &sockfd, MULTI|BIND);
-    printf("%d\n", ret);
+    if(ret != 0){
+        if(errno != 0)
+            perror("server");
+        else
+            fprintf(stderr, "server: %s\n", gai_strerror(ret));
+
+        exit(EXIT_FAILURE);
+    }
 
 	//listen to socket created
 	if (listen(sockfd, BACKLOG) == -1)

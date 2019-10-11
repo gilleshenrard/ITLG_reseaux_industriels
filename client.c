@@ -22,7 +22,14 @@ int main(int argc, char *argv[])
 	}
 
     ret = negociate_socket(argv[1], PORT, &sockfd, CONNECT);
-    printf("%d\n", ret);
+    if(ret != 0){
+        if(errno != 0)
+            perror("client");
+        else
+            fprintf(stderr, "client: %s\n", gai_strerror(ret));
+
+        exit(EXIT_FAILURE);
+    }
 /*
 	//translate IPv4 and IPv6 on the fly depending on the client request
 	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),

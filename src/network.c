@@ -24,8 +24,9 @@ void *get_in_addr(struct sockaddr *sa)
 /*          BIND    : binds the socket to a port or a service           */
 /*          CONNECT : initiates a connection on the socket              */
 /*  P : creates a socket with the desired values and flags              */
-/*  O : 0 if ok                                                         */
-/*      specific code otherwise                                         */
+/*  O : on success : 0                                                  */
+/*      on error : non-zero value, and either errno is set,             */
+/*                      or return value can be tested with gai_strerror */
 /************************************************************************/
 int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char ACTION){
     struct addrinfo hints={0}, *servinfo=NULL, *p=NULL;
@@ -40,10 +41,7 @@ int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char 
 
 	//format socket information and store it in list servinfo
 	if ((rv = getaddrinfo(remote_ip, port, &hints, &servinfo)) != 0)
-	{
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return rv;
-	}
 
 	//take the first solution available
     for (p = servinfo; p != NULL; p = p->ai_next)
@@ -51,16 +49,17 @@ int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char 
         //generate a socket file descriptor
 		if ((*sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
 		{
-			perror("client: socket");
-			continue;
+			freeaddrinfo(servinfo);
+			return -1;
 		}
 
 		//allow reconnections on the socket if still allocated in kernel
 		if (ACTION & MULTI){
             if (setsockopt(*sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
             {
-                perror("setsockopt");
-                exit(EXIT_FAILURE);
+                close(*sockfd);
+                freeaddrinfo(servinfo);
+                return -1;
             }
 		}
 
@@ -69,8 +68,8 @@ int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char 
             if (bind(*sockfd, p->ai_addr, p->ai_addrlen) == -1)
             {
                 close(*sockfd);
-                perror("server: bind");
-                continue;
+                freeaddrinfo(servinfo);
+                return -1;
             }
         }
 
@@ -79,8 +78,8 @@ int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char 
             if (connect(*sockfd, p->ai_addr, p->ai_addrlen) == -1)
             {
                 close(*sockfd);
-                perror("client: connect");
-                continue;
+                freeaddrinfo(servinfo);
+                return -1;
             }
         }
 
@@ -89,10 +88,7 @@ int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char 
 
     //no socket available
 	if (p == NULL)
-	{
-		fprintf(stderr, "client: failed to connect\n");
-		return 2;
-	}
+		return -1;
 
     // no need for the serv structure list anymore
 	freeaddrinfo(servinfo);
