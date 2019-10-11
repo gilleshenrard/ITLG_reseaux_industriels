@@ -12,6 +12,6 @@
 #define MULTI   0x04
 
 void *get_in_addr(struct sockaddr *sa);
-int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char ACTION);
+int negociate_socket(const char* host, const char* port, int* sockfd, char ACTION);
 int socket_to_ip(int* fd, char* address, int address_len);
 #endif

@@ -28,7 +28,7 @@ void *get_in_addr(struct sockaddr *sa)
 /*      on error : non-zero value, and either errno is set,             */
 /*                      or return value can be tested with gai_strerror */
 /************************************************************************/
-int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char ACTION){
+int negociate_socket(const char* host, const char* port, int* sockfd, char ACTION){
     struct addrinfo hints={0}, *servinfo=NULL, *p=NULL;
     int rv=0, yes=1;
 
@@ -36,11 +36,11 @@ int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char 
 	// any potocol, stream socket, remote IP if any, rest to 0
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	if(!remote_ip)
+	if(!host)
         hints.ai_flags = AI_PASSIVE; // use my IP
 
 	//format socket information and store it in list servinfo
-	if ((rv = getaddrinfo(remote_ip, port, &hints, &servinfo)) != 0)
+	if ((rv = getaddrinfo(host, port, &hints, &servinfo)) != 0)
 		return rv;
 
 	//take the first solution available
