@@ -60,9 +60,7 @@ int main(/*int argc, char *argv[]*/)
 		}
 
 		//translate IPv4 and IPv6 on the fly depending on the client request
-		inet_ntop(their_addr.ss_family,
-			  get_in_addr((struct sockaddr *)&their_addr),
-			  s, sizeof s);
+		socket_to_ip(&new_fd, s, sizeof(s));
 		printf("server: got connection from %s\n", s);
 
 		switch(fork()){

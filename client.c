@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 	int sockfd, numbytes;
 	char buf[MAXDATASIZE];
 	int ret = 0;
-//	char s[INET6_ADDRSTRLEN];
+	char s[INET6_ADDRSTRLEN];
 
 	//checks if the port number has been provided
 	if (argc != 2)
@@ -30,12 +30,11 @@ int main(int argc, char *argv[])
 
         exit(EXIT_FAILURE);
     }
-/*
-	//translate IPv4 and IPv6 on the fly depending on the client request
-	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
-		  s, sizeof s);
-	printf("client: connecting to %s\n", s);
-*/
+
+    //notify the successful connection to the server
+    socket_to_ip(&sockfd, s, sizeof(s));
+    printf("client: connecting to %s\n", s);
+
 	//receive message from the server
 	if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1)
 	{

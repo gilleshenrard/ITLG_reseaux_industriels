@@ -95,3 +95,27 @@ int negociate_socket(const char* remote_ip, const char* port, int* sockfd, char 
 
 	return 0;
 }
+
+/************************************************************************/
+/*  I : file descriptor of the socket of which to get the IP            */
+/*      buffer to fill with the IP address                              */
+/*      size of the buffer                                              */
+/*  P : recovers the IP address of a corresponding socket, and fills    */
+/*          a buffer                                                    */
+/*  O : on success : 0                                                  */
+/*      on error : -1, and errno is set                                 */
+/************************************************************************/
+int socket_to_ip(int* fd, char* address, int address_len)
+{
+    struct sockaddr_storage addr = {0};
+    socklen_t addr_size = sizeof(struct sockaddr_storage);
+
+    //get the host info from the socket
+    if ((getpeername(*fd, (struct sockaddr *)&addr, &addr_size)) != 0 )
+        return -1;
+
+    //format its IP automatically, whether it's IPv4 or IPv6
+    inet_ntop(addr.ss_family, get_in_addr((struct sockaddr *)&addr), address, address_len);
+
+    return 0;
+}
