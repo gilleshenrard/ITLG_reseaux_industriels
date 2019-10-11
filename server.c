@@ -9,8 +9,9 @@
 #include "network.h"
 
 void sigchld_handler(/*int s*/);
+int process_childrequest(int rem_sock);
 
-int main(/*int argc, char *argv[]*/)
+int main(int argc, char *argv[])
 {
 	int sockfd, new_fd; // listen on sock_fd, new connection on new_fd
 	struct sockaddr_storage their_addr; // connector's address information
@@ -19,7 +20,14 @@ int main(/*int argc, char *argv[]*/)
 	char s[INET6_ADDRSTRLEN];
 	int ret = 0;
 
-    ret = negociate_socket(NULL, PORT, &sockfd, MULTI|BIND);
+	//checks if the port number have been provided
+	if (argc != 2)
+	{
+		fprintf(stderr,"usage: server port\n");
+		exit(EXIT_FAILURE);
+	}
+
+    ret = negociate_socket(NULL, argv[1], &sockfd, MULTI|BIND);
     if(ret != 0){
         if(errno != 0)
             perror("server");
@@ -71,9 +79,8 @@ int main(/*int argc, char *argv[]*/)
             case 0: //child process
                 close(sockfd); // child doesn't need the listener
 
-                //send message to child
-                if (send(new_fd, "Hello, world!", 13, 0) == -1)
-                    perror("send");
+                //process the request
+                process_childrequest(new_fd);
 
                 //close connection socket and exit child process
                 close(new_fd);
@@ -103,4 +110,20 @@ void sigchld_handler(/*int s*/)
 	while (waitpid(-1, NULL, WNOHANG) > 0);
 
 	errno = saved_errno;
+}
+
+/************************************************************************/
+/*  I : socket file descriptor of the requesting child                  */
+/*  P : Handles the request received from a child                       */
+/*  O : -1 on error                                                     */
+/*       0 otherwise                                                    */
+/************************************************************************/
+int process_childrequest(int rem_sock){
+    //send message to child
+    if (send(rem_sock, "Hello, world!", 13, 0) == -1){
+        perror("send");
+        return -1;
+    }
+
+    return 0;
 }

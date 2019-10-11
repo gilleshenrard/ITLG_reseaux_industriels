@@ -14,14 +14,14 @@ int main(int argc, char *argv[])
 	int ret = 0;
 	char s[INET6_ADDRSTRLEN];
 
-	//checks if the port number has been provided
-	if (argc != 2)
+	//checks if the hostname and the port number have been provided
+	if (argc != 3)
 	{
-		fprintf(stderr,"usage: client hostname\n");
+		fprintf(stderr,"usage: client hostname port\n");
 		exit(EXIT_FAILURE);
 	}
 
-    ret = negociate_socket(argv[1], PORT, &sockfd, CONNECT);
+    ret = negociate_socket(argv[1], argv[2], &sockfd, CONNECT);
     if(ret != 0){
         if(errno != 0)
             perror("client");
