@@ -16,8 +16,7 @@ void *get_in_addr(struct sockaddr *sa)
 }
 
 /************************************************************************/
-/*  I : remote IP or hostname (other host)                              */
-/*      remote host's port or service name                              */
+/*  I : local socket information                                        */
 /*      file descriptor of the socket to be created                     */
 /*      additional action to perform (catenated with | operator)        */
 /*          MULTI   : make the socket able to reconnect if conn. exists */
@@ -28,26 +27,12 @@ void *get_in_addr(struct sockaddr *sa)
 /*      on error : non-zero value, and either errno is set,             */
 /*                      or return value can be tested with gai_strerror */
 /************************************************************************/
-int negociate_socket(const char* host, const char* port, int* sockfd, char ACTION){
-    struct addrinfo hints={0}, *servinfo=NULL, *p=NULL;
-    int rv=0, yes=1;
-
-    //prepare the structure holding socket information
-	// any potocol, stream socket, remote IP if any, rest to 0
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	if(!host)
-        hints.ai_flags = AI_PASSIVE; // use my IP
-
-	//format socket information and store it in list servinfo
-	if ((rv = getaddrinfo(host, port, &hints, &servinfo)) != 0)
-	{
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-		return -1;
-    }
+int negociate_socket(struct addrinfo* sockinfo, int* sockfd, char ACTION){
+    struct addrinfo *p=NULL;
+    int yes=1;
 
 	//take the first solution available
-    for (p = servinfo; p != NULL; p = p->ai_next)
+    for (p = sockinfo; p != NULL; p = p->ai_next)
 	{
         //generate a socket file descriptor
 		if ((*sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
@@ -90,12 +75,12 @@ int negociate_socket(const char* host, const char* port, int* sockfd, char ACTIO
 	if (p == NULL)
 	{
         fprintf(stderr, "no socket available");
+        freeaddrinfo(sockinfo);
 		return -1;
     }
 
-    // no need for the serv structure list anymore
-	freeaddrinfo(servinfo);
-
+    //information about the socket to be created no longer needed
+    freeaddrinfo(sockinfo);
 	return 0;
 }
 

@@ -11,7 +11,10 @@
 #define CONNECT 0x02
 #define MULTI   0x04
 
+#define TCP     0x01
+#define UDP     0x02
+
 void *get_in_addr(struct sockaddr *sa);
-int negociate_socket(const char* host, const char* port, int* sockfd, char ACTION);
+int negociate_socket(struct addrinfo* sockinfo, int* sockfd, char ACTION);
 int socket_to_ip(int* fd, char* address, int address_len);
 #endif

@@ -14,12 +14,12 @@ int process_childrequest(int rem_sock);
 
 int main(int argc, char *argv[])
 {
-	int loc_socket, rem_socket; // listen on loc_socket, new connection on rem_socket
-	struct sockaddr_storage their_addr; // connector's address information
+    struct addrinfo hints={0}, *servinfo=NULL;  // server address information
+	struct sockaddr_storage their_addr;         // client address information
+	int loc_socket=0, rem_socket=0, ret=0;
 	socklen_t sin_size;
 	struct sigaction sa;
 	char s[INET6_ADDRSTRLEN];
-	int ret = 0;
 
 	//checks if the port number have been provided
 	if (argc != 2)
@@ -28,8 +28,21 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+    //prepare the structure holding socket information
+	// any IP type, connection protocol, remote IP if any, rest to 0
+	hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE; // use my IP
+
+	//format socket information and store it in list servinfo
+	if ((ret = getaddrinfo(NULL, argv[1], &hints, &servinfo)) != 0)
+	{
+        fprintf(stderr, "server: getaddrinfo: %s\n", gai_strerror(ret));
+		return -1;
+    }
+
 	//create a local socket and handle any error
-    ret = negociate_socket(NULL, argv[1], &loc_socket, MULTI|BIND);
+    ret = negociate_socket(servinfo, &loc_socket, MULTI|BIND);
     if(ret != 0){
         fprintf(stderr, "server: could not create a socket\n");
         exit(EXIT_FAILURE);
@@ -69,6 +82,7 @@ int main(int argc, char *argv[])
 		socket_to_ip(&rem_socket, s, sizeof(s));
 		printf("server: got connection from %s\n", s);
 
+		//create subprocess for the child request
 		switch(fork()){
             case -1: //fork error
                 perror("fork");

@@ -9,9 +9,9 @@
 
 int main(int argc, char *argv[])
 {
-	int sockfd, numbytes;
+    struct addrinfo hints={0}, *servinfo=NULL;
+	int sockfd=0, numbytes=0, ret=0;
 	char buf[MAXDATASIZE];
-	int ret = 0;
 	char s[INET6_ADDRSTRLEN];
 
 	//checks if the hostname and the port number have been provided
@@ -21,7 +21,20 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-    ret = negociate_socket(argv[1], argv[2], &sockfd, CONNECT);
+    //prepare the structure holding socket information
+	// any IP type, connection protocol, remote IP if any, rest to 0
+	hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE; // use my IP
+
+	//format socket information and store it in list servinfo
+	if ((ret = getaddrinfo(argv[1], argv[2], &hints, &servinfo)) != 0)
+	{
+        fprintf(stderr, "client: getaddrinfo: %s\n", gai_strerror(ret));
+		return -1;
+    }
+
+    ret = negociate_socket(servinfo, &sockfd, CONNECT);
     if(ret != 0){
         fprintf(stderr, "client: could not create a socket\n");
         exit(EXIT_FAILURE);
