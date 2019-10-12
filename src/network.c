@@ -75,12 +75,9 @@ int negociate_socket(struct addrinfo* sockinfo, int* sockfd, char ACTION){
 	if (p == NULL)
 	{
         fprintf(stderr, "no socket available");
-        freeaddrinfo(sockinfo);
 		return -1;
     }
 
-    //information about the socket to be created no longer needed
-    freeaddrinfo(sockinfo);
 	return 0;
 }
 
@@ -106,4 +103,45 @@ int socket_to_ip(int* fd, char* address, int address_len)
     inet_ntop(addr.ss_family, get_in_addr((struct sockaddr *)&addr), address, address_len);
 
     return 0;
+}
+
+
+/************************************************************************/
+/*  I : file descriptor of the socket of which to get the IP            */
+/*      buffer to fill with the IP address                              */
+/*      size of the buffer                                              */
+/*  P : recovers the IP address of a corresponding socket, and fills    */
+/*          a buffer                                                    */
+/*  O : on success : 0                                                  */
+/*      on error : -1, and errno is set                                 */
+/************************************************************************/
+int send_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len){
+    struct addrinfo* p=NULL;
+    int numbytes=0;
+
+    for (p = sockinfo; p != NULL; p = p->ai_next)
+    {
+        printf("sending dummy byte\n");
+        if ((numbytes = sendto(*sockfd, "0", 1, 0, (struct sockaddr *)p->ai_addr, p->ai_addrlen)) == -1)
+        {
+            perror("client: sendto");
+            return -1;
+        }
+
+        printf("receiving reply\n");
+        if ((numbytes = recvfrom(*sockfd, buffer, buf_len, 0, (struct sockaddr *)p->ai_addr, &p->ai_addrlen)) == -1)
+        {
+            perror("client: recvfrom");
+            return -1;
+        }
+
+        printf("reply: %s\n", buffer);
+    }
+
+    if(p == NULL){
+        fprintf(stderr, "send_udp: no socket available\n");
+        return -1;
+    }
+
+    return numbytes;
 }

@@ -1,6 +1,6 @@
 /*
 ** server.c
-** Waits for clients to connect via a stream socket, and sends them a 'Hello World' reply
+** Waits for clients to connect via a stream socket, and sends them the local time
 ** Made by Brian 'Beej Jorgensen' Hall
 ** Modified by Gilles Henrard
 */
@@ -14,8 +14,10 @@ int process_childrequest(int rem_sock);
 
 int main(int argc, char *argv[])
 {
-    struct addrinfo hints={0}, *servinfo=NULL;  // server address information
-	struct sockaddr_storage their_addr;         // client address information
+    // any IP type, tcp by default, server's IP
+    struct addrinfo hints={AI_PASSIVE, AF_UNSPEC, SOCK_STREAM, 0, 0, NULL, NULL, NULL};
+    struct addrinfo *servinfo=NULL;         // server address information
+	struct sockaddr_storage their_addr;     // client address information
 	int loc_socket=0, rem_socket=0, ret=0;
 	socklen_t sin_size;
 	struct sigaction sa;
@@ -24,15 +26,15 @@ int main(int argc, char *argv[])
 	//checks if the port number have been provided
 	if (argc != 2)
 	{
-		fprintf(stderr,"usage: server port\n");
+		fprintf(stderr,"usage: server port [udp]\n");
 		exit(EXIT_FAILURE);
 	}
 
-    //prepare the structure holding socket information
-	// any IP type, connection protocol, remote IP if any, rest to 0
-	hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE; // use my IP
+    //if specified, change the protocol to UDP
+    if(argc == 3 && !strcmp(argv[3], "udp"))
+    {
+        hints.ai_socktype = SOCK_DGRAM;
+    }
 
 	//format socket information and store it in list servinfo
 	if ((ret = getaddrinfo(NULL, argv[1], &hints, &servinfo)) != 0)
