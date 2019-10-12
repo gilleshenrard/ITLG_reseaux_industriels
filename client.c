@@ -23,11 +23,7 @@ int main(int argc, char *argv[])
 
     ret = negociate_socket(argv[1], argv[2], &sockfd, CONNECT);
     if(ret != 0){
-        if(errno != 0)
-            perror("client");
-        else
-            fprintf(stderr, "client: %s\n", gai_strerror(ret));
-
+        fprintf(stderr, "client: could not create a socket\n");
         exit(EXIT_FAILURE);
     }
 

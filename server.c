@@ -31,11 +31,7 @@ int main(int argc, char *argv[])
 	//create a local socket and handle any error
     ret = negociate_socket(NULL, argv[1], &loc_socket, MULTI|BIND);
     if(ret != 0){
-        if(errno != 0)
-            perror("server");
-        else
-            fprintf(stderr, "server: %s\n", gai_strerror(ret));
-
+        fprintf(stderr, "server: could not create a socket\n");
         exit(EXIT_FAILURE);
     }
 

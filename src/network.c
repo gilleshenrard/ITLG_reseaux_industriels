@@ -41,7 +41,10 @@ int negociate_socket(const char* host, const char* port, int* sockfd, char ACTIO
 
 	//format socket information and store it in list servinfo
 	if ((rv = getaddrinfo(host, port, &hints, &servinfo)) != 0)
-		return rv;
+	{
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+		return -1;
+    }
 
 	//take the first solution available
     for (p = servinfo; p != NULL; p = p->ai_next)
@@ -49,17 +52,16 @@ int negociate_socket(const char* host, const char* port, int* sockfd, char ACTIO
         //generate a socket file descriptor
 		if ((*sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
 		{
-			freeaddrinfo(servinfo);
-			return -1;
+            perror("socket");
+			continue;
 		}
 
 		//allow reconnections on the socket if still allocated in kernel
 		if (ACTION & MULTI){
             if (setsockopt(*sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
             {
-                close(*sockfd);
-                freeaddrinfo(servinfo);
-                return -1;
+                perror("setsockopt");
+                continue;
             }
 		}
 
@@ -67,9 +69,8 @@ int negociate_socket(const char* host, const char* port, int* sockfd, char ACTIO
 		if (ACTION & BIND){
             if (bind(*sockfd, p->ai_addr, p->ai_addrlen) == -1)
             {
-                close(*sockfd);
-                freeaddrinfo(servinfo);
-                return -1;
+                perror("bind");
+                continue;
             }
         }
 
@@ -77,9 +78,8 @@ int negociate_socket(const char* host, const char* port, int* sockfd, char ACTIO
         if (ACTION & CONNECT){
             if (connect(*sockfd, p->ai_addr, p->ai_addrlen) == -1)
             {
-                close(*sockfd);
-                freeaddrinfo(servinfo);
-                return -1;
+                perror("connect");
+                continue;
             }
         }
 
@@ -88,7 +88,10 @@ int negociate_socket(const char* host, const char* port, int* sockfd, char ACTIO
 
     //no socket available
 	if (p == NULL)
+	{
+        fprintf(stderr, "no socket available");
 		return -1;
+    }
 
     // no need for the serv structure list anymore
 	freeaddrinfo(servinfo);
