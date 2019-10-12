@@ -13,7 +13,7 @@ int process_childrequest(int rem_sock);
 
 int main(int argc, char *argv[])
 {
-	int sockfd, new_fd; // listen on sock_fd, new connection on new_fd
+	int loc_socket, rem_socket; // listen on loc_socket, new connection on rem_socket
 	struct sockaddr_storage their_addr; // connector's address information
 	socklen_t sin_size;
 	struct sigaction sa;
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-    ret = negociate_socket(NULL, argv[1], &sockfd, MULTI|BIND);
+    ret = negociate_socket(NULL, argv[1], &loc_socket, MULTI|BIND);
     if(ret != 0){
         if(errno != 0)
             perror("server");
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     }
 
 	//listen to socket created
-	if (listen(sockfd, BACKLOG) == -1)
+	if (listen(loc_socket, BACKLOG) == -1)
 	{
 		perror("listen");
 		exit(EXIT_FAILURE);
@@ -61,14 +61,14 @@ int main(int argc, char *argv[])
 	{
         //wait for client to request a connection + create connection socket accordingly
 		sin_size = sizeof their_addr;
-		if ((new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1)
+		if ((rem_socket = accept(loc_socket, (struct sockaddr *)&their_addr, &sin_size)) == -1)
 		{
 			perror("accept");
 			continue;
 		}
 
 		//translate IPv4 and IPv6 on the fly depending on the client request
-		socket_to_ip(&new_fd, s, sizeof(s));
+		socket_to_ip(&rem_socket, s, sizeof(s));
 		printf("server: got connection from %s\n", s);
 
 		switch(fork()){
@@ -77,18 +77,18 @@ int main(int argc, char *argv[])
                 break;
 
             case 0: //child process
-                close(sockfd); // child doesn't need the listener
+                close(loc_socket); // child doesn't need the listener
 
                 //process the request
-                process_childrequest(new_fd);
+                process_childrequest(rem_socket);
 
                 //close connection socket and exit child process
-                close(new_fd);
+                close(rem_socket);
                 exit(EXIT_SUCCESS);
                 break;
 
             default: //parent process
-                close(new_fd); // parent doesn't need this
+                close(rem_socket); // parent doesn't need this
                 break;
 		}
 	}
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 
 /************************************************************************/
 /*  I : signal number                                                   */
-/*  P : Handles the SIGCHLD signal                                      */
+/*  P : Make sure to avoid any zombie child process                     */
 /*  O : /                                                               */
 /************************************************************************/
 void sigchld_handler(/*int s*/)
@@ -106,7 +106,7 @@ void sigchld_handler(/*int s*/)
     // waitpid() might overwrite errno, so we save and restore it:
 	int saved_errno = errno;
 
-	printf("Received a SIGCHLD signal...\n");
+	//make sure any child process terminating has its ressources released
 	while (waitpid(-1, NULL, WNOHANG) > 0);
 
 	errno = saved_errno;
