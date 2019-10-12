@@ -5,6 +5,7 @@
 ** Modified by Gilles Henrard
 */
 
+#include <time.h>
 #include "global.h"
 #include "network.h"
 
@@ -27,6 +28,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	//create a local socket and handle any error
     ret = negociate_socket(NULL, argv[1], &loc_socket, MULTI|BIND);
     if(ret != 0){
         if(errno != 0)
@@ -119,8 +121,19 @@ void sigchld_handler(/*int s*/)
 /*       0 otherwise                                                    */
 /************************************************************************/
 int process_childrequest(int rem_sock){
+    time_t timer = {0};
+    char buffer[32] = {0};
+    struct tm* tm_info = {0};
+
+    //get current time
+    time(&timer);
+    tm_info = localtime(&timer);
+
+    //format time with day, date, time and time zone
+    strftime(buffer, sizeof(buffer), "%a %d-%m-%Y %H:%M:%S %Z", tm_info);
+
     //send message to child
-    if (send(rem_sock, "Hello, world!", 13, 0) == -1){
+    if (send(rem_sock, buffer, strlen(buffer), 0) == -1){
         perror("send");
         return -1;
     }
