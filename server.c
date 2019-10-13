@@ -1,8 +1,9 @@
 /*
-** server_udp.c
-** Waits for clients to connect via a datagram socket, and sends them the local time
-** Made by Brian 'Beej Jorgensen' Hall
-** Modified by Gilles Henrard
+** server.c
+** Waits for clients to connect via a datagram/stream socket, and sends them the local time
+** -------------------------------------------------------
+** Based on Brian 'Beej Jorgensen' Hall's code
+** Made by Gilles Henrard
 ** Last modified : 13/10/2019
 */
 
@@ -15,35 +16,45 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
 
 int main(int argc, char *argv[])
 {
-    // any IP type, tcp by default, server's IP
+    // any IP type, tcp by default, any server's IP
     struct addrinfo hints={AI_PASSIVE, AF_UNSPEC, SOCK_STREAM, 0, 0, NULL, NULL, NULL};
-    struct addrinfo *servinfo=NULL;         // server address information
-	struct sockaddr_storage their_addr;     // client address information
+    struct addrinfo *servinfo = NULL;         // server address information
+	struct sockaddr_storage their_addr = {0}; // client address information
 	int loc_socket=0, rem_socket=0, ret=0, tcp=1;
 	socklen_t sin_size = sizeof(struct sockaddr_storage);
 	struct sigaction sa;
 	char s[INET6_ADDRSTRLEN];
-	char buffer[32] = {0};
+	char disposable = '0';
 
 	//checks if the port number has been provided
-	if (argc != 2 && argc != 3)
+	if (argc != 3)
 	{
-		fprintf(stderr,"usage: server port [udp]\n");
+		fprintf(stderr,"usage: server port tcp|udp\n");
 		exit(EXIT_FAILURE);
 	}
 
-	//set the socket type to datagram if udp has been requested
-	if(argc == 3 && !strcmp(argv[2], "udp"))
+	//set the socket type to datagram if udp is used
+	if(!strcmp(argv[2], "udp"))
 	{
         hints.ai_socktype = SOCK_DGRAM;
         tcp = 0;
+	}
+
+	//prepare main process for SIGCHLD signals
+	sa.sa_handler = sigchld_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	if (sigaction(SIGCHLD, &sa, NULL) == -1)
+	{
+		perror("server: sigaction");
+		exit(EXIT_FAILURE);
 	}
 
 	//format socket information and store it in list servinfo
 	if ((ret = getaddrinfo(NULL, argv[1], &hints, &servinfo)) != 0)
 	{
         fprintf(stderr, "server: getaddrinfo: %s\n", gai_strerror(ret));
-		return -1;
+		exit(EXIT_FAILURE);
     }
 
 	//create a local socket and handle any error
@@ -56,21 +67,11 @@ int main(int argc, char *argv[])
 	//listen to socket created, only if TCP connection
 	if (tcp && listen(loc_socket, BACKLOG) == -1)
 	{
-		perror("listen");
+		perror("server: listen");
 		exit(EXIT_FAILURE);
 	}
 
-	//prepare main process for SIGCHLD signals
-	sa.sa_handler = sigchld_handler;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-	if (sigaction(SIGCHLD, &sa, NULL) == -1)
-	{
-		perror("sigaction");
-		exit(EXIT_FAILURE);
-	}
-
-	printf("server: waiting for connections...\n");
+	printf("server: setup complete, waiting for connections...\n");
 
 	// main accept() loop
 	while(1)
@@ -84,29 +85,35 @@ int main(int argc, char *argv[])
                 perror("accept");
                 continue;
             }
-            socket_to_ip(&rem_socket, s, sizeof(s));
 		}
 		else
 		{
-            if ((ret = recvfrom(loc_socket, &buffer, 1, 0, (struct sockaddr *)&their_addr, &sin_size)) == -1)
+            //UDP connection
+            //wait for client to request a connection
+            if ((ret = recvfrom(loc_socket, &disposable, 1, 0, (struct sockaddr *)&their_addr, &sin_size)) == -1)
             {
                 perror("client: recvfrom");
                 continue;
             }
-            inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
 		}
 
+        //retrieve client's IP and store it in a buffer
+        inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
 		printf("server: got connection from %s\n", s);
 
 		//create subprocess for the child request
 		switch(fork()){
             case -1: //fork error
-                perror("fork");
+                perror("server: fork");
                 break;
 
             case 0: //child process
 
-                //process the request
+                // child doesn't need the listener in a TCP connection
+                if(tcp)
+                    close(loc_socket);
+
+                //process the request (remote socket if TCP, local socket if UDP)
                 if(process_childrequest((tcp ? rem_socket : loc_socket), &their_addr, tcp) == -1)
                 {
                     fprintf(stderr, "server: unable to process the request from %s", s);
@@ -114,7 +121,6 @@ int main(int argc, char *argv[])
                 }
 
                 //close connection socket and exit child process
-                close(loc_socket);
                 close(rem_socket);
                 exit(EXIT_SUCCESS);
                 break;
@@ -145,7 +151,9 @@ void sigchld_handler(/*int s*/)
 }
 
 /************************************************************************/
-/*  I : socket file descriptor of the requesting child                  */
+/*  I : socket file descriptor to which send the reply                  */
+/*      information about the client                                    */
+/*      flag determining the protocol (TCP or UDP)                      */
 /*  P : Handles the request received from a child                       */
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
@@ -154,14 +162,10 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
     time_t timer = {0};
     char buffer[32] = {0};
     struct tm* tm_info = {0};
-    int numbytes = 0;
-	socklen_t sin_size = sizeof(struct sockaddr_storage);
 
-    //get current time
+    //get current time, and format it in the buffer
     time(&timer);
     tm_info = localtime(&timer);
-
-    //format time with day, date, time and time zone
     strftime(buffer, sizeof(buffer), "%a %d-%m-%Y %H:%M:%S %Z", tm_info);
 
     //send message to child
@@ -169,15 +173,15 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
     {
         if (send(rem_sock, buffer, strlen(buffer), 0) == -1)
         {
-            perror("server: reply (TCP)");
+            perror("server: reply");
             return -1;
         }
     }
     else
     {
-        if ((numbytes = sendto(rem_sock, buffer, strlen(buffer), 0, (struct sockaddr *)their_addr, sin_size)) == -1)
+        if ((sendto(rem_sock, buffer, strlen(buffer), 0, (struct sockaddr *)their_addr, sizeof(struct sockaddr_storage))) == -1)
         {
-            perror("client: sendto");
+            perror("server: reply");
             return -1;
         }
     }

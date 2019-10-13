@@ -1,31 +1,34 @@
 /*
 ** client.c
-** Connects to a server via a stream socket and awaits for a reply with the local time
-** Made by Brian 'Beej Jorgensen' Hall
-** Modified by Gilles Henrard
+** Connects to a server via a stream/datagram socket and awaits for a reply with the local time
+** -------------------------------------------
+** Based on Brian 'Beej Jorgensen' Hall's code
+** Made by Gilles Henrard
+** Last modified : 13/10/2019
 */
+
 #include "global.h"
 #include "network.h"
 
 int main(int argc, char *argv[])
 {
-    // any IP type, tcp by default, server's IP
+    // any IP type, tcp by default, any client's IP
     struct addrinfo hints={AI_PASSIVE, AF_UNSPEC, SOCK_STREAM, 0, 0, NULL, NULL, NULL};
-    struct addrinfo *servinfo=NULL;
+    struct addrinfo *servinfo = NULL;
 	int sockfd=0, numbytes=0, ret=0;
 	char buf[MAXDATASIZE] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
 	char dummy = '0';
 
 	//checks if the hostname and the port number have been provided
-	if (argc!=3 && argc!=4)
+	if (argc!=4)
 	{
-		fprintf(stderr,"usage: client hostname port [udp]\n");
+		fprintf(stderr,"usage: client hostname port tcp|udp\n");
 		exit(EXIT_FAILURE);
 	}
 
-    //if specified, change the protocol to UDP
-    if(argc == 4 && !strcmp(argv[3], "udp"))
+    //set the socket type to datagram if udp is used
+    if(!strcmp(argv[3], "udp"))
     {
         hints.ai_socktype = SOCK_DGRAM;
     }
@@ -34,7 +37,7 @@ int main(int argc, char *argv[])
 	if ((ret = getaddrinfo(argv[1], argv[2], &hints, &servinfo)) != 0)
 	{
         fprintf(stderr, "client: getaddrinfo: %s\n", gai_strerror(ret));
-		return -1;
+		exit(EXIT_FAILURE);
     }
 
     //create the actual socket
@@ -51,16 +54,16 @@ int main(int argc, char *argv[])
     //server info list is not needed anymore
     freeaddrinfo(servinfo);
 
-    if (send(sockfd, &dummy, 1, 0) == -1)
+    if (!strcmp(argv[3], "udp") && send(sockfd, &dummy, 1, 0) == -1)
     {
         perror("client: send");
-        return -1;
+        exit(EXIT_FAILURE);
     }
 
     //receive message from the server
     if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1)
     {
-        perror("recv");
+        perror("client: recv");
         close(sockfd);
         exit(EXIT_FAILURE);
     }
