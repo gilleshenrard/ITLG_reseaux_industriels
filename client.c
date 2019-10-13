@@ -41,6 +41,8 @@ int main(int argc, char *argv[])
     }
 
     //create the actual socket
+    //if UDP is chosen, socket will be a connected datagram socket
+    //  see pg 32 of Beej's book
     ret = negociate_socket(servinfo, &sockfd, CONNECT);
     if(ret != 0){
         fprintf(stderr, "client: could not create a socket\n");
