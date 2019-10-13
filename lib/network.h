@@ -18,6 +18,4 @@
 void *get_in_addr(struct sockaddr *sa);
 int negociate_socket(struct addrinfo* sockinfo, int* sockfd, char ACTION);
 int socket_to_ip(int* fd, char* address, int address_len);
-int talk_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len);
-int reply_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len);
 #endif
