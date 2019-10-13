@@ -115,7 +115,7 @@ int socket_to_ip(int* fd, char* address, int address_len)
 /*  O : on success : 0                                                  */
 /*      on error : -1, and errno is set                                 */
 /************************************************************************/
-int send_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len){
+int talk_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len){
     struct addrinfo* p=NULL;
     int numbytes=0;
 
@@ -134,8 +134,43 @@ int send_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len){
             perror("client: recvfrom");
             return -1;
         }
+    }
 
-        printf("reply: %s\n", buffer);
+    if(p == NULL){
+        fprintf(stderr, "send_udp: no socket available\n");
+        return -1;
+    }
+
+    return numbytes;
+}
+
+
+/************************************************************************/
+/*  I : file descriptor of the socket of which to get the IP            */
+/*      buffer to fill with the IP address                              */
+/*      size of the buffer                                              */
+/*  P : recovers the IP address of a corresponding socket, and fills    */
+/*          a buffer                                                    */
+/*  O : on success : 0                                                  */
+/*      on error : -1, and errno is set                                 */
+/************************************************************************/
+int reply_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len){
+    struct addrinfo* p=NULL;
+    int numbytes=0;
+    char buf_tmp = '0';
+
+    printf("receiving dummy byte\n");
+    if ((numbytes = recvfrom(*sockfd, &buf_tmp, 1, 0, (struct sockaddr *)sockinfo->ai_addr, &sockinfo->ai_addrlen)) == -1)
+    {
+        perror("client: recvfrom");
+        return -1;
+    }
+
+    printf("sending reply\n");
+    if ((numbytes = sendto(*sockfd, buffer, buf_len, 0, (struct sockaddr *)sockinfo->ai_addr, sockinfo->ai_addrlen)) == -1)
+    {
+        perror("client: sendto");
+        return -1;
     }
 
     if(p == NULL){

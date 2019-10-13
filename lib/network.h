@@ -7,6 +7,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 
+#define NONE    0x00
 #define BIND    0x01
 #define CONNECT 0x02
 #define MULTI   0x04
@@ -17,5 +18,6 @@
 void *get_in_addr(struct sockaddr *sa);
 int negociate_socket(struct addrinfo* sockinfo, int* sockfd, char ACTION);
 int socket_to_ip(int* fd, char* address, int address_len);
-int send_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len);
+int talk_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len);
+int reply_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len);
 #endif

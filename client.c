@@ -50,7 +50,9 @@ int main(int argc, char *argv[])
     if(argc == 4 && !strcmp(argv[3], "udp"))
     {
         //UDP-based communication
-        send_udp(&sockfd, servinfo, buf, MAXDATASIZE);
+        // TO TEST : pg 32 of the PDF
+        //      -> connected datagram sockets, no need to use datagram-specific functions
+        talk_udp(&sockfd, servinfo, buf, MAXDATASIZE);
     }
     else
     {
