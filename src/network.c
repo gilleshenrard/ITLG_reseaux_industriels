@@ -155,7 +155,6 @@ int talk_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len){
 /*      on error : -1, and errno is set                                 */
 /************************************************************************/
 int reply_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len){
-    struct addrinfo* p=NULL;
     int numbytes=0;
     char buf_tmp = '0';
 
@@ -170,11 +169,6 @@ int reply_udp(int* sockfd, struct addrinfo* sockinfo, char* buffer, int buf_len)
     if ((numbytes = sendto(*sockfd, buffer, buf_len, 0, (struct sockaddr *)sockinfo->ai_addr, sockinfo->ai_addrlen)) == -1)
     {
         perror("client: sendto");
-        return -1;
-    }
-
-    if(p == NULL){
-        fprintf(stderr, "send_udp: no socket available\n");
         return -1;
     }
 

@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
 	int sockfd=0, numbytes=0, ret=0;
 	char buf[MAXDATASIZE] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
+	char dummy = '0';
 
 	//checks if the hostname and the port number have been provided
 	if (argc!=3 && argc!=4)
@@ -47,31 +48,25 @@ int main(int argc, char *argv[])
     socket_to_ip(&sockfd, s, sizeof(s));
     printf("client: connecting to %s\n", s);
 
-    if(argc == 4 && !strcmp(argv[3], "udp"))
+    //server info list is not needed anymore
+    freeaddrinfo(servinfo);
+
+    if (send(sockfd, &dummy, 1, 0) == -1)
     {
-        //UDP-based communication
-        // TO TEST : pg 32 of the PDF
-        //      -> connected datagram sockets, no need to use datagram-specific functions
-        talk_udp(&sockfd, servinfo, buf, MAXDATASIZE);
+        perror("client: send");
+        return -1;
     }
-    else
+
+    //receive message from the server
+    if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1)
     {
-        //TCP-based communication
+        perror("recv");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
 
-        //server info list is not needed anymore
-        freeaddrinfo(servinfo);
-
-        //receive message from the server
-        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1)
-        {
-            perror("recv");
-            close(sockfd);
-            exit(EXIT_FAILURE);
-        }
-
-        buf[numbytes] = '\0';
-        printf("client: received '%s'\n",buf);
-	}
+    buf[numbytes] = '\0';
+    printf("client: received '%s'\n",buf);
 
 	close(sockfd);
 	return 0;
