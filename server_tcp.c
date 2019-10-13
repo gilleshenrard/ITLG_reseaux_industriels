@@ -10,7 +10,7 @@
 #include "network.h"
 
 void sigchld_handler(/*int s*/);
-int process_childrequest(int rem_sock);
+int process_childrequest(int rem_sock, int argc, struct sockaddr_storage* client_sock);
 
 int main(int argc, char *argv[])
 {
@@ -24,14 +24,14 @@ int main(int argc, char *argv[])
 	char s[INET6_ADDRSTRLEN];
 
 	//checks if the port number have been provided
-	if (argc != 2)
+	if (argc != 2 && argc != 3)
 	{
 		fprintf(stderr,"usage: server port [udp]\n");
 		exit(EXIT_FAILURE);
 	}
 
     //if specified, change the protocol to UDP
-    if(argc == 3 && !strcmp(argv[3], "udp"))
+    if(argc == 3 && !strcmp(argv[2], "udp"))
     {
         hints.ai_socktype = SOCK_DGRAM;
     }
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
                 close(loc_socket); // child doesn't need the listener
 
                 //process the request
-                process_childrequest(rem_socket);
+                process_childrequest(rem_socket, argc, &their_addr);
 
                 //close connection socket and exit child process
                 close(rem_socket);
@@ -132,7 +132,7 @@ void sigchld_handler(/*int s*/)
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int process_childrequest(int rem_sock){
+int process_childrequest(int rem_sock, int argc, struct sockaddr_storage* client_sock){
     time_t timer = {0};
     char buffer[32] = {0};
     struct tm* tm_info = {0};
@@ -144,10 +144,22 @@ int process_childrequest(int rem_sock){
     //format time with day, date, time and time zone
     strftime(buffer, sizeof(buffer), "%a %d-%m-%Y %H:%M:%S %Z", tm_info);
 
-    //send message to child
-    if (send(rem_sock, buffer, strlen(buffer), 0) == -1){
-        perror("send");
-        return -1;
+    if(argc == 2)
+    {
+        //send message to child
+        if (send(rem_sock, buffer, strlen(buffer), 0) == -1)
+        {
+            perror("server: reply (TCP)");
+            return -1;
+        }
+    }
+    else
+    {
+        if(reply_udp(&rem_sock, (struct addrinfo*)client_sock, buffer, strlen(buffer)) == -1)
+        {
+            perror("server: reply (UDP)");
+            return -1;
+        }
     }
 
     return 0;
