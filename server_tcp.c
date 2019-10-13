@@ -1,8 +1,9 @@
 /*
-** server.c
+** server_tcp.c
 ** Waits for clients to connect via a stream socket, and sends them the local time
 ** Made by Brian 'Beej Jorgensen' Hall
 ** Modified by Gilles Henrard
+** Last modified : 13/10/2019
 */
 
 #include <time.h>
@@ -10,7 +11,7 @@
 #include "network.h"
 
 void sigchld_handler(/*int s*/);
-int process_childrequest(int rem_sock, int argc, struct sockaddr_storage* client_sock);
+int process_childrequest(int rem_sock);
 
 int main(int argc, char *argv[])
 {
@@ -24,17 +25,11 @@ int main(int argc, char *argv[])
 	char s[INET6_ADDRSTRLEN];
 
 	//checks if the port number have been provided
-	if (argc != 2 && argc != 3)
+	if (argc != 2)
 	{
-		fprintf(stderr,"usage: server port [udp]\n");
+		fprintf(stderr,"usage: server port\n");
 		exit(EXIT_FAILURE);
 	}
-
-    //if specified, change the protocol to UDP
-    if(argc == 3 && !strcmp(argv[2], "udp"))
-    {
-        hints.ai_socktype = SOCK_DGRAM;
-    }
 
 	//format socket information and store it in list servinfo
 	if ((ret = getaddrinfo(NULL, argv[1], &hints, &servinfo)) != 0)
@@ -94,7 +89,7 @@ int main(int argc, char *argv[])
                 close(loc_socket); // child doesn't need the listener
 
                 //process the request
-                process_childrequest(rem_socket, argc, &their_addr);
+                process_childrequest(rem_socket);
 
                 //close connection socket and exit child process
                 close(rem_socket);
@@ -132,7 +127,7 @@ void sigchld_handler(/*int s*/)
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int process_childrequest(int rem_sock, int argc, struct sockaddr_storage* client_sock){
+int process_childrequest(int rem_sock){
     time_t timer = {0};
     char buffer[32] = {0};
     struct tm* tm_info = {0};
@@ -144,22 +139,11 @@ int process_childrequest(int rem_sock, int argc, struct sockaddr_storage* client
     //format time with day, date, time and time zone
     strftime(buffer, sizeof(buffer), "%a %d-%m-%Y %H:%M:%S %Z", tm_info);
 
-    if(argc == 2)
+    //send message to child
+    if (send(rem_sock, buffer, strlen(buffer), 0) == -1)
     {
-        //send message to child
-        if (send(rem_sock, buffer, strlen(buffer), 0) == -1)
-        {
-            perror("server: reply (TCP)");
-            return -1;
-        }
-    }
-    else
-    {
-        if(reply_udp(&rem_sock, (struct addrinfo*)client_sock, buffer, strlen(buffer)) == -1)
-        {
-            perror("server: reply (UDP)");
-            return -1;
-        }
+        perror("server: reply (TCP)");
+        return -1;
     }
 
     return 0;
