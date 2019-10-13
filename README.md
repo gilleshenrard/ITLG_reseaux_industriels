@@ -16,6 +16,7 @@ The assignment is programmed in C98, compiled with GNU GCC.
 The code has been tested on :
 * client : Ubuntu 18.04 LTS Desktop version, directly on the host
 * Server : Ubuntu 18.04 LTS Server version, in a Virtualbox VM
+
 A host-only connection has been created to allow both machines to communicate.
 
 ### 3. Current features
