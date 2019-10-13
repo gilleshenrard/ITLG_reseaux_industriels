@@ -4,6 +4,7 @@
 ### 1. Intro
 This assignment aims to learn the basics of sockets programmation in C on UNIX-based systems by creating basic Daytime servers and clients.
 Two executables are created (client and server) and both can be configured to handle either TCP or UDP.
+
 Use :
 ```shell
 ./server port tcp|udp
@@ -12,6 +13,10 @@ Use :
 
 ### 2. Set up
 The assignment is programmed in C98, compiled with GNU GCC.
+The code has been tested on :
+* client : Ubuntu 18.04 LTS Desktop version, directly on the host
+* Server : Ubuntu 18.04 LTS Server version, in a Virtualbox VM
+A host-only connection has been created to allow both machines to communicate.
 
 ### 3. Current features
 * Network-related functions :
