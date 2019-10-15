@@ -87,7 +87,7 @@ int negociate_socket(struct addrinfo* sockinfo, int* sockfd, int sz_backlog, cha
     //no socket available
 	if (p == NULL)
 	{
-        fprintf(stderr, "no socket available\n");
+        fprintf(stderr, "negociation: no socket available\n");
 		return -1;
     }
 

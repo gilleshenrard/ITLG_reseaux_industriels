@@ -10,6 +10,8 @@
 #include "global.h"
 #include "network.h"
 
+void sigalrm_handler(/*int s*/);
+
 int main(int argc, char *argv[])
 {
     // any IP type, tcp by default, any client's IP
@@ -18,6 +20,7 @@ int main(int argc, char *argv[])
 	int sockfd=0, numbytes=0, ret=0;
 	char buf[MAXDATASIZE] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
+	struct sigaction sa = {0};
 	char dummy = '0';
 
 	//checks if the hostname and the port number have been provided
@@ -27,11 +30,25 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+    //prepare main process for SIGALRM signals
+	sa.sa_handler = sigalrm_handler;
+	sigemptyset(&sa.sa_mask);
+	sigaddset(&sa.sa_mask, SIGALRM);
+	sa.sa_flags = 0;
+	if (sigaction(SIGALRM, &sa, NULL) == -1)
+	{
+		perror("client: sigaction");
+		exit(EXIT_FAILURE);
+	}
+
     //set the socket type to datagram if udp is used
     if(!strcmp(argv[3], "udp"))
     {
         hints.ai_socktype = SOCK_DGRAM;
     }
+
+    //set connection timeout alarm
+    alarm(5);
 
 	//format socket information and store it in list servinfo
 	if ((ret = getaddrinfo(argv[1], argv[2], &hints, &servinfo)) != 0)
@@ -48,6 +65,9 @@ int main(int argc, char *argv[])
         fprintf(stderr, "client: could not create a socket\n");
         exit(EXIT_FAILURE);
     }
+
+    //stop connection timeout alarm
+    alarm(0);
 
     //notify the successful connection to the server
     socket_to_ip(&sockfd, s, sizeof(s));
@@ -75,4 +95,14 @@ int main(int argc, char *argv[])
 
 	close(sockfd);
 	return 0;
+}
+
+/************************************************************************/
+/*  I : signal number                                                   */
+/*  P : Quit program when getting a connection timeout                  */
+/*  O : /                                                               */
+/************************************************************************/
+void sigalrm_handler(/*int s*/)
+{
+    fprintf(stderr, "client: connection attempt timeout\n");
 }
