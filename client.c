@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     //prepare main process for SIGALRM signals
 	sa.sa_handler = sigalrm_handler;
 	sigemptyset(&sa.sa_mask);
-	sigaddset(&sa.sa_mask, SIGALRM);
+	//sigaddset(&sa.sa_mask, SIGALRM);
 	sa.sa_flags = 0;
 	if (sigaction(SIGALRM, &sa, NULL) == -1)
 	{
@@ -66,15 +66,13 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    //stop connection timeout alarm
+    //stop timeout alarm and free the server info list
     alarm(0);
+    freeaddrinfo(servinfo);
 
     //notify the successful connection to the server
     socket_to_ip(&sockfd, s, sizeof(s));
     printf("client: connecting to %s\n", s);
-
-    //server info list is not needed anymore
-    freeaddrinfo(servinfo);
 
     if (!strcmp(argv[3], "udp") && send(sockfd, &dummy, 1, 0) == -1)
     {
