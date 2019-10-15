@@ -27,6 +27,7 @@ void *get_in_addr(struct sockaddr *sa)
 /************************************************************************/
 /*  I : local socket information                                        */
 /*      file descriptor of the socket to be created                     */
+/*      size of the backlog (number of remote hosts which can connect)  */
 /*      additional action to perform (catenated with | operator)        */
 /*          MULTI   : make the socket able to reconnect if conn. exists */
 /*          BIND    : binds the socket to a port or a service           */
@@ -36,7 +37,7 @@ void *get_in_addr(struct sockaddr *sa)
 /*      on error : non-zero value, and either errno is set,             */
 /*                      or return value can be tested with gai_strerror */
 /************************************************************************/
-int negociate_socket(struct addrinfo* sockinfo, int* sockfd, char ACTION){
+int negociate_socket(struct addrinfo* sockinfo, int* sockfd, int sz_backlog, char ACTION){
     struct addrinfo *p=NULL;
     int yes=1;
 
@@ -55,6 +56,7 @@ int negociate_socket(struct addrinfo* sockinfo, int* sockfd, char ACTION){
             if (setsockopt(*sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
             {
                 perror("setsockopt");
+                close(*sockfd);
                 continue;
             }
 		}
@@ -64,6 +66,7 @@ int negociate_socket(struct addrinfo* sockinfo, int* sockfd, char ACTION){
             if (bind(*sockfd, p->ai_addr, p->ai_addrlen) == -1)
             {
                 perror("bind");
+                close(*sockfd);
                 continue;
             }
         }
@@ -73,6 +76,7 @@ int negociate_socket(struct addrinfo* sockinfo, int* sockfd, char ACTION){
             if (connect(*sockfd, p->ai_addr, p->ai_addrlen) == -1)
             {
                 perror("connect");
+                close(*sockfd);
                 continue;
             }
         }
@@ -83,8 +87,18 @@ int negociate_socket(struct addrinfo* sockinfo, int* sockfd, char ACTION){
     //no socket available
 	if (p == NULL)
 	{
-        fprintf(stderr, "no socket available");
+        fprintf(stderr, "no socket available\n");
 		return -1;
+    }
+
+    //listen to socket created
+    if(ACTION & LISTEN)
+    {
+        if (listen(*sockfd, sz_backlog) == -1)
+        {
+            perror("listen");
+            return -1;
+        }
     }
 
 	return 0;

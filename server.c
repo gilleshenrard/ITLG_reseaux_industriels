@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 	socklen_t sin_size = sizeof(struct sockaddr_storage);
 	struct sigaction sa;
 	char s[INET6_ADDRSTRLEN];
-	char disposable = '0';
+	char disposable = '0', actions = '0';
 
 	//checks if the port number has been provided
 	if (argc != 3)
@@ -58,18 +58,15 @@ int main(int argc, char *argv[])
     }
 
 	//create a local socket and handle any error
-    ret = negociate_socket(servinfo, &loc_socket, MULTI|BIND);
+	actions = (tcp ? MULTI|BIND|LISTEN : MULTI|BIND);
+    ret = negociate_socket(servinfo, &loc_socket, BACKLOG, actions);
     if(ret != 0){
         fprintf(stderr, "server: could not create a socket\n");
         exit(EXIT_FAILURE);
     }
 
-	//listen to socket created, only if TCP connection
-	if (tcp && listen(loc_socket, BACKLOG) == -1)
-	{
-		perror("server: listen");
-		exit(EXIT_FAILURE);
-	}
+    //server info list is not needed anymore
+    freeaddrinfo(servinfo);
 
 	printf("server: setup complete, waiting for connections...\n");
 
