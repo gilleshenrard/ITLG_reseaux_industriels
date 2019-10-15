@@ -88,6 +88,7 @@ int negociate_socket(struct addrinfo* sockinfo, int* sockfd, int sz_backlog, cha
 	if (p == NULL)
 	{
         fprintf(stderr, "negociation: no socket available\n");
+        close(*sockfd);
 		return -1;
     }
 
@@ -97,6 +98,7 @@ int negociate_socket(struct addrinfo* sockinfo, int* sockfd, int sz_backlog, cha
         if (listen(*sockfd, sz_backlog) == -1)
         {
             perror("listen");
+            close(*sockfd);
             return -1;
         }
     }
