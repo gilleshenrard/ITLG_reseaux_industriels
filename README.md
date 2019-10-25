@@ -1,8 +1,8 @@
 # Reseaux Industriels
-## Exercice 1
+## Exercice 2 - Echo server
 ---
 ### 1. Intro
-This assignment aims to learn the basics of sockets programmation in C on UNIX-based systems by creating basic Daytime servers and clients.
+This assignment aims to learn the basics of sockets programmation in C on UNIX-based systems by creating basic Echo servers and clients (RFC862).
 Two executables are created (client and server) and both can be configured to handle either TCP or UDP.
 
 Use :

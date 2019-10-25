@@ -1,10 +1,10 @@
 /*
 ** client.c
-** Connects to a server via a stream/datagram socket and awaits for a reply with the local time
+** Connects to a server via a stream/datagram socket, asks for a message and sends it to the echo server
 ** -------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 13/10/2019
+** Last modified : 25/10/2019
 */
 
 #include "global.h"
@@ -86,11 +86,15 @@ int main(int argc, char *argv[])
     printf("client: connecting to %s\n", s);
     printf("client: sending '%s' (size: %ld)\n", buf, strlen(buf));
 
-    if (!strcmp(argv[3], "udp") && send(sockfd, buf, strlen(buf), 0) == -1)
+    //send the message to the server
+    if (send(sockfd, buf, strlen(buf), 0) == -1)
     {
         perror("client: send");
         exit(EXIT_FAILURE);
     }
+
+    //wipe out the buffer
+    memset(buf, 0, MAXDATASIZE);
 
     //receive message from the server
     if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1)

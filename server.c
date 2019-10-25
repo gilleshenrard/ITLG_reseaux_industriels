@@ -1,17 +1,17 @@
 /*
 ** server.c
-** Waits for clients to connect via a datagram/stream socket, and sends them the local time
+** Waits for clients to connect via a datagram/stream socket, wait for a message from a client and echoes it
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 13/10/2019
+** Last modified : 25/10/2019
 */
 
 #include "global.h"
 #include "network.h"
 
 void sigchld_handler(/*int s*/);
-int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, void* buffer, long buffsize);
+int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, char* buffer);
 
 int main(int argc, char *argv[])
 {
@@ -92,12 +92,13 @@ int main(int argc, char *argv[])
                 perror("server: recvfrom");
                 continue;
             }
+
+            printf("server: client sent '%s'\n", buff_rcv);
 		}
 
         //retrieve client's IP and store it in a buffer
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
 		printf("server: got connection from %s\n", s);
-		printf("server: client sent '%s'\n", buff_rcv);
 
 		//create subprocess for the child request
 		switch(fork()){
@@ -112,7 +113,7 @@ int main(int argc, char *argv[])
                     close(loc_socket);
 
                 //process the request (remote socket if TCP, local socket if UDP)
-                if(process_childrequest((tcp ? rem_socket : loc_socket), &their_addr, tcp, (void*)buff_rcv, strlen(buff_rcv)) == -1)
+                if(process_childrequest((tcp ? rem_socket : loc_socket), &their_addr, tcp, buff_rcv) == -1)
                 {
                     fprintf(stderr, "server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
@@ -153,19 +154,28 @@ void sigchld_handler(/*int s*/)
 /*      information about the client                                    */
 /*      flag determining the protocol (TCP or UDP)                      */
 /*      buffer to send back to the client                               */
-/*      size of the buffer to send back                                 */
 /*  P : Handles the request received from a child                       */
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, void* buffer, long buffsize){
+int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, char* buffer){
+    int numbytes = 0;
 
-    printf("server: sending back '%s' (size %ld)\n", (char*)buffer, buffsize);
+    printf("server: processing request\n");
 
     //send message to child
     if(tcp)
     {
-        if (send(rem_sock, buffer, buffsize, 0) == -1)
+        //wait for a message from the client
+        if ((numbytes = recv(rem_sock, buffer, MAXDATASIZE-1, 0)) == -1)
+        {
+            perror("server: request");
+            return -1;
+        }
+		printf("server: client sent '%s'\n", buffer);
+
+		//send the reply
+        if (send(rem_sock, buffer, strlen(buffer), 0) == -1)
         {
             perror("server: reply");
             return -1;
@@ -173,13 +183,16 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
     }
     else
     {
-        if ((sendto(rem_sock, buffer, buffsize, 0, (struct sockaddr *)their_addr, sizeof(struct sockaddr_storage))) == -1)
+        //send the reply
+        if ((sendto(rem_sock, buffer, strlen(buffer), 0, (struct sockaddr *)their_addr, sizeof(struct sockaddr_storage))) == -1)
         {
             perror("server: reply");
             return -1;
         }
     }
 
+    //wipe out the buffer
+    memset(buffer, 0, MAXDATASIZE);
     printf("server: request processed\n");
     return 0;
 }
