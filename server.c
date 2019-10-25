@@ -7,12 +7,11 @@
 ** Last modified : 13/10/2019
 */
 
-#include <time.h>
 #include "global.h"
 #include "network.h"
 
 void sigchld_handler(/*int s*/);
-int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp);
+int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, void* buffer, long buffsize);
 
 int main(int argc, char *argv[])
 {
@@ -24,7 +23,8 @@ int main(int argc, char *argv[])
 	socklen_t sin_size = sizeof(struct sockaddr_storage);
 	struct sigaction sa;
 	char s[INET6_ADDRSTRLEN];
-	char disposable = '0', actions = '0';
+	char buff_rcv[MAXDATASIZE];
+	char actions = '0';
 
 	//checks if the port number has been provided
 	if (argc != 3)
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
             //wait for client to request a connection + create connection socket accordingly
             if ((rem_socket = accept(loc_socket, (struct sockaddr *)&their_addr, &sin_size)) == -1)
             {
-                perror("accept");
+                perror("server: accept");
                 continue;
             }
 		}
@@ -87,9 +87,9 @@ int main(int argc, char *argv[])
 		{
             //UDP connection
             //wait for client to request a connection
-            if ((ret = recvfrom(loc_socket, &disposable, 1, 0, (struct sockaddr *)&their_addr, &sin_size)) == -1)
+            if ((ret = recvfrom(loc_socket, &buff_rcv, MAXDATASIZE, 0, (struct sockaddr *)&their_addr, &sin_size)) == -1)
             {
-                perror("client: recvfrom");
+                perror("server: recvfrom");
                 continue;
             }
 		}
@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
         //retrieve client's IP and store it in a buffer
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
 		printf("server: got connection from %s\n", s);
+		printf("server: client sent '%s'\n", buff_rcv);
 
 		//create subprocess for the child request
 		switch(fork()){
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
                     close(loc_socket);
 
                 //process the request (remote socket if TCP, local socket if UDP)
-                if(process_childrequest((tcp ? rem_socket : loc_socket), &their_addr, tcp) == -1)
+                if(process_childrequest((tcp ? rem_socket : loc_socket), &their_addr, tcp, (void*)buff_rcv, strlen(buff_rcv)) == -1)
                 {
                     fprintf(stderr, "server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
@@ -151,24 +152,20 @@ void sigchld_handler(/*int s*/)
 /*  I : socket file descriptor to which send the reply                  */
 /*      information about the client                                    */
 /*      flag determining the protocol (TCP or UDP)                      */
+/*      buffer to send back to the client                               */
+/*      size of the buffer to send back                                 */
 /*  P : Handles the request received from a child                       */
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp){
-    time_t timer = {0};
-    char buffer[32] = {0};
-    struct tm* tm_info = {0};
+int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, void* buffer, long buffsize){
 
-    //get current time, and format it in the buffer
-    time(&timer);
-    tm_info = localtime(&timer);
-    strftime(buffer, sizeof(buffer), "%a %d-%m-%Y %H:%M:%S %Z", tm_info);
+    printf("server: sending back '%s' (size %ld)\n", (char*)buffer, buffsize);
 
     //send message to child
     if(tcp)
     {
-        if (send(rem_sock, buffer, strlen(buffer), 0) == -1)
+        if (send(rem_sock, buffer, buffsize, 0) == -1)
         {
             perror("server: reply");
             return -1;
@@ -176,7 +173,7 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
     }
     else
     {
-        if ((sendto(rem_sock, buffer, strlen(buffer), 0, (struct sockaddr *)their_addr, sizeof(struct sockaddr_storage))) == -1)
+        if ((sendto(rem_sock, buffer, buffsize, 0, (struct sockaddr *)their_addr, sizeof(struct sockaddr_storage))) == -1)
         {
             perror("server: reply");
             return -1;

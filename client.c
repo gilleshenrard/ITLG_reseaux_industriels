@@ -21,7 +21,6 @@ int main(int argc, char *argv[])
 	char buf[MAXDATASIZE] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
 	struct sigaction sa = {0};
-	char dummy = '0';
 
 	//checks if the hostname and the port number have been provided
 	if (argc!=4)
@@ -70,11 +69,24 @@ int main(int argc, char *argv[])
     alarm(0);
     freeaddrinfo(servinfo);
 
+    printf("Entrez le message a envoyer au serveur : ");
+    if(fgets(buf, MAXDATASIZE, stdin) == NULL)
+    {
+        fflush(stdin);
+        fprintf(stderr, "client: error while getting the message\n");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+    if(buf[strlen(buf)-1] == '\n')
+        buf[strlen(buf)-1] = '\0';
+    fflush(stdin);
+
     //notify the successful connection to the server
     socket_to_ip(&sockfd, s, sizeof(s));
     printf("client: connecting to %s\n", s);
+    printf("client: sending '%s' (size: %ld)\n", buf, strlen(buf));
 
-    if (!strcmp(argv[3], "udp") && send(sockfd, &dummy, 1, 0) == -1)
+    if (!strcmp(argv[3], "udp") && send(sockfd, buf, strlen(buf), 0) == -1)
     {
         perror("client: send");
         exit(EXIT_FAILURE);
@@ -92,7 +104,7 @@ int main(int argc, char *argv[])
     printf("client: received '%s'\n",buf);
 
 	close(sockfd);
-	return 0;
+	exit(EXIT_SUCCESS);
 }
 
 /************************************************************************/
