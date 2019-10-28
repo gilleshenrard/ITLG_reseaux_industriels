@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
 
 	//create a local socket and handle any error
 	actions = (tcp ? MULTI|BIND|LISTEN : MULTI|BIND);
-    ret = negociate_socket(servinfo, &loc_socket, BACKLOG, actions);
-    if(ret != 0){
+    loc_socket = negociate_socket(servinfo, BACKLOG, actions);
+    if(loc_socket == -1){
         fprintf(stderr, "server: could not create a socket\n");
         exit(EXIT_FAILURE);
     }

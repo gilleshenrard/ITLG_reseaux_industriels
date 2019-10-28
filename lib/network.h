@@ -17,6 +17,6 @@
 #define UDP     0x02
 
 void *get_in_addr(struct sockaddr *sa);
-int negociate_socket(struct addrinfo* sockinfo, int* sockfd, int sz_backlog, char ACTION);
+int negociate_socket(struct addrinfo* sockinfo, int sz_backlog, char ACTION);
 int socket_to_ip(int* fd, char* address, int address_len);
 #endif

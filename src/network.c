@@ -26,26 +26,24 @@ void *get_in_addr(struct sockaddr *sa)
 
 /************************************************************************/
 /*  I : local socket information                                        */
-/*      file descriptor of the socket to be created                     */
 /*      size of the backlog (number of remote hosts which can connect)  */
 /*      additional action to perform (catenated with | operator)        */
 /*          MULTI   : make the socket able to reconnect if conn. exists */
 /*          BIND    : binds the socket to a port or a service           */
 /*          CONNECT : initiates a connection on the socket              */
 /*  P : creates a socket with the desired values and flags              */
-/*  O : on success : 0                                                  */
-/*      on error : non-zero value, and either errno is set,             */
-/*                      or return value can be tested with gai_strerror */
+/*  O : on success : socket file descriptor                             */
+/*      on error : non-zero value, and errno is set                     */
 /************************************************************************/
-int negociate_socket(struct addrinfo* sockinfo, int* sockfd, int sz_backlog, char ACTION){
+int negociate_socket(struct addrinfo* sockinfo, int sz_backlog, char ACTION){
     struct addrinfo *p=NULL;
-    int yes=1;
+    int sockfd=0, yes=1;
 
 	//take the first solution available
     for (p = sockinfo; p != NULL; p = p->ai_next)
 	{
         //generate a socket file descriptor
-		if ((*sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+		if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
 		{
             perror("socket");
 			continue;
@@ -53,30 +51,30 @@ int negociate_socket(struct addrinfo* sockinfo, int* sockfd, int sz_backlog, cha
 
 		//allow reconnections on the socket if still allocated in kernel
 		if (ACTION & MULTI){
-            if (setsockopt(*sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+            if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
             {
                 perror("setsockopt");
-                close(*sockfd);
+                close(sockfd);
                 continue;
             }
 		}
 
 		//bind the socket to the desired port (useful in a server)
 		if (ACTION & BIND){
-            if (bind(*sockfd, p->ai_addr, p->ai_addrlen) == -1)
+            if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
             {
                 perror("bind");
-                close(*sockfd);
+                close(sockfd);
                 continue;
             }
         }
 
         //connect to the server via the socket created
         if (ACTION & CONNECT){
-            if (connect(*sockfd, p->ai_addr, p->ai_addrlen) == -1)
+            if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1)
             {
                 perror("connect");
-                close(*sockfd);
+                close(sockfd);
                 continue;
             }
         }
@@ -88,22 +86,22 @@ int negociate_socket(struct addrinfo* sockinfo, int* sockfd, int sz_backlog, cha
 	if (p == NULL)
 	{
         fprintf(stderr, "negociation: no socket available\n");
-        close(*sockfd);
+        close(sockfd);
 		return -1;
     }
 
     //listen to socket created
     if(ACTION & LISTEN)
     {
-        if (listen(*sockfd, sz_backlog) == -1)
+        if (listen(sockfd, sz_backlog) == -1)
         {
             perror("listen");
-            close(*sockfd);
+            close(sockfd);
             return -1;
         }
     }
 
-	return 0;
+	return sockfd;
 }
 
 /************************************************************************/
