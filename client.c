@@ -23,9 +23,9 @@ int main(int argc, char *argv[])
 	struct sigaction sa = {0};
 
 	//checks if the hostname and the port number have been provided
-	if (argc!=4)
+	if (argc!=4 && argc!=5)
 	{
-		fprintf(stderr,"usage: client hostname port tcp|udp\n");
+		fprintf(stderr,"usage: client hostname port tcp|udp [message]\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -69,17 +69,25 @@ int main(int argc, char *argv[])
     alarm(0);
     freeaddrinfo(servinfo);
 
-    printf("Entrez le message a envoyer au serveur : ");
-    if(fgets(buf, MAXDATASIZE, stdin) == NULL)
+    //make the user type the message if not specified in program argument
+    if(argc == 4)
     {
+        printf("Entrez le message a envoyer au serveur : ");
+        if(fgets(buf, MAXDATASIZE, stdin) == NULL)
+        {
+            fflush(stdin);
+            fprintf(stderr, "client: error while getting the message\n");
+            close(sockfd);
+            exit(EXIT_FAILURE);
+        }
+        if(buf[strlen(buf)-1] == '\n')
+            buf[strlen(buf)-1] = '\0';
         fflush(stdin);
-        fprintf(stderr, "client: error while getting the message\n");
-        close(sockfd);
-        exit(EXIT_FAILURE);
     }
-    if(buf[strlen(buf)-1] == '\n')
-        buf[strlen(buf)-1] = '\0';
-    fflush(stdin);
+    else
+    {
+        strcpy(buf, argv[4]);
+    }
 
     //notify the successful connection to the server
     socket_to_ip(&sockfd, s, sizeof(s));
