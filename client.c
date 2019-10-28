@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
     }
 
     buf[numbytes] = '\0';
-    printf("client: received '%s'\n",buf);
+    printf("client: received '%s' (size: %ld) from the server\n", buf, strlen(buf));
 
 	close(sockfd);
 	exit(EXIT_SUCCESS);

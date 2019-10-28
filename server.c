@@ -160,8 +160,11 @@ void sigchld_handler(/*int s*/)
 /************************************************************************/
 int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, char* buffer){
     int numbytes = 0;
+    char child_addr[INET6_ADDRSTRLEN] = {0};
 
-    printf("server: processing request\n");
+    //retrieve client's information
+    inet_ntop(their_addr->ss_family, get_in_addr((struct sockaddr *)their_addr), child_addr, sizeof child_addr);
+    printf("server: %s -> processing request\n", child_addr);
 
     //send message to child
     if(tcp)
@@ -172,7 +175,7 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
             perror("server: request");
             return -1;
         }
-		printf("server: client sent '%s'\n", buffer);
+		printf("server: %s -> sent '%s' (size : %ld)\n", child_addr, buffer, strlen(buffer));
 
 		//send the reply
         if (send(rem_sock, buffer, strlen(buffer), 0) == -1)
@@ -193,6 +196,6 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
 
     //wipe out the buffer
     memset(buffer, 0, MAXDATASIZE);
-    printf("server: request processed\n");
+    printf("server: %s -> request processed\n", child_addr);
     return 0;
 }
