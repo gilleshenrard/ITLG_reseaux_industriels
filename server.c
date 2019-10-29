@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 {
     // any IP type, tcp by default, any server's IP
     struct addrinfo hints={AI_PASSIVE, AF_UNSPEC, SOCK_STREAM, 0, 0, NULL, NULL, NULL};
-    struct addrinfo *servinfo = NULL, *p = NULL;         // server address information
+    struct addrinfo *servinfo = NULL;         // server address information
 	struct sockaddr_storage their_addr = {0}; // client address information
 	int loc_socket=0, rem_socket=0, ret=0, tcp=1;
 	socklen_t sin_size = sizeof(struct sockaddr_storage);
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 	//checks if the port number has been provided
 	if (argc != 3)
 	{
-		print_error("usage: server port tcp|udp", 0);
+		print_error("usage: server port tcp|udp");
 		exit(EXIT_FAILURE);
 	}
 
@@ -60,22 +60,10 @@ int main(int argc, char *argv[])
 
 	//create a local socket and handle any error
 	actions = (tcp ? MULTI|BIND|LISTEN : MULTI|BIND);
-	for (p = servinfo; p != NULL; p = p->ai_next){
-        loc_socket = negociate_socket(p, BACKLOG, actions);
-        if(loc_socket == -1){
-            print_error("server: negotiate_socket", strerror(errno));
-            //perror("server: negociate_socket");
-            continue;
-        }
-        break;
-    }
-
-    //no socket available
-	if (p == NULL)
-	{
-        fprintf(stderr, "negociation: no socket available\n");
-        close(loc_socket);
-		exit(EXIT_FAILURE);
+    loc_socket = negociate_socket(servinfo, BACKLOG, actions, print_success, print_error);
+    if(loc_socket == -1){
+        print_error("server: unable to create a socket");
+        exit(EXIT_FAILURE);
     }
 
     //server info list is not needed anymore

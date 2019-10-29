@@ -54,10 +54,6 @@ void print_error(char* msg, ...)
     fprintf(stderr, "\033[1;%dm%s\033[0m\n", RED, final_msg);
 
     va_end(arg);
-
-    //strcpy(final_msg, msg);
-
-    //fprintf(stderr, "\033[1;31m%s\033[0m\n", final_msg);
 }
 
 

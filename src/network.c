@@ -35,36 +35,64 @@ void *get_in_addr(struct sockaddr *sa)
 /*  O : on success : socket file descriptor                             */
 /*      on error : -1, and errno is set                                 */
 /************************************************************************/
-int negociate_socket(struct addrinfo* sockinfo, int sz_backlog, char ACTION){
-    int sockfd=0, yes=1;
+int negociate_socket(struct addrinfo* sockinfo, int sz_backlog, char ACTION, void (*on_success)(char*, ...), void (*on_error)(char*, ...)){
+    struct addrinfo* p = NULL;
+    int sockfd = 0, yes=1;
 
-    //generate a socket file descriptor
-    if ((sockfd = socket(sockinfo->ai_family, sockinfo->ai_socktype, sockinfo->ai_protocol)) == -1)
-        return -1;
+    for (p = sockinfo; p != NULL; p = p->ai_next)
+    {
+        //generate a socket file descriptor
+        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
+            (*on_error)("socket: %s", strerror(errno));
+            continue;
+        }
 
-    //allow reconnections on the socket if still allocated in kernel
-    if (ACTION & MULTI){
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
-            return -1;
+        //allow reconnections on the socket if still allocated in kernel
+        if (ACTION & MULTI){
+            if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1){
+                (*on_error)("setsockopt: %s", strerror(errno));
+                close(sockfd);
+                continue;
+            }
+        }
+
+        //bind the socket to the desired port (useful in a server)
+        if (ACTION & BIND){
+            if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1){
+                (*on_error)("bind: %s", strerror(errno));
+                close(sockfd);
+                continue;
+            }
+        }
+
+        //connect to the server via the socket created
+        if (ACTION & CONNECT){
+            if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1){
+                (*on_error)("connect: %s", strerror(errno));
+                close(sockfd);
+                continue;
+            }
+        }
+
+        break;
     }
 
-    //bind the socket to the desired port (useful in a server)
-    if (ACTION & BIND){
-        if (bind(sockfd, sockinfo->ai_addr, sockinfo->ai_addrlen) == -1)
-            return -1;
-    }
-
-    //connect to the server via the socket created
-    if (ACTION & CONNECT){
-        if (connect(sockfd, sockinfo->ai_addr, sockinfo->ai_addrlen) == -1)
-            return -1;
+    //no socket available
+	if (p == NULL)
+	{
+        (*on_error)("negociation: no socket available");
+        close(sockfd);
+		return -1;
     }
 
     //listen to socket created
     if(ACTION & LISTEN)
     {
-        if (listen(sockfd, sz_backlog) == -1)
+        if (listen(sockfd, sz_backlog) == -1){
+            (*on_error)("listen: %s", strerror(errno));
+            close(sockfd);
             return -1;
+        }
     }
 
 	return sockfd;
