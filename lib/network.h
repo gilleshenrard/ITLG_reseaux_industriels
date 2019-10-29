@@ -1,11 +1,10 @@
 #ifndef NETWORK_ITLG_INCLUDED
 #define NETWORK_ITLG_INCLUDED
 #include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
 #include <arpa/inet.h>
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
 
 #define NONE    0x00
 #define BIND    0x01
@@ -13,10 +12,9 @@
 #define MULTI   0x04
 #define LISTEN  0x08
 
-#define TCP     0x01
-#define UDP     0x02
+#define BACKLOG 10 // how many pending connections queue will hold
 
 void *get_in_addr(struct sockaddr *sa);
-int negociate_socket(struct addrinfo* sockinfo, int sz_backlog, char ACTION);
+int negociate_socket(char* host, char* service, struct addrinfo* hints, char ACTION, void (*on_success)(char*, ...), void (*on_error)(char*, ...));
 int socket_to_ip(int* fd, char* address, int address_len);
 #endif

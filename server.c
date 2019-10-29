@@ -4,11 +4,12 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 28/10/2019
+** Last modified : 29/10/2019
 */
 
 #include "global.h"
 #include "network.h"
+#include "screen.h"
 
 void sigchld_handler(/*int s*/);
 int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, char* buffer);
@@ -17,7 +18,6 @@ int main(int argc, char *argv[])
 {
     // any IP type, tcp by default, any server's IP
     struct addrinfo hints={AI_PASSIVE, AF_UNSPEC, SOCK_STREAM, 0, 0, NULL, NULL, NULL};
-    struct addrinfo *servinfo = NULL;         // server address information
 	struct sockaddr_storage their_addr = {0}; // client address information
 	int loc_socket=0, rem_socket=0, ret=0, tcp=1;
 	socklen_t sin_size = sizeof(struct sockaddr_storage);
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	//checks if the port number has been provided
 	if (argc != 3)
 	{
-		fprintf(stderr,"usage: server port tcp|udp\n");
+		print_error("usage: server port tcp|udp");
 		exit(EXIT_FAILURE);
 	}
 
@@ -46,29 +46,19 @@ int main(int argc, char *argv[])
 	sa.sa_flags = SA_RESTART;
 	if (sigaction(SIGCHLD, &sa, NULL) == -1)
 	{
-		perror("server: sigaction");
+		print_error("server: sigaction: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
-	//format socket information and store it in list servinfo
-	if ((ret = getaddrinfo(NULL, argv[1], &hints, &servinfo)) != 0)
-	{
-        fprintf(stderr, "server: getaddrinfo: %s\n", gai_strerror(ret));
-		exit(EXIT_FAILURE);
-    }
-
 	//create a local socket and handle any error
 	actions = (tcp ? MULTI|BIND|LISTEN : MULTI|BIND);
-    loc_socket = negociate_socket(servinfo, BACKLOG, actions);
+    loc_socket = negociate_socket(NULL, argv[1], &hints, actions, print_success, print_error);
     if(loc_socket == -1){
-        fprintf(stderr, "server: could not create a socket\n");
+        print_error("server: unable to create a socket");
         exit(EXIT_FAILURE);
     }
 
-    //server info list is not needed anymore
-    freeaddrinfo(servinfo);
-
-	printf("server: setup complete, waiting for connections...\n");
+	print_success("server: setup complete, waiting for connections...");
 
 	// main accept() loop
 	while(1)
@@ -79,7 +69,7 @@ int main(int argc, char *argv[])
             //wait for client to request a connection + create connection socket accordingly
             if ((rem_socket = accept(loc_socket, (struct sockaddr *)&their_addr, &sin_size)) == -1)
             {
-                perror("server: accept");
+                print_error("server: accept: %s", strerror(errno));
                 continue;
             }
 		}
@@ -89,7 +79,7 @@ int main(int argc, char *argv[])
             //wait for client to request a connection
             if ((ret = recvfrom(loc_socket, &buff_rcv, MAXDATASIZE, 0, (struct sockaddr *)&their_addr, &sin_size)) == -1)
             {
-                perror("server: recvfrom");
+                print_error("server: recvfrom: %s", strerror(errno));
                 continue;
             }
 
@@ -103,7 +93,7 @@ int main(int argc, char *argv[])
 		//create subprocess for the child request
 		switch(fork()){
             case -1: //fork error
-                perror("server: fork");
+                print_error("server: fork:", strerror(errno));
                 break;
 
             case 0: //child process
@@ -115,7 +105,7 @@ int main(int argc, char *argv[])
                 //process the request (remote socket if TCP, local socket if UDP)
                 if(process_childrequest((tcp ? rem_socket : loc_socket), &their_addr, tcp, buff_rcv) == -1)
                 {
-                    fprintf(stderr, "server: unable to process the request from %s", s);
+                    print_error("server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
                 }
 
@@ -172,7 +162,7 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
         //wait for a message from the client
         if ((numbytes = recv(rem_sock, buffer, MAXDATASIZE-1, 0)) == -1)
         {
-            perror("server: request");
+            print_error("server: recv: %s", strerror(errno));
             return -1;
         }
 		printf("server: %s -> sent '%s' (size : %ld)\n", child_addr, buffer, strlen(buffer));
@@ -180,7 +170,7 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
 		//send the reply
         if (send(rem_sock, buffer, strlen(buffer), 0) == -1)
         {
-            perror("server: reply");
+            print_error("server: send: %s", strerror(errno));
             return -1;
         }
     }
@@ -189,13 +179,13 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
         //send the reply
         if ((sendto(rem_sock, buffer, strlen(buffer), 0, (struct sockaddr *)their_addr, sizeof(struct sockaddr_storage))) == -1)
         {
-            perror("server: reply");
+            print_error("server: sendto: %s", strerror(errno));
             return -1;
         }
     }
 
     //wipe out the buffer
     memset(buffer, 0, MAXDATASIZE);
-    printf("server: %s -> request processed\n", child_addr);
+    print_success("server: %s -> request processed\n", child_addr);
     return 0;
 }
