@@ -33,7 +33,7 @@ void *get_in_addr(struct sockaddr *sa)
 /*          CONNECT : initiates a connection on the socket              */
 /*  P : creates a socket with the desired values and flags              */
 /*  O : on success : socket file descriptor                             */
-/*      on error : non-zero value, and errno is set                     */
+/*      on error : -1, and errno is set                                 */
 /************************************************************************/
 int negociate_socket(struct addrinfo* sockinfo, int sz_backlog, char ACTION){
     int sockfd=0, yes=1;

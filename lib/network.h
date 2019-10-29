@@ -1,10 +1,6 @@
 #ifndef NETWORK_ITLG_INCLUDED
 #define NETWORK_ITLG_INCLUDED
 #include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
 #include <arpa/inet.h>
 
 #define NONE    0x00

@@ -7,6 +7,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once
 #define BACKLOG 10 // how many pending connections queue will hold
