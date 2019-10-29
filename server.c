@@ -9,6 +9,7 @@
 
 #include "global.h"
 #include "network.h"
+#include "screen.h"
 
 void sigchld_handler(/*int s*/);
 int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, char* buffer);
@@ -29,7 +30,7 @@ int main(int argc, char *argv[])
 	//checks if the port number has been provided
 	if (argc != 3)
 	{
-		fprintf(stderr,"usage: server port tcp|udp\n");
+		print_error("usage: server port tcp|udp", 0);
 		exit(EXIT_FAILURE);
 	}
 
@@ -62,7 +63,8 @@ int main(int argc, char *argv[])
 	for (p = servinfo; p != NULL; p = p->ai_next){
         loc_socket = negociate_socket(p, BACKLOG, actions);
         if(loc_socket == -1){
-            perror("server: negociate_socket");
+            print_error("server: negotiate_socket", 1);
+            //perror("server: negociate_socket");
             continue;
         }
         break;
@@ -79,7 +81,7 @@ int main(int argc, char *argv[])
     //server info list is not needed anymore
     freeaddrinfo(servinfo);
 
-	printf("server: setup complete, waiting for connections...\n");
+	print_success("server: setup complete, waiting for connections...");
 
 	// main accept() loop
 	while(1)

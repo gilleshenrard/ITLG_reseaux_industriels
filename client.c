@@ -9,6 +9,7 @@
 
 #include "global.h"
 #include "network.h"
+#include "screen.h"
 
 void sigalrm_handler(/*int s*/);
 
