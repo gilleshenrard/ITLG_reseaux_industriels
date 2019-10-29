@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	for (p = servinfo; p != NULL; p = p->ai_next){
         loc_socket = negociate_socket(p, BACKLOG, actions);
         if(loc_socket == -1){
-            print_error("server: negotiate_socket", 1);
+            print_error("server: negotiate_socket", strerror(errno));
             //perror("server: negociate_socket");
             continue;
         }

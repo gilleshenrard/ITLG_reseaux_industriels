@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <stdarg.h>
 
 #define RED     31
 #define GREEN   32
@@ -16,7 +17,7 @@
 
 void setcolour(int foreground, int style);
 void resetcolour();
-void print_success(char* msg);
-void print_error(char* msg, int errno_set);
+void print_success(char* msg, ...);
+void print_error(char* msg, ...);
 
 #endif // SCREEN_H_INCLUDED
