@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 {
     // any IP type, tcp by default, any server's IP
     struct addrinfo hints={AI_PASSIVE, AF_UNSPEC, SOCK_STREAM, 0, 0, NULL, NULL, NULL};
-    struct addrinfo *servinfo = NULL;         // server address information
+    struct addrinfo *servinfo = NULL, *p = NULL;         // server address information
 	struct sockaddr_storage their_addr = {0}; // client address information
 	int loc_socket=0, rem_socket=0, ret=0, tcp=1;
 	socklen_t sin_size = sizeof(struct sockaddr_storage);
@@ -59,10 +59,21 @@ int main(int argc, char *argv[])
 
 	//create a local socket and handle any error
 	actions = (tcp ? MULTI|BIND|LISTEN : MULTI|BIND);
-    loc_socket = negociate_socket(servinfo, BACKLOG, actions);
-    if(loc_socket == -1){
-        fprintf(stderr, "server: could not create a socket\n");
-        exit(EXIT_FAILURE);
+	for (p = servinfo; p != NULL; p = p->ai_next){
+        loc_socket = negociate_socket(p, BACKLOG, actions);
+        if(loc_socket == -1){
+            perror("server: negociate_socket");
+            continue;
+        }
+        break;
+    }
+
+    //no socket available
+	if (p == NULL)
+	{
+        fprintf(stderr, "negociation: no socket available\n");
+        close(loc_socket);
+		exit(EXIT_FAILURE);
     }
 
     //server info list is not needed anymore

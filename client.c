@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 {
     // any IP type, tcp by default, any client's IP
     struct addrinfo hints={AI_PASSIVE, AF_UNSPEC, SOCK_STREAM, 0, 0, NULL, NULL, NULL};
-    struct addrinfo *servinfo = NULL;
+    struct addrinfo *servinfo = NULL, *p = NULL;
 	int sockfd=0, numbytes=0, ret=0;
 	char buf[MAXDATASIZE] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
@@ -59,10 +59,21 @@ int main(int argc, char *argv[])
     //create the actual socket
     //if UDP is chosen, socket will be a connected datagram socket
     //  see pg 32 of Beej's book
-    sockfd = negociate_socket(servinfo, 0, CONNECT);
-    if(sockfd == -1){
-        fprintf(stderr, "client: could not create a socket\n");
-        exit(EXIT_FAILURE);
+    for (p = servinfo; p != NULL; p = p->ai_next){
+        sockfd = negociate_socket(p, 0, CONNECT);
+        if(sockfd == -1){
+            perror("client: negociate_socket");
+            continue;
+        }
+        break;
+    }
+
+    //no socket available
+	if (p == NULL)
+	{
+        fprintf(stderr, "negociation: no socket available\n");
+        close(sockfd);
+		exit(EXIT_FAILURE);
     }
 
     //stop timeout alarm and free the server info list
