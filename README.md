@@ -29,9 +29,18 @@ The code is edited and compiled in a directory shared with both guests, so it is
 * Network-related functions :
 ```C
 void *get_in_addr(struct sockaddr *sa);
-int negociate_socket(struct addrinfo* sockinfo, int* sockfd, char ACTION);
+int negociate_socket(char* host, char* service, struct addrinfo* hints, char ACTION, void (*on_success)(char*, ...), void (*on_error)(char*, ...));
 int socket_to_ip(int* fd, char* address, int address_len);
 ```
+
+* Screen-related functions :
+```C
+void setcolour(int foreground, int style);
+void resetcolour();
+void print_success(char* msg, ...);
+void print_error(char* msg, ...);
+```
+
 A bash script has been made to execute and test possible errors
 
 ### 4. Currently implemented in the final assignment
