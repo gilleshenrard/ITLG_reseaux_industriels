@@ -1,8 +1,6 @@
 #ifndef SCREEN_H_INCLUDED
 #define SCREEN_H_INCLUDED
 #include <stdio.h>
-#include <string.h>
-#include <errno.h>
 #include <stdarg.h>
 
 #define RED     31
@@ -14,6 +12,8 @@
 
 #define NORMAL  0
 #define BOLD    1
+
+#define SZLINE  128
 
 void setcolour(int foreground, int style);
 void resetcolour();

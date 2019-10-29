@@ -25,21 +25,33 @@ void *get_in_addr(struct sockaddr *sa)
 }
 
 /************************************************************************/
-/*  I : local socket information                                        */
-/*      size of the backlog (number of remote hosts which can connect)  */
+/*  I : host to link to the socket                                      */
+/*      service to link to the socket                                   */
+/*      local socket information                                        */
 /*      additional action to perform (catenated with | operator)        */
 /*          MULTI   : make the socket able to reconnect if conn. exists */
 /*          BIND    : binds the socket to a port or a service           */
 /*          CONNECT : initiates a connection on the socket              */
-/*  P : creates a socket with the desired values and flags              */
+/*          LISTEN  : listens to any connection on the specified port   */
+/*      function to print success messages                              */
+/*      function to print error messages                                */
+/*  P : creates a socket with the desired values (100 clients max)      */
 /*  O : on success : socket file descriptor                             */
 /*      on error : -1, and errno is set                                 */
 /************************************************************************/
-int negociate_socket(struct addrinfo* sockinfo, int sz_backlog, char ACTION, void (*on_success)(char*, ...), void (*on_error)(char*, ...)){
-    struct addrinfo* p = NULL;
-    int sockfd = 0, yes=1;
+int negociate_socket(char* host, char* service, struct addrinfo* hints, char ACTION, void (*on_success)(char*, ...), void (*on_error)(char*, ...)){
+    struct addrinfo *p = NULL, *servinfo = NULL;
+    int sockfd = 0, yes=1, ret=0;
 
-    for (p = sockinfo; p != NULL; p = p->ai_next)
+    //format socket information and store it in list servinfo
+	if ((ret = getaddrinfo(host, service , hints, &servinfo)) != 0)
+	{
+        (*on_error)("getaddrinfo: %s", gai_strerror(ret));
+		return -1;
+    }
+
+    //find the first socket available on all net interfaces
+    for (p = servinfo; p != NULL; p = p->ai_next)
     {
         //generate a socket file descriptor
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
@@ -85,10 +97,13 @@ int negociate_socket(struct addrinfo* sockinfo, int sz_backlog, char ACTION, voi
 		return -1;
     }
 
+    //socket info list is not needed anymore
+    freeaddrinfo(servinfo);
+
     //listen to socket created
     if(ACTION & LISTEN)
     {
-        if (listen(sockfd, sz_backlog) == -1){
+        if (listen(sockfd, BACKLOG) == -1){
             (*on_error)("listen: %s", strerror(errno));
             close(sockfd);
             return -1;

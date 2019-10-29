@@ -17,8 +17,7 @@ int main(int argc, char *argv[])
 {
     // any IP type, tcp by default, any client's IP
     struct addrinfo hints={AI_PASSIVE, AF_UNSPEC, SOCK_STREAM, 0, 0, NULL, NULL, NULL};
-    struct addrinfo *servinfo = NULL, *p = NULL;
-	int sockfd=0, numbytes=0, ret=0;
+	int sockfd=0, numbytes=0;
 	char buf[MAXDATASIZE] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
 	struct sigaction sa = {0};
@@ -26,7 +25,7 @@ int main(int argc, char *argv[])
 	//checks if the hostname and the port number have been provided
 	if (argc!=4 && argc!=5)
 	{
-		fprintf(stderr,"usage: client hostname port tcp|udp [message]\n");
+        print_error("usage: client hostname port tcp|udp [message]");
 		exit(EXIT_FAILURE);
 	}
 
@@ -37,7 +36,7 @@ int main(int argc, char *argv[])
 	sa.sa_flags = 0;
 	if (sigaction(SIGALRM, &sa, NULL) == -1)
 	{
-		perror("client: sigaction");
+        print_error("client: sigaction: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
@@ -50,36 +49,17 @@ int main(int argc, char *argv[])
     //set connection timeout alarm
     alarm(5);
 
-	//format socket information and store it in list servinfo
-	if ((ret = getaddrinfo(argv[1], argv[2], &hints, &servinfo)) != 0)
-	{
-        fprintf(stderr, "client: getaddrinfo: %s\n", gai_strerror(ret));
-		exit(EXIT_FAILURE);
-    }
-
     //create the actual socket
     //if UDP is chosen, socket will be a connected datagram socket
     //  see pg 32 of Beej's book
-    for (p = servinfo; p != NULL; p = p->ai_next){
-        sockfd = negociate_socket(p, 0, CONNECT);
-        if(sockfd == -1){
-            perror("client: negociate_socket");
-            continue;
-        }
-        break;
-    }
-
-    //no socket available
-	if (p == NULL)
-	{
-        fprintf(stderr, "negociation: no socket available\n");
-        close(sockfd);
-		exit(EXIT_FAILURE);
+    sockfd = negociate_socket(argv[1], argv[2], &hints, CONNECT, print_success, print_error);
+    if(sockfd == -1){
+        print_error("client: unable to create a socket");
+        exit(EXIT_FAILURE);
     }
 
     //stop timeout alarm and free the server info list
     alarm(0);
-    freeaddrinfo(servinfo);
 
     //make the user type the message if not specified in program argument
     if(argc == 4)
@@ -88,7 +68,7 @@ int main(int argc, char *argv[])
         if(fgets(buf, MAXDATASIZE, stdin) == NULL)
         {
             fflush(stdin);
-            fprintf(stderr, "client: error while getting the message\n");
+            print_error("client: error while getting the message");
             close(sockfd);
             exit(EXIT_FAILURE);
         }
@@ -109,7 +89,7 @@ int main(int argc, char *argv[])
     //send the message to the server
     if (send(sockfd, buf, strlen(buf), 0) == -1)
     {
-        perror("client: send");
+        print_error("client: send: %s", strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -119,13 +99,13 @@ int main(int argc, char *argv[])
     //receive message from the server
     if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1)
     {
-        perror("client: recv");
+        print_error("client: recv: %s", strerror(errno));
         close(sockfd);
         exit(EXIT_FAILURE);
     }
 
     buf[numbytes] = '\0';
-    printf("client: received '%s' (size: %ld) from the server\n", buf, strlen(buf));
+    print_success("client: received '%s' (size: %ld) from the server\n", buf, strlen(buf));
 
 	close(sockfd);
 	exit(EXIT_SUCCESS);
@@ -138,5 +118,5 @@ int main(int argc, char *argv[])
 /************************************************************************/
 void sigalrm_handler(/*int s*/)
 {
-    fprintf(stderr, "client: connection attempt timeout\n");
+    print_error("client: connection attempt timeout");
 }

@@ -35,7 +35,15 @@ void resetcolour()
 /************************************************************************/
 void print_success(char* msg, ...)
 {
-    fprintf(stdout, "\033[0;%dm%s\033[0m\n", GREEN, msg);
+    char final_msg[SZLINE] = {0};
+    va_list arg;
+
+    va_start(arg, msg);
+    vsprintf(final_msg, msg, arg);
+
+    fprintf(stderr, "\033[0;%dm%s\033[0m\n", GREEN, final_msg);
+
+    va_end(arg);
 }
 
 /************************************************************************/
@@ -45,7 +53,7 @@ void print_success(char* msg, ...)
 /************************************************************************/
 void print_error(char* msg, ...)
 {
-    char final_msg[128] = {0};
+    char final_msg[SZLINE] = {0};
     va_list arg;
 
     va_start(arg, msg);

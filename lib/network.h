@@ -12,10 +12,9 @@
 #define MULTI   0x04
 #define LISTEN  0x08
 
-#define TCP     0x01
-#define UDP     0x02
+#define BACKLOG 10 // how many pending connections queue will hold
 
 void *get_in_addr(struct sockaddr *sa);
-int negociate_socket(struct addrinfo* sockinfo, int sz_backlog, char ACTION, void (*on_success)(char*, ...), void (*on_error)(char*, ...));
+int negociate_socket(char* host, char* service, struct addrinfo* hints, char ACTION, void (*on_success)(char*, ...), void (*on_error)(char*, ...));
 int socket_to_ip(int* fd, char* address, int address_len);
 #endif
