@@ -17,7 +17,7 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
 int main(int argc, char *argv[])
 {
 	struct sockaddr_storage their_addr = {0}; // client address information
-	int loc_socket=0, rem_socket=0, ret=0, tcp=TCP;
+	int loc_socket=0, rem_socket=0, tcp=1, socktype = SOCK_STREAM;
 	socklen_t sin_size = sizeof(struct sockaddr_storage);
 	struct sigaction sa;
 	char s[INET6_ADDRSTRLEN];
@@ -32,8 +32,10 @@ int main(int argc, char *argv[])
 	}
 
 	//set the socket type to datagram if udp is used
-	if(!strcmp(argv[2], "udp"))
-        tcp = UDP;
+	if(!strcmp(argv[2], "udp")){
+        tcp = 0;
+        socktype = SOCK_DGRAM;
+    }
 
 	//prepare main process for SIGCHLD signals
 	sa.sa_handler = sigchld_handler;
@@ -47,7 +49,7 @@ int main(int argc, char *argv[])
 
 	//create a local socket and handle any error
 	actions = (tcp ? MULTI|BIND|LISTEN : MULTI|BIND);
-    loc_socket = negociate_socket(NULL, argv[1], tcp, actions, print_error);
+    loc_socket = negociate_socket(NULL, argv[1], socktype, actions, print_error);
     if(loc_socket == -1){
         print_error("server: unable to create a socket");
         exit(EXIT_FAILURE);
@@ -72,7 +74,7 @@ int main(int argc, char *argv[])
 		{
             //UDP connection
             //wait for client to request a connection
-            if ((ret = recvfrom(loc_socket, &buff_rcv, MAXDATASIZE, 0, (struct sockaddr *)&their_addr, &sin_size)) == -1)
+            if (recvfrom(loc_socket, &buff_rcv, MAXDATASIZE, 0, (struct sockaddr *)&their_addr, &sin_size) == -1)
             {
                 print_error("server: recvfrom: %s", strerror(errno));
                 continue;

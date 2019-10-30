@@ -11,11 +11,11 @@
 #include "network.h"
 #include "screen.h"
 
-void sigalrm_handler(/*int s*/);
+void sigalrm_handler(int s);
 
 int main(int argc, char *argv[])
 {
-	int sockfd=0, numbytes=0, tcp=TCP;
+	int sockfd=0, numbytes=0, socktype=SOCK_STREAM;
 	char buf[MAXDATASIZE] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
 	struct sigaction sa = {0};
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 
     //set the socket type to datagram if udp is used
     if(!strcmp(argv[3], "udp"))
-        tcp = UDP;
+        socktype = SOCK_DGRAM;
 
     //set connection timeout alarm
     alarm(5);
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     //create the actual socket
     //if UDP is chosen, socket will be a connected datagram socket
     //  see pg 32 of Beej's book
-    sockfd = negociate_socket(argv[1], argv[2], tcp, CONNECT, print_error);
+    sockfd = negociate_socket(argv[1], argv[2], socktype, CONNECT, print_error);
     if(sockfd == -1){
         print_error("client: unable to create a socket");
         exit(EXIT_FAILURE);
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 /*  P : Quit program when getting a connection timeout                  */
 /*  O : /                                                               */
 /************************************************************************/
-void sigalrm_handler(/*int s*/)
+void sigalrm_handler(int s)
 {
     print_error("client: connection attempt timeout");
 }

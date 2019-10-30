@@ -22,6 +22,7 @@ The IP addresses are set as followed :
 * host : 192.168.56.1
 * clapton server (TCP) : 192.168.56.10
 * vaughan server (UDP) : 192.168.56.11
+Note that both hostnames have to be added in /etc/hosts
 
 The code is edited and compiled in a directory shared with both guests, so it is centralised and only one version is edited and executed.
 
@@ -29,7 +30,7 @@ The code is edited and compiled in a directory shared with both guests, so it is
 * Network-related functions :
 ```C
 void *get_in_addr(struct sockaddr *sa);
-int negociate_socket(char* host, char* service, int protocol, char ACTION, void (*on_error)(char*, ...));
+int negociate_socket(char* host, char* service, int socktype, char ACTION, void (*on_error)(char*, ...));
 int socket_to_ip(int* fd, char* address, int address_len);
 ```
 
@@ -41,7 +42,7 @@ void print_success(char* msg, ...);
 void print_error(char* msg, ...);
 ```
 
-A bash script (tests.sh) has been made to execute and test possible errors
+A bash script [tests.sh](https://github.com/gilleshenrard/ITLG_reseaux_industriels/blob/master/tests.sh) has been made to execute and test possible errors
 
 ### 4. Currently implemented in the final assignment
 * Server, both in TCP and UDP
