@@ -4,7 +4,7 @@
 ** -------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 29/10/2019
+** Last modified : 30/10/2019
 */
 
 #include "global.h"
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     //create the actual socket
     //if UDP is chosen, socket will be a connected datagram socket
     //  see pg 32 of Beej's book
-    sockfd = negociate_socket(argv[1], argv[2], &hints, CONNECT, print_success, print_error);
+    sockfd = negociate_socket(argv[1], argv[2], &hints, CONNECT, print_error);
     if(sockfd == -1){
         print_error("client: unable to create a socket");
         exit(EXIT_FAILURE);

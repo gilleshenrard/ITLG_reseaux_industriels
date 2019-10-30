@@ -4,7 +4,7 @@
 ** ------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 29/10/2019
+** Last modified : 30/10/2019
 */
 
 #include "network.h"
@@ -33,13 +33,12 @@ void *get_in_addr(struct sockaddr *sa)
 /*          BIND    : binds the socket to a port or a service           */
 /*          CONNECT : initiates a connection on the socket              */
 /*          LISTEN  : listens to any connection on the specified port   */
-/*      function to print success messages                              */
 /*      function to print error messages                                */
 /*  P : creates a socket with the desired values (100 clients max)      */
 /*  O : on success : socket file descriptor                             */
 /*      on error : -1, and errno is set                                 */
 /************************************************************************/
-int negociate_socket(char* host, char* service, struct addrinfo* hints, char ACTION, void (*on_success)(char*, ...), void (*on_error)(char*, ...)){
+int negociate_socket(char* host, char* service, struct addrinfo* hints, char ACTION, void (*on_error)(char*, ...)){
     struct addrinfo *p = NULL, *servinfo = NULL;
     int sockfd = 0, yes=1, ret=0;
 

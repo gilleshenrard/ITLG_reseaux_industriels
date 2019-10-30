@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 29/10/2019
+** Last modified : 30/10/2019
 */
 
 #include "global.h"
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 
 	//create a local socket and handle any error
 	actions = (tcp ? MULTI|BIND|LISTEN : MULTI|BIND);
-    loc_socket = negociate_socket(NULL, argv[1], &hints, actions, print_success, print_error);
+    loc_socket = negociate_socket(NULL, argv[1], &hints, actions, print_error);
     if(loc_socket == -1){
         print_error("server: unable to create a socket");
         exit(EXIT_FAILURE);
