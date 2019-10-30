@@ -33,7 +33,7 @@ void *get_in_addr(struct sockaddr *sa)
 /*          BIND    : binds the socket to a port or a service           */
 /*          CONNECT : initiates a connection on the socket              */
 /*          LISTEN  : listens to any connection on the specified port   */
-/*      function to print error messages                                */
+/*      function to print error messages (if NULL, no message)          */
 /*  P : creates a socket with the desired values (100 clients max)      */
 /*  O : on success : socket file descriptor                             */
 /*      on error : -1, and errno is set                                 */
@@ -50,7 +50,8 @@ int negociate_socket(char* host, char* service, int protocol, char ACTION, void 
     //format socket information and store it in list servinfo
 	if ((ret = getaddrinfo(host, service , &hints, &servinfo)) != 0)
 	{
-        (*on_error)("getaddrinfo: %s", gai_strerror(ret));
+        if(on_error != NULL)
+            (*on_error)("getaddrinfo: %s", gai_strerror(ret));
 		return -1;
     }
 
@@ -59,14 +60,16 @@ int negociate_socket(char* host, char* service, int protocol, char ACTION, void 
     {
         //generate a socket file descriptor
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
-            (*on_error)("socket: %s", strerror(errno));
+            if(on_error != NULL)
+                (*on_error)("socket: %s", strerror(errno));
             continue;
         }
 
         //allow reconnections on the socket if still allocated in kernel
         if (ACTION & MULTI){
             if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1){
-                (*on_error)("setsockopt: %s", strerror(errno));
+                if(on_error != NULL)
+                    (*on_error)("setsockopt: %s", strerror(errno));
                 close(sockfd);
                 continue;
             }
@@ -75,7 +78,8 @@ int negociate_socket(char* host, char* service, int protocol, char ACTION, void 
         //bind the socket to the desired port (useful in a server)
         if (ACTION & BIND){
             if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1){
-                (*on_error)("bind: %s", strerror(errno));
+                if(on_error != NULL)
+                    (*on_error)("bind: %s", strerror(errno));
                 close(sockfd);
                 continue;
             }
@@ -84,7 +88,8 @@ int negociate_socket(char* host, char* service, int protocol, char ACTION, void 
         //connect to the server via the socket created
         if (ACTION & CONNECT){
             if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1){
-                (*on_error)("connect: %s", strerror(errno));
+                if(on_error != NULL)
+                    (*on_error)("connect: %s", strerror(errno));
                 close(sockfd);
                 continue;
             }
@@ -96,7 +101,8 @@ int negociate_socket(char* host, char* service, int protocol, char ACTION, void 
     //no socket available
 	if (p == NULL)
 	{
-        (*on_error)("negociation: no socket available");
+        if(on_error != NULL)
+            (*on_error)("negociation: no socket available");
         close(sockfd);
 		return -1;
     }
@@ -108,7 +114,8 @@ int negociate_socket(char* host, char* service, int protocol, char ACTION, void 
     if(ACTION & LISTEN)
     {
         if (listen(sockfd, BACKLOG) == -1){
-            (*on_error)("listen: %s", strerror(errno));
+            if(on_error != NULL)
+                (*on_error)("listen: %s", strerror(errno));
             close(sockfd);
             return -1;
         }
