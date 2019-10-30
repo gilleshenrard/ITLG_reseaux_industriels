@@ -11,15 +11,13 @@
 #include "network.h"
 #include "screen.h"
 
-void sigchld_handler(/*int s*/);
+void sigchld_handler(int s);
 int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, char* buffer);
 
 int main(int argc, char *argv[])
 {
-    // any IP type, tcp by default, any server's IP
-    struct addrinfo hints={AI_PASSIVE, AF_UNSPEC, SOCK_STREAM, 0, 0, NULL, NULL, NULL};
 	struct sockaddr_storage their_addr = {0}; // client address information
-	int loc_socket=0, rem_socket=0, ret=0, tcp=1;
+	int loc_socket=0, rem_socket=0, ret=0, tcp=TCP;
 	socklen_t sin_size = sizeof(struct sockaddr_storage);
 	struct sigaction sa;
 	char s[INET6_ADDRSTRLEN];
@@ -35,10 +33,7 @@ int main(int argc, char *argv[])
 
 	//set the socket type to datagram if udp is used
 	if(!strcmp(argv[2], "udp"))
-	{
-        hints.ai_socktype = SOCK_DGRAM;
-        tcp = 0;
-	}
+        tcp = UDP;
 
 	//prepare main process for SIGCHLD signals
 	sa.sa_handler = sigchld_handler;
@@ -52,7 +47,7 @@ int main(int argc, char *argv[])
 
 	//create a local socket and handle any error
 	actions = (tcp ? MULTI|BIND|LISTEN : MULTI|BIND);
-    loc_socket = negociate_socket(NULL, argv[1], &hints, actions, print_error);
+    loc_socket = negociate_socket(NULL, argv[1], tcp, actions, print_error);
     if(loc_socket == -1){
         print_error("server: unable to create a socket");
         exit(EXIT_FAILURE);
@@ -128,7 +123,7 @@ int main(int argc, char *argv[])
 /*  P : Make sure to avoid any zombie child process                     */
 /*  O : /                                                               */
 /************************************************************************/
-void sigchld_handler(/*int s*/)
+void sigchld_handler(int s)
 {
     // waitpid() might overwrite errno, so we save and restore it:
 	int saved_errno = errno;

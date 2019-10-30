@@ -15,9 +15,7 @@ void sigalrm_handler(/*int s*/);
 
 int main(int argc, char *argv[])
 {
-    // any IP type, tcp by default, any client's IP
-    struct addrinfo hints={AI_PASSIVE, AF_UNSPEC, SOCK_STREAM, 0, 0, NULL, NULL, NULL};
-	int sockfd=0, numbytes=0;
+	int sockfd=0, numbytes=0, tcp=TCP;
 	char buf[MAXDATASIZE] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
 	struct sigaction sa = {0};
@@ -42,9 +40,7 @@ int main(int argc, char *argv[])
 
     //set the socket type to datagram if udp is used
     if(!strcmp(argv[3], "udp"))
-    {
-        hints.ai_socktype = SOCK_DGRAM;
-    }
+        tcp = UDP;
 
     //set connection timeout alarm
     alarm(5);
@@ -52,7 +48,7 @@ int main(int argc, char *argv[])
     //create the actual socket
     //if UDP is chosen, socket will be a connected datagram socket
     //  see pg 32 of Beej's book
-    sockfd = negociate_socket(argv[1], argv[2], &hints, CONNECT, print_error);
+    sockfd = negociate_socket(argv[1], argv[2], tcp, CONNECT, print_error);
     if(sockfd == -1){
         print_error("client: unable to create a socket");
         exit(EXIT_FAILURE);

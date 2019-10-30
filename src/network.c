@@ -27,7 +27,7 @@ void *get_in_addr(struct sockaddr *sa)
 /************************************************************************/
 /*  I : host to link to the socket                                      */
 /*      service to link to the socket                                   */
-/*      local socket information                                        */
+/*      protocol to use (TCP or UDP)                                    */
 /*      additional action to perform (catenated with | operator)        */
 /*          MULTI   : make the socket able to reconnect if conn. exists */
 /*          BIND    : binds the socket to a port or a service           */
@@ -38,12 +38,17 @@ void *get_in_addr(struct sockaddr *sa)
 /*  O : on success : socket file descriptor                             */
 /*      on error : -1, and errno is set                                 */
 /************************************************************************/
-int negociate_socket(char* host, char* service, struct addrinfo* hints, char ACTION, void (*on_error)(char*, ...)){
+int negociate_socket(char* host, char* service, int protocol, char ACTION, void (*on_error)(char*, ...)){
+    // any IP type, tcp by default, any server's IP
+    struct addrinfo hints={AI_PASSIVE, AF_UNSPEC, SOCK_STREAM, 0, 0, NULL, NULL, NULL};
     struct addrinfo *p = NULL, *servinfo = NULL;
     int sockfd = 0, yes=1, ret=0;
 
+    if(protocol == UDP)
+        hints.ai_socktype = SOCK_DGRAM;
+
     //format socket information and store it in list servinfo
-	if ((ret = getaddrinfo(host, service , hints, &servinfo)) != 0)
+	if ((ret = getaddrinfo(host, service , &hints, &servinfo)) != 0)
 	{
         (*on_error)("getaddrinfo: %s", gai_strerror(ret));
 		return -1;
