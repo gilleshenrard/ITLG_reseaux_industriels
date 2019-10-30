@@ -1,3 +1,10 @@
+# This script tests all the possible outcomes between the client and the server
+# Two servers have to be up and running :
+#	clapton : 192.168.56.10, port 7, tcp
+#	vaughan : 192.168.56.11, port 7, udp
+# Made by Gilles Henrard
+# Last modification : 30/10/2019
+
 #! /bin/bash
 
 cd bin/Debug
