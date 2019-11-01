@@ -5,5 +5,6 @@
 #include <sys/wait.h>
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once
+#define TIMEOUT     5
 
 #endif // GLOBAL_INDUS_H_INCLUDED

@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
         socktype = SOCK_DGRAM;
 
     //set connection timeout alarm
-    alarm(5);
+    alarm(TIMEOUT);
 
     //create the actual socket
     //if UDP is chosen, socket will be a connected datagram socket
