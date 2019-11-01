@@ -2,6 +2,8 @@
 #define SCREEN_H_INCLUDED
 #include <stdio.h>
 #include <stdarg.h>
+#include <time.h>
+#include <string.h>
 
 #define RED     31
 #define GREEN   32
@@ -15,7 +17,7 @@
 
 #define SZLINE  128
 
-void format_output(char* final_msg, char* msg, va_list* arg);
+void format_output(char* final_msg, char* format, va_list* arg);
 void print_success(char* msg, ...);
 void print_error(char* msg, ...);
 
