@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 		//create subprocess for the child request
 		switch(fork()){
             case -1: //fork error
-                print_error("server: fork:", strerror(errno));
+                print_error("server: fork: %s", strerror(errno));
                 break;
 
             case 0: //child process
