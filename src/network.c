@@ -95,6 +95,9 @@ int negociate_socket(char* host, char* service, int socktype, char ACTION, void 
         break;
     }
 
+    //socket info list is not needed anymore
+    freeaddrinfo(servinfo);
+
     //no socket available
 	if (p == NULL)
 	{
@@ -103,9 +106,6 @@ int negociate_socket(char* host, char* service, int socktype, char ACTION, void 
         close(sockfd);
 		return -1;
     }
-
-    //socket info list is not needed anymore
-    freeaddrinfo(servinfo);
 
     //listen to socket created
     if(ACTION & LISTEN)
