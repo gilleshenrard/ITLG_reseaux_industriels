@@ -65,7 +65,7 @@ echo -e '\e[1m./client 456.123.1.468 7 tcp "this is the test 7" 2> /dev/null\e[0
 #test 9
 echo ''
 echo -e '\e[1m1- test with stdout ignored\e[0m'
-echo -e '\e[1m./client clapton 7 tcp "this is the test 1" 1> /dev/null\e[0m'
+echo -e '\e[1m./client clapton 7 tcp "this is the test 9" 1> /dev/null\e[0m'
 ./client clapton 7 tcp "this is the test 9" 1> /dev/null
 
 #test 10
