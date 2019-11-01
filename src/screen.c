@@ -66,5 +66,23 @@ void print_error(char* msg, ...)
     va_end(arg);
 }
 
+/************************************************************************/
+/*  I : messages to be displayed                                        */
+/*  P : displays the message without any colour change                  */
+/*  O : /                                                               */
+/************************************************************************/
+void print_neutral(char* msg, ...)
+{
+    char final_msg[SZLINE] = {0};
+    va_list arg;
+
+    va_start(arg, msg);
+
+    format_output(final_msg, msg, &arg);
+    fprintf(stdout, "%s\n", final_msg);
+
+    va_end(arg);
+}
+
 
 

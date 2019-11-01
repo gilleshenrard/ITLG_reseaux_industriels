@@ -20,5 +20,6 @@
 void format_output(char* final_msg, char* format, va_list* arg);
 void print_success(char* msg, ...);
 void print_error(char* msg, ...);
+void print_neutral(char* msg, ...);
 
 #endif // SCREEN_H_INCLUDED

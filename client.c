@@ -79,8 +79,8 @@ int main(int argc, char *argv[])
 
     //notify the successful connection to the server
     socket_to_ip(&sockfd, s, sizeof(s));
-    printf("client: connecting to %s\n", s);
-    printf("client: sending '%s' (size: %ld)\n", buf, strlen(buf));
+    print_neutral("client: connecting to %s", s);
+    print_neutral("client: sending '%s' (size: %ld)", buf, strlen(buf));
 
     //send the message to the server
     if (send(sockfd, buf, strlen(buf), 0) == -1)

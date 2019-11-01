@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 30/10/2019
+** Last modified : 01/11/2019
 */
 
 #include "global.h"
@@ -80,12 +80,12 @@ int main(int argc, char *argv[])
                 continue;
             }
 
-            printf("server: client sent '%s'\n", buff_rcv);
+            print_neutral("server: client sent '%s'", buff_rcv);
 		}
 
         //retrieve client's IP and store it in a buffer
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
-		printf("server: got connection from %s\n", s);
+		print_neutral("server: %s -> connection received", s);
 
 		//create subprocess for the child request
 		switch(fork()){
@@ -151,7 +151,7 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
 
     //retrieve client's information
     inet_ntop(their_addr->ss_family, get_in_addr((struct sockaddr *)their_addr), child_addr, sizeof child_addr);
-    printf("server: %s -> processing request\n", child_addr);
+    print_neutral("server: %s -> processing request", child_addr);
 
     //send message to child
     if(tcp)
@@ -162,7 +162,7 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
             print_error("server: recv: %s", strerror(errno));
             return -1;
         }
-		printf("server: %s -> sent '%s' (size : %ld)\n", child_addr, buffer, strlen(buffer));
+		print_neutral("server: %s -> sent '%s' (size : %ld)", child_addr, buffer, strlen(buffer));
 
 		//send the reply
         if (send(rem_sock, buffer, strlen(buffer), 0) == -1)
@@ -183,6 +183,6 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
 
     //wipe out the buffer
     memset(buffer, 0, MAXDATASIZE);
-    print_success("server: %s -> request processed\n", child_addr);
+    print_success("server: %s -> request processed", child_addr);
     return 0;
 }
