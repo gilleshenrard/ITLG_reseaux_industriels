@@ -4,7 +4,7 @@
 ** ------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 30/10/2019
+** Last modified : 01/11/2019
 */
 
 #include "network.h"
@@ -33,7 +33,7 @@ void *get_in_addr(struct sockaddr *sa)
 /*          BIND    : binds the socket to a port or a service           */
 /*          CONNECT : initiates a connection on the socket              */
 /*          LISTEN  : listens to any connection on the specified port   */
-/*      function to print error messages (if NULL, no message)          */
+/*      function to print error messages (if NULL, default output)      */
 /*  P : creates a socket with the desired values (100 clients max)      */
 /*  O : on success : socket file descriptor                             */
 /*      on error : -1, and errno is set                                 */
@@ -49,6 +49,8 @@ int negociate_socket(char* host, char* service, int socktype, char ACTION, void 
 	{
         if(on_error != NULL)
             (*on_error)("getaddrinfo: %s", gai_strerror(ret));
+        else
+            fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(ret));
 		return -1;
     }
 
@@ -59,6 +61,8 @@ int negociate_socket(char* host, char* service, int socktype, char ACTION, void 
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
             if(on_error != NULL)
                 (*on_error)("socket: %s", strerror(errno));
+            else
+                perror("socket");
             continue;
         }
 
@@ -67,6 +71,8 @@ int negociate_socket(char* host, char* service, int socktype, char ACTION, void 
             if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1){
                 if(on_error != NULL)
                     (*on_error)("setsockopt: %s", strerror(errno));
+                else
+                    perror("setsockopt");
                 close(sockfd);
                 continue;
             }
@@ -77,6 +83,8 @@ int negociate_socket(char* host, char* service, int socktype, char ACTION, void 
             if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1){
                 if(on_error != NULL)
                     (*on_error)("bind: %s", strerror(errno));
+                else
+                    perror("bind");
                 close(sockfd);
                 continue;
             }
@@ -87,6 +95,8 @@ int negociate_socket(char* host, char* service, int socktype, char ACTION, void 
             if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1){
                 if(on_error != NULL)
                     (*on_error)("connect: %s", strerror(errno));
+                else
+                    perror("connect");
                 close(sockfd);
                 continue;
             }
@@ -103,6 +113,8 @@ int negociate_socket(char* host, char* service, int socktype, char ACTION, void 
 	{
         if(on_error != NULL)
             (*on_error)("negociation: no socket available");
+        else
+            fprintf(stderr, "negociation: no socket available\n");
         close(sockfd);
 		return -1;
     }
@@ -113,6 +125,8 @@ int negociate_socket(char* host, char* service, int socktype, char ACTION, void 
         if (listen(sockfd, BACKLOG) == -1){
             if(on_error != NULL)
                 (*on_error)("listen: %s", strerror(errno));
+            else
+                perror("listen");
             close(sockfd);
             return -1;
         }

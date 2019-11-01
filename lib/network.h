@@ -1,5 +1,6 @@
 #ifndef NETWORK_ITLG_INCLUDED
 #define NETWORK_ITLG_INCLUDED
+#include <stdio.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <errno.h>
