@@ -5,6 +5,7 @@
 #include <time.h>
 #include <string.h>
 
+#define RESET   0
 #define RED     31
 #define GREEN   32
 #define YELLOW  33

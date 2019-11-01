@@ -43,7 +43,7 @@ void print_success(char* msg, ...)
     va_start(arg, msg);
 
     format_output(final_msg, msg, &arg);
-    fprintf(stdout, "\033[0;%dm%s\033[0m\n", GREEN, final_msg);
+    fprintf(stdout, "\033[%d;%dm%s\033[0m\n", NORMAL, GREEN, final_msg);
 
     va_end(arg);
 }
@@ -61,7 +61,7 @@ void print_error(char* msg, ...)
     va_start(arg, msg);
 
     format_output(final_msg, msg, &arg);
-    fprintf(stderr, "\033[1;%dm%s\033[0m\n", RED, final_msg);
+    fprintf(stderr, "\033[%d;%dm%s\033[0m\n", BOLD, RED, final_msg);
 
     va_end(arg);
 }
@@ -79,7 +79,7 @@ void print_neutral(char* msg, ...)
     va_start(arg, msg);
 
     format_output(final_msg, msg, &arg);
-    fprintf(stdout, "%s\n", final_msg);
+    fprintf(stdout, "\033[%d;%dm%s\033[0m\n", NORMAL, RESET, final_msg);
 
     va_end(arg);
 }
