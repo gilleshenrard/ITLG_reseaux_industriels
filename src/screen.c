@@ -8,24 +8,15 @@
 #include "screen.h"
 
 /************************************************************************/
-/*  I : foreground colour code                                          */
-/*      style (normal, bold, ...) of the output to be displayed         */
-/*  P : modifies the terminal text output to the chosen colour          */
+/*  I : buffer for the final message to display                         */
+/*      message to display                                              */
+/*      additional parameters of the message                            */
+/*  P : formats the final message to be displayed                       */
 /*  O : /                                                               */
 /************************************************************************/
-void setcolour(int foreground, int style)
+void format_output(char* final_msg, char* msg, va_list* arg)
 {
-    printf("\033[%d;%dm", style, foreground);
-}
-
-/************************************************************************/
-/*  I : /                                                               */
-/*  P : resets the original colours of the standard output              */
-/*  O : /                                                               */
-/************************************************************************/
-void resetcolour()
-{
-    printf("\033[0m;");
+    vsprintf(final_msg, msg, *arg);
 }
 
 /************************************************************************/
@@ -39,8 +30,8 @@ void print_success(char* msg, ...)
     va_list arg;
 
     va_start(arg, msg);
-    vsprintf(final_msg, msg, arg);
 
+    format_output(final_msg, msg, &arg);
     fprintf(stdout, "\033[0;%dm%s\033[0m\n", GREEN, final_msg);
 
     va_end(arg);
@@ -57,8 +48,8 @@ void print_error(char* msg, ...)
     va_list arg;
 
     va_start(arg, msg);
-    vsprintf(final_msg, msg, arg);
 
+    format_output(final_msg, msg, &arg);
     fprintf(stderr, "\033[1;%dm%s\033[0m\n", RED, final_msg);
 
     va_end(arg);

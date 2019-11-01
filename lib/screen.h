@@ -15,8 +15,7 @@
 
 #define SZLINE  128
 
-void setcolour(int foreground, int style);
-void resetcolour();
+void format_output(char* final_msg, char* msg, va_list* arg);
 void print_success(char* msg, ...);
 void print_error(char* msg, ...);
 
