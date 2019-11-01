@@ -3,7 +3,7 @@
 ** Library regrouping screen-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 29/10/2019
+** Last modified : 01/11/2019
 */
 #include "screen.h"
 
@@ -41,7 +41,7 @@ void print_success(char* msg, ...)
     va_start(arg, msg);
     vsprintf(final_msg, msg, arg);
 
-    fprintf(stderr, "\033[0;%dm%s\033[0m\n", GREEN, final_msg);
+    fprintf(stdout, "\033[0;%dm%s\033[0m\n", GREEN, final_msg);
 
     va_end(arg);
 }
