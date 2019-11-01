@@ -36,10 +36,10 @@ int socket_to_ip(int* fd, char* address, int address_len);
 
 * Screen-related functions :
 ```C
-void setcolour(int foreground, int style);
-void resetcolour();
+void format_output(char* final_msg, char* format, va_list* arg);
 void print_success(char* msg, ...);
 void print_error(char* msg, ...);
+void print_neutral(char* msg, ...);
 ```
 
 A bash script [tests.sh](https://github.com/gilleshenrard/ITLG_reseaux_industriels/blob/master/tests.sh) has been made to execute and test possible errors
