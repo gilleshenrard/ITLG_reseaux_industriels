@@ -4,12 +4,12 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 01/11/2019
+** Last modified : 08/11/2019
 */
 
-#include "global.h"
-#include "network.h"
-#include "screen.h"
+#include "libglobal.h"
+#include "libnetwork.h"
+#include "libscreen.h"
 
 void sigchld_handler(int s);
 int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, char* buffer);
