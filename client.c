@@ -4,12 +4,12 @@
 ** -------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 08/11/2019
+** Last modified : 01/11/2019
 */
 
-#include "libglobal.h"
-#include "libnetwork.h"
-#include "libscreen.h"
+#include "global.h"
+#include "network.h"
+#include "screen.h"
 
 void sigalrm_handler(int s);
 

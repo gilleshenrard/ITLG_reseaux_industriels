@@ -4,10 +4,10 @@
 ** ------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 08/11/2019
+** Last modified : 01/11/2019
 */
 
-#include "libnetwork.h"
+#include "network.h"
 
 /************************************************************************/
 /*  I : socket                                                          */

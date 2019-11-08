@@ -3,9 +3,9 @@
 ** Library regrouping screen-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 08/11/2019
+** Last modified : 01/11/2019
 */
-#include "libscreen.h"
+#include "screen.h"
 
 /************************************************************************/
 /*  I : buffer for the final message to display                         */
