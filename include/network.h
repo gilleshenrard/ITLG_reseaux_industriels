@@ -18,4 +18,6 @@
 void *get_in_addr(struct sockaddr *sa);
 int negociate_socket(char* host, char* service, int socktype, char ACTION, void (*on_error)(char*, ...));
 int socket_to_ip(int* fd, char* address, int address_len);
+int acceptServ(int sockfd, char* client, int ip_size);
+int receiveData(int sockfd, char* buf, int len, char* client, int ip_size, int connected);
 #endif

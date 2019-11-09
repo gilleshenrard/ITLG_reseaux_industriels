@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 01/11/2019
+** Last modified : 09/11/2019
 */
 
 #include "global.h"
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
         {
             //TCP connection
             //wait for client to request a connection + create connection socket accordingly
-            if ((rem_socket = accept(loc_socket, (struct sockaddr *)&their_addr, &sin_size)) == -1)
+            if ((rem_socket = acceptServ(loc_socket, s, sizeof(s))) == -1)
             {
                 print_error("server: accept: %s", strerror(errno));
                 continue;

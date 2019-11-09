@@ -4,7 +4,7 @@
 ** ------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 01/11/2019
+** Last modified : 09/11/2019
 */
 
 #include "network.h"
@@ -155,6 +155,73 @@ int socket_to_ip(int* fd, char* address, int address_len)
 
     //format its IP automatically, whether it's IPv4 or IPv6
     inet_ntop(addr.ss_family, get_in_addr((struct sockaddr *)&addr), address, address_len);
+
+    return 0;
+}
+
+/************************************************************************/
+/*  I : file descriptor of the server socket                            */
+/*      buffer to fill with the IP address                              */
+/*      size of the buffer                                              */
+/*  P : Accept the connection of a client on the TCP socket,            */
+/*          fills the buffer with its IP, and returns its socket f. des.*/
+/*  O : on success : client socket file descriptor                      */
+/*      on error : -1, and errno is set                                 */
+/************************************************************************/
+int acceptServ(int sockfd, char* client, int ip_size)
+{
+    int cli_sockfd = 0;
+    struct sockaddr_storage their_addr = {0};
+    socklen_t sin_size = sizeof(struct sockaddr_storage);
+
+    //wait for a client connection on the server TCP socket
+    if ((cli_sockfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1)
+        return -1;
+
+    //translate the client IP and feed it in the client buffer
+    inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), client, ip_size);
+
+    return cli_sockfd;
+}
+
+
+/************************************************************************/
+/*  I : file descriptor of the socket on which read the data            */
+/*      buffer to fill with the data received                           */
+/*      size of the data buffer                                         */
+/*      buffer to fill with the IP address                              */
+/*      size of the IP buffer                                           */
+/*      flag to indicate whether the socket is connected or not         */
+/*  P : Reads data sent by the client, fills up the data buffer and the */
+/*          IP buffer                                                   */
+/*  O : on success : 0                                                  */
+/*      on error : -1, and errno is set                                 */
+/************************************************************************/
+int receiveData(int sockfd, char* buf, int len, char* client, int ip_size, int connected)
+{
+    int numbytes = 0;
+    struct sockaddr_storage their_addr = {0};
+    socklen_t sin_size = sizeof(struct sockaddr_storage);
+
+    if(connected)
+    {
+        //wait data on a connected socket
+        if ((numbytes = recv(sockfd, buf, len, 0)) == -1)
+            return -1;
+
+        //recover the client IP from its socket
+        if(socket_to_ip(&sockfd, client, ip_size) == -1)
+            return -1;
+    }
+    else
+    {
+        //wait data on a non-connected socket
+        if (recvfrom(sockfd, &buf, len, 0, (struct sockaddr *)&their_addr, &sin_size) == -1)
+            return -1;
+
+        //translate the client IP and feed it in the client buffer
+        inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), client, ip_size);
+    }
 
     return 0;
 }
