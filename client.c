@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     //receive message from the server
     if (receiveData(sockfd, buf, MAXDATASIZE-1, &their_addr, 1) == -1)
     {
-        print_error("client: recv: %s", strerror(errno));
+        print_error("client: receiveData: %s", strerror(errno));
         close(sockfd);
         exit(EXIT_FAILURE);
     }

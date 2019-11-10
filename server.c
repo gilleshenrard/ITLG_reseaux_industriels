@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
             //wait for client to request a connection + create connection socket accordingly
             if ((rem_socket = acceptServ(loc_socket, s, sizeof(s))) == -1)
             {
-                print_error("server: accept: %s", strerror(errno));
+                print_error("server: acceptServ: %s", strerror(errno));
                 continue;
             }
 		}
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
             //wait for client to request a connection
             if (receiveData(loc_socket, buff_rcv, MAXDATASIZE, &their_addr, 0))
             {
-                print_error("server: recvfrom: %s", strerror(errno));
+                print_error("server: receiveData: %s", strerror(errno));
                 continue;
             }
 
@@ -156,16 +156,16 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
         //wait for a message from the client
         if (receiveData(rem_sock, buffer, MAXDATASIZE-1, their_addr, 1) == -1)
         {
-            print_error("server: recv: %s", strerror(errno));
+            print_error("server: receiveData: %s", strerror(errno));
             return -1;
         }
 		print_neutral("server: %s -> sent '%s' (size : %ld)", child_addr, buffer, strlen(buffer));
     }
 
     //send the reply
-    if (sendData(rem_sock, buffer, strlen(buffer), their_addr, (tcp ? 1 : 0)) == -1)
+    if (sendData(rem_sock, buffer, strlen(buffer), their_addr, tcp) == -1)
     {
-        print_error("server: sendto: %s", strerror(errno));
+        print_error("server: sendData: %s", strerror(errno));
         return -1;
     }
 
