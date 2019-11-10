@@ -15,7 +15,7 @@ void sigalrm_handler(int s);
 
 int main(int argc, char *argv[])
 {
-	int sockfd=0, numbytes=0, socktype=SOCK_STREAM;
+	int sockfd=0, socktype=SOCK_STREAM;
 	char buf[MAXDATASIZE] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
 	struct sigaction sa = {0};
@@ -100,7 +100,6 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    buf[numbytes] = '\0';
     print_success("client: received '%s' (size: %ld) from the server\n", buf, strlen(buf));
 
 	close(sockfd);
