@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 		{
             //UDP connection
             //wait for client to request a connection
-            if (receiveData(loc_socket, buff_rcv, MAXDATASIZE, s, sizeof(s), 0))
+            if (receiveData(loc_socket, buff_rcv, MAXDATASIZE, &their_addr, 0))
             {
                 print_error("server: recvfrom: %s", strerror(errno));
                 continue;
@@ -154,28 +154,19 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
     if(tcp)
     {
         //wait for a message from the client
-        if (receiveData(rem_sock, buffer, MAXDATASIZE-1, child_addr, sizeof(child_addr), 1) == -1)
+        if (receiveData(rem_sock, buffer, MAXDATASIZE-1, their_addr, 1) == -1)
         {
             print_error("server: recv: %s", strerror(errno));
             return -1;
         }
 		print_neutral("server: %s -> sent '%s' (size : %ld)", child_addr, buffer, strlen(buffer));
-
-		//send the reply
-        if (send(rem_sock, buffer, strlen(buffer), 0) == -1)
-        {
-            print_error("server: send: %s", strerror(errno));
-            return -1;
-        }
     }
-    else
+
+    //send the reply
+    if (sendData(rem_sock, buffer, strlen(buffer), their_addr, (tcp ? 1 : 0)) == -1)
     {
-        //send the reply
-        if ((sendto(rem_sock, buffer, strlen(buffer), 0, (struct sockaddr *)their_addr, sizeof(struct sockaddr_storage))) == -1)
-        {
-            print_error("server: sendto: %s", strerror(errno));
-            return -1;
-        }
+        print_error("server: sendto: %s", strerror(errno));
+        return -1;
     }
 
     //wipe out the buffer

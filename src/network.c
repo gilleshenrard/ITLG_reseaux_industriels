@@ -184,43 +184,64 @@ int acceptServ(int sockfd, char* client, int ip_size)
     return cli_sockfd;
 }
 
-
 /************************************************************************/
 /*  I : file descriptor of the socket on which read the data            */
 /*      buffer to fill with the data received                           */
 /*      size of the data buffer                                         */
 /*      buffer to fill with the IP address                              */
-/*      size of the IP buffer                                           */
 /*      flag to indicate whether the socket is connected or not         */
 /*  P : Reads data sent by the client, fills up the data buffer and the */
 /*          IP buffer                                                   */
 /*  O : on success : 0                                                  */
 /*      on error : -1, and errno is set                                 */
 /************************************************************************/
-int receiveData(int sockfd, char* buf, int len, char* client, int ip_size, int connected)
+int receiveData(int sockfd, char* buf, int len, struct sockaddr_storage* client, int connected)
 {
     int numbytes = 0;
-    struct sockaddr_storage their_addr = {0};
-    socklen_t sin_size = sizeof(struct sockaddr_storage);
+    socklen_t size = sizeof(struct sockaddr_storage);
 
     if(connected)
     {
         //wait data on a connected socket
         if ((numbytes = recv(sockfd, buf, len, 0)) == -1)
             return -1;
+    }
+    else
+    {
+        //wait data on a non-connected socket
+        if (recvfrom(sockfd, &buf, len, 0, (struct sockaddr *)&client, &size) == -1)
+            return -1;
+    }
 
-        //recover the client IP from its socket
-        if(socket_to_ip(&sockfd, client, ip_size) == -1)
+    return 0;
+}
+
+/************************************************************************/
+/*  I : file descriptor of the socket on which read the data            */
+/*      buffer to fill with the data received                           */
+/*      size of the data buffer                                         */
+/*      buffer to fill with the IP address                              */
+/*      flag to indicate whether the socket is connected or not         */
+/*  P : Sends data to the client                                        */
+/*  O : on success : 0                                                  */
+/*      on error : -1, and errno is set                                 */
+/************************************************************************/
+int sendData(int sockfd, char* buf, int len, struct sockaddr_storage* client, int connected)
+{
+    int numbytes = 0;
+    socklen_t size = sizeof(struct sockaddr_storage);
+
+    if(connected)
+    {
+        //wait data on a connected socket
+        if ((numbytes = send(sockfd, buf, len, 0)) == -1)
             return -1;
     }
     else
     {
         //wait data on a non-connected socket
-        if (recvfrom(sockfd, &buf, len, 0, (struct sockaddr *)&their_addr, &sin_size) == -1)
+        if (sendto(sockfd, buf, len, 0, (struct sockaddr *)client, size) == -1)
             return -1;
-
-        //translate the client IP and feed it in the client buffer
-        inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), client, ip_size);
     }
 
     return 0;

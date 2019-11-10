@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
 	int sockfd=0, socktype=SOCK_STREAM;
 	char buf[MAXDATASIZE] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
+	struct sockaddr_storage their_addr = {0};
 	struct sigaction sa = {0};
 
 	//checks if the hostname and the port number have been provided
@@ -83,7 +84,7 @@ int main(int argc, char *argv[])
     print_neutral("client: sending '%s' (size: %ld)", buf, strlen(buf));
 
     //send the message to the server
-    if (send(sockfd, buf, strlen(buf), 0) == -1)
+    if (sendData(sockfd, buf, strlen(buf), NULL, 1) == -1)
     {
         print_error("client: send: %s", strerror(errno));
         exit(EXIT_FAILURE);
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])
     memset(buf, 0, MAXDATASIZE);
 
     //receive message from the server
-    if (receiveData(sockfd, buf, MAXDATASIZE-1, s, sizeof(s), 1) == -1)
+    if (receiveData(sockfd, buf, MAXDATASIZE-1, &their_addr, 1) == -1)
     {
         print_error("client: recv: %s", strerror(errno));
         close(sockfd);
