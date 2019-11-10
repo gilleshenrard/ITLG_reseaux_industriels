@@ -1,6 +1,6 @@
 /*
 ** client.c
-** Connects to a server via a stream/datagram socket, asks for a message and sends it to the echo server
+** Connects to a server via a stream socket, asks for a message and sends it to the echo server
 ** -------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
@@ -15,16 +15,15 @@ void sigalrm_handler(int s);
 
 int main(int argc, char *argv[])
 {
-	int sockfd=0, socktype=SOCK_STREAM;
+	int sockfd=0;
 	char buf[MAXDATASIZE] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
-	struct sockaddr_storage their_addr = {0};
 	struct sigaction sa = {0};
 
 	//checks if the hostname and the port number have been provided
-	if (argc!=4 && argc!=5)
+	if (argc!=3 && argc!=4)
 	{
-        print_error("usage: client hostname port tcp|udp [message]");
+        print_error("usage: client hostname port [message]");
 		exit(EXIT_FAILURE);
 	}
 
@@ -39,17 +38,11 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-    //set the socket type to datagram if udp is used
-    if(!strcmp(argv[3], "udp"))
-        socktype = SOCK_DGRAM;
-
     //set connection timeout alarm
     alarm(TIMEOUT);
 
     //create the actual socket
-    //if UDP is chosen, socket will be a connected datagram socket
-    //  see pg 32 of Beej's book
-    sockfd = negociate_socket(argv[1], argv[2], socktype, CONNECT, print_error);
+    sockfd = negociate_socket(argv[1], argv[2], SOCK_STREAM, CONNECT, print_error);
     if(sockfd == -1){
         print_error("client: unable to create a socket");
         exit(EXIT_FAILURE);
@@ -59,7 +52,7 @@ int main(int argc, char *argv[])
     alarm(0);
 
     //make the user type the message if not specified in program argument
-    if(argc == 4)
+    if(argc == 3)
     {
         printf("Entrez le message a envoyer au serveur : ");
         if(fgets(buf, MAXDATASIZE, stdin) == NULL)
@@ -75,7 +68,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        strcpy(buf, argv[4]);
+        strcpy(buf, argv[3]);
     }
 
     //notify the successful connection to the server
@@ -94,7 +87,7 @@ int main(int argc, char *argv[])
     memset(buf, 0, MAXDATASIZE);
 
     //receive message from the server
-    if (receiveData(sockfd, buf, MAXDATASIZE-1, &their_addr, 1) == -1)
+    if (receiveData(sockfd, buf, MAXDATASIZE-1, NULL, 1) == -1)
     {
         print_error("client: receiveData: %s", strerror(errno));
         close(sockfd);
