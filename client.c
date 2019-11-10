@@ -4,7 +4,7 @@
 ** -------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 09/11/2019
+** Last modified : 10/11/2019
 */
 
 #include "global.h"
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
     memset(buf, 0, MAXDATASIZE);
 
     //receive message from the server
-    if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1)
+    if (receiveData(sockfd, buf, MAXDATASIZE-1, s, sizeof(s), 1) == -1)
     {
         print_error("client: recv: %s", strerror(errno));
         close(sockfd);

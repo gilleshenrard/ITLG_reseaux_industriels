@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 09/11/2019
+** Last modified : 10/11/2019
 */
 
 #include "global.h"
@@ -18,7 +18,6 @@ int main(int argc, char *argv[])
 {
 	struct sockaddr_storage their_addr = {0}; // client address information
 	int loc_socket=0, rem_socket=0, tcp=1, socktype = SOCK_STREAM;
-	socklen_t sin_size = sizeof(struct sockaddr_storage);
 	struct sigaction sa;
 	char s[INET6_ADDRSTRLEN];
 	char buff_rcv[MAXDATASIZE];
@@ -74,7 +73,7 @@ int main(int argc, char *argv[])
 		{
             //UDP connection
             //wait for client to request a connection
-            if (recvfrom(loc_socket, &buff_rcv, MAXDATASIZE, 0, (struct sockaddr *)&their_addr, &sin_size) == -1)
+            if (receiveData(loc_socket, buff_rcv, MAXDATASIZE, s, sizeof(s), 0))
             {
                 print_error("server: recvfrom: %s", strerror(errno));
                 continue;
@@ -84,7 +83,6 @@ int main(int argc, char *argv[])
 		}
 
         //retrieve client's IP and store it in a buffer
-        inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
 		print_neutral("server: %s -> connection received", s);
 
 		//create subprocess for the child request
@@ -146,7 +144,6 @@ void sigchld_handler(int s)
 /*       0 otherwise                                                    */
 /************************************************************************/
 int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, char* buffer){
-    int numbytes = 0;
     char child_addr[INET6_ADDRSTRLEN] = {0};
 
     //retrieve client's information
@@ -157,7 +154,7 @@ int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int 
     if(tcp)
     {
         //wait for a message from the client
-        if ((numbytes = recv(rem_sock, buffer, MAXDATASIZE-1, 0)) == -1)
+        if (receiveData(rem_sock, buffer, MAXDATASIZE-1, child_addr, sizeof(child_addr), 1) == -1)
         {
             print_error("server: recv: %s", strerror(errno));
             return -1;
