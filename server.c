@@ -1,6 +1,6 @@
 /*
 ** server.c
-** Waits for clients to connect via a datagram/stream socket, wait for a message from a client and echoes it
+** Waits for clients to connect via a stream socket, wait for a message from a client and echoes it
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
@@ -12,29 +12,20 @@
 #include "screen.h"
 
 void sigchld_handler(int s);
-int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, char* buffer);
+int process_childrequest(int rem_sock);
 
 int main(int argc, char *argv[])
 {
-	struct sockaddr_storage their_addr = {0}; // client address information
-	int loc_socket=0, rem_socket=0, tcp=1, socktype = SOCK_STREAM;
+	int loc_socket=0, rem_socket=0;
 	struct sigaction sa;
 	char s[INET6_ADDRSTRLEN];
-	char buff_rcv[MAXDATASIZE];
-	char actions = '0';
 
 	//checks if the port number has been provided
-	if (argc != 3)
+	if (argc != 2)
 	{
-		print_error("usage: server port tcp|udp");
+		print_error("usage: server port");
 		exit(EXIT_FAILURE);
 	}
-
-	//set the socket type to datagram if udp is used
-	if(!strcmp(argv[2], "udp")){
-        tcp = 0;
-        socktype = SOCK_DGRAM;
-    }
 
 	//prepare main process for SIGCHLD signals
 	sa.sa_handler = sigchld_handler;
@@ -47,8 +38,7 @@ int main(int argc, char *argv[])
 	}
 
 	//create a local socket and handle any error
-	actions = (tcp ? MULTI|BIND|LISTEN : MULTI|BIND);
-    loc_socket = negociate_socket(NULL, argv[1], socktype, actions, print_error);
+    loc_socket = negociate_socket(NULL, argv[1], SOCK_STREAM, MULTI|BIND|LISTEN, print_error);
     if(loc_socket == -1){
         print_error("server: unable to create a socket");
         exit(EXIT_FAILURE);
@@ -59,30 +49,13 @@ int main(int argc, char *argv[])
 	// main accept() loop
 	while(1)
 	{
-        if(tcp)
+        //wait for client to request a connection + create connection socket accordingly
+        if ((rem_socket = acceptServ(loc_socket, s, sizeof(s))) == -1)
         {
-            //TCP connection
-            //wait for client to request a connection + create connection socket accordingly
-            if ((rem_socket = acceptServ(loc_socket, s, sizeof(s))) == -1)
-            {
-                print_error("server: acceptServ: %s", strerror(errno));
-                continue;
-            }
-		}
-		else
-		{
-            //UDP connection
-            //wait for client to request a connection
-            if (receiveData(loc_socket, buff_rcv, MAXDATASIZE, &their_addr, 0))
-            {
-                print_error("server: receiveData: %s", strerror(errno));
-                continue;
-            }
+            print_error("server: acceptServ: %s", strerror(errno));
+            continue;
+        }
 
-            print_neutral("server: client sent '%s'", buff_rcv);
-		}
-
-        //retrieve client's IP and store it in a buffer
 		print_neutral("server: %s -> connection received", s);
 
 		//create subprocess for the child request
@@ -92,13 +65,11 @@ int main(int argc, char *argv[])
                 break;
 
             case 0: //child process
-
                 // child doesn't need the listener in a TCP connection
-                if(tcp)
-                    close(loc_socket);
+                close(loc_socket);
 
                 //process the request (remote socket if TCP, local socket if UDP)
-                if(process_childrequest((tcp ? rem_socket : loc_socket), &their_addr, tcp, buff_rcv) == -1)
+                if(process_childrequest(rem_socket) == -1)
                 {
                     print_error("server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
@@ -136,41 +107,34 @@ void sigchld_handler(int s)
 
 /************************************************************************/
 /*  I : socket file descriptor to which send the reply                  */
-/*      information about the client                                    */
-/*      flag determining the protocol (TCP or UDP)                      */
-/*      buffer to send back to the client                               */
 /*  P : Handles the request received from a child                       */
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int process_childrequest(int rem_sock, struct sockaddr_storage* their_addr, int tcp, char* buffer){
+int process_childrequest(int rem_sock){
     char child_addr[INET6_ADDRSTRLEN] = {0};
+	char buffer[MAXDATASIZE];
 
     //retrieve client's information
-    inet_ntop(their_addr->ss_family, get_in_addr((struct sockaddr *)their_addr), child_addr, sizeof child_addr);
+    socket_to_ip(&rem_sock, child_addr, sizeof(child_addr));
     print_neutral("server: %s -> processing request", child_addr);
 
     //send message to child
-    if(tcp)
+    //wait for a message from the client
+    if (receiveData(rem_sock, buffer, MAXDATASIZE-1, NULL, 1) == -1)
     {
-        //wait for a message from the client
-        if (receiveData(rem_sock, buffer, MAXDATASIZE-1, their_addr, 1) == -1)
-        {
-            print_error("server: receiveData: %s", strerror(errno));
-            return -1;
-        }
-		print_neutral("server: %s -> sent '%s' (size : %ld)", child_addr, buffer, strlen(buffer));
+        print_error("server: receiveData: %s", strerror(errno));
+        return -1;
     }
+    print_neutral("server: %s -> sent '%s' (size : %ld)", child_addr, buffer, strlen(buffer));
 
     //send the reply
-    if (sendData(rem_sock, buffer, strlen(buffer), their_addr, tcp) == -1)
+    if (sendData(rem_sock, buffer, strlen(buffer), NULL, 1) == -1)
     {
         print_error("server: sendData: %s", strerror(errno));
         return -1;
     }
 
-    //wipe out the buffer
-    memset(buffer, 0, MAXDATASIZE);
     print_success("server: %s -> request processed", child_addr);
     return 0;
 }
