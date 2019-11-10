@@ -14,9 +14,9 @@ Libpath := lib
 
 CXX = gcc
 
-Obj := $(Opath)\network.o $(Opath)\screen.o
-Libflags := -lnetwork -lscreen
-Libbuilds := libnetwork libscreen
+Obj := $(Opath)/network.o $(Opath)/screen.o $(Opath)/dataset.o 
+Libflags := -lnetwork -lscreen -ldataset
+Libbuilds := libnetwork libscreen libdataset
 
 install :
 	make $(Libbuilds) $(Client) $(Server)
@@ -30,14 +30,21 @@ $(Server) :
 libnetwork : $(Opath)/network.c
 	$(CXX) -Wall -Werror -fPIC -I$(Incpath) -c $^ -o $(Opath)/network.o
 	mkdir -p $(Libpath)
-	$(CXX) -fPIC -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/network.o
+	$(CXX) -fPIC -shared -Wl,-soname,$@.so.2 -o $(Libpath)/$@.so.2.0 $(Opath)/network.o
 	ldconfig -n $(Libpath)/
-	ln -sf $@.so.1 $(Libpath)/$@.so
+	ln -sf $@.so.2 $(Libpath)/$@.so
 
 libscreen : $(Opath)/screen.c
 	$(CXX) -Wall -Werror -fPIC -I$(Incpath) -c $^ -o $(Opath)/screen.o
 	mkdir -p $(Libpath)
 	$(CXX) -fPIC -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/screen.o
+	ldconfig -n $(Libpath)/
+	ln -sf $@.so.1 $(Libpath)/$@.so
+
+libdataset : $(Opath)/dataset.c
+	$(CXX) -Wall -Werror -fPIC -I$(Incpath) -c $^ -o $(Opath)/dataset.o
+	mkdir -p $(Libpath)
+	$(CXX) -fPIC -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/dataset.o
 	ldconfig -n $(Libpath)/
 	ln -sf $@.so.1 $(Libpath)/$@.so
 
