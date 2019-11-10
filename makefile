@@ -22,10 +22,10 @@ install :
 	make $(Libbuilds) $(Client) $(Server)
 
 $(Client) :
-	$(CXX) -L$(Libpath) -I$(Incpath) -o $@ $@.c $(Libflags)
+	$(CXX) -Wall -Werror -L$(Libpath) -I$(Incpath) -o $@ $@.c $(Libflags)
 
 $(Server) :
-	$(CXX) -L$(Libpath) -I$(Incpath) -o $@ $@.c $(Libflags)
+	$(CXX) -Wall -Werror -L$(Libpath) -I$(Incpath) -o $@ $@.c $(Libflags)
 
 libnetwork : $(Opath)/network.c
 	$(CXX) -Wall -Werror -fPIC -I$(Incpath) -c $^ -o $(Opath)/network.o
