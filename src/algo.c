@@ -1,3 +1,10 @@
+/*
+** algo.c
+** Library regrouping algorithmic-based functions
+** ------------------------------------------
+** Made by Gilles Henrard
+** Last modified : 11/11/2019
+*/
 #include "algo.h"
 
 /************************************************************/
