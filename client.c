@@ -17,15 +17,16 @@ void sigalrm_handler(int s);
 
 int main(int argc, char *argv[])
 {
+    t_algo_meta ds_list = {NULL, 0, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset, NULL, NULL, NULL, dataset_right, dataset_left};
+    dataset_t tmp = {0};
 	int sockfd=0;
-	char buf[MAXDATASIZE] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
 	struct sigaction sa = {0};
 
 	//checks if the hostname and the port number have been provided
-	if (argc!=3 && argc!=4)
+	if (argc!=3)
 	{
-        print_error("usage: client hostname port [message]");
+        print_error("usage: client hostname port");
 		exit(EXIT_FAILURE);
 	}
 
@@ -53,31 +54,26 @@ int main(int argc, char *argv[])
     //stop timeout alarm and free the server info list
     alarm(0);
 
-    //make the user type the message if not specified in program argument
-    if(argc == 3)
-    {
-        printf("Entrez le message a envoyer au serveur : ");
-        if(fgets(buf, MAXDATASIZE, stdin) == NULL)
-        {
-            fflush(stdin);
-            print_error("client: error while getting the message");
-            close(sockfd);
-            exit(EXIT_FAILURE);
-        }
-        if(buf[strlen(buf)-1] == '\n')
-            buf[strlen(buf)-1] = '\0';
-        fflush(stdin);
-    }
-    else
-    {
-        strcpy(buf, argv[3]);
-    }
-
     //notify the successful connection to the server
     socket_to_ip(&sockfd, s, sizeof(s));
     print_neutral("client: connecting to %s", s);
-    print_neutral("client: sending '%s' (size: %ld)", buf, strlen(buf));
 
+    for(int i=1 ; i<6 ; i++)
+    {
+        tmp.id = i;
+        sprintf(tmp.type, "type_%d", i);
+        tmp.price = 3.1416*(float)i;
+
+        insertListSorted(&ds_list, &tmp);
+    }
+
+    foreachList(&ds_list, NULL, Print_dataset);
+    while(ds_list.structure)
+        popListTop(&ds_list);
+
+    print_neutral("%d elements left", ds_list.nbelements);
+
+/*
     //send the message to the server
     if (sendData(sockfd, buf, strlen(buf), NULL, 1) == -1)
     {
@@ -97,7 +93,7 @@ int main(int argc, char *argv[])
     }
 
     print_success("client: received '%s' (size: %ld) from the server\n", buf, strlen(buf));
-
+*/
 	close(sockfd);
 	exit(EXIT_SUCCESS);
 }
