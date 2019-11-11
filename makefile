@@ -14,9 +14,9 @@ Libpath := lib
 
 CXX = gcc
 
-Obj := $(Opath)/network.o $(Opath)/screen.o $(Opath)/dataset.o 
-Libflags := -lnetwork -lscreen -ldataset
-Libbuilds := libnetwork libscreen libdataset
+Obj := $(Opath)/network.o $(Opath)/screen.o $(Opath)/dataset.o $(Opath)/algo.o
+Libflags := -lnetwork -lscreen -ldataset -lalgo
+Libbuilds := libnetwork libscreen libdataset libalgo
 
 install :
 	make $(Libbuilds) $(Client) $(Server)
@@ -45,6 +45,13 @@ libdataset : $(Opath)/dataset.c
 	$(CXX) -Wall -Werror -fPIC -I$(Incpath) -c $^ -o $(Opath)/dataset.o
 	mkdir -p $(Libpath)
 	$(CXX) -fPIC -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/dataset.o
+	ldconfig -n $(Libpath)/
+	ln -sf $@.so.1 $(Libpath)/$@.so
+
+libalgo : $(Opath)/algo.c
+	$(CXX) -Wall -Werror -fPIC -I$(Incpath) -c $^ -o $(Opath)/algo.o
+	mkdir -p $(Libpath)
+	$(CXX) -fPIC -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/algo.o
 	ldconfig -n $(Libpath)/
 	ln -sf $@.so.1 $(Libpath)/$@.so
 

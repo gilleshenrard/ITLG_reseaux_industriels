@@ -11,6 +11,7 @@
 #include "network.h"
 #include "screen.h"
 #include "dataset.h"
+#include "algo.h"
 
 void sigchld_handler(int s);
 int process_childrequest(int rem_sock);

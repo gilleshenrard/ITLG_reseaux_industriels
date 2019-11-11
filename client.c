@@ -11,6 +11,7 @@
 #include "network.h"
 #include "screen.h"
 #include "dataset.h"
+#include "algo.h"
 
 void sigalrm_handler(int s);
 
