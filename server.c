@@ -114,13 +114,29 @@ void sigchld_handler(int s)
 /*       0 otherwise                                                    */
 /************************************************************************/
 int process_childrequest(int rem_sock){
+    t_algo_meta ds_list = {NULL, 0, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset, NULL, NULL, NULL, dataset_right, dataset_left};
+    dataset_t tmp = {0};
     char child_addr[INET6_ADDRSTRLEN] = {0};
-	char buffer[MAXDATASIZE];
 
     //retrieve client's information
     socket_to_ip(&rem_sock, child_addr, sizeof(child_addr));
     print_neutral("server: %s -> processing request", child_addr);
 
+    //fill in 5 dummy elements and add them in a list
+    for(int i=1 ; i<6 ; i++)
+    {
+        tmp.id = i;
+        sprintf(tmp.type, "type_%d", i);
+        tmp.price = 3.1416*(float)i;
+
+        insertListSorted(&ds_list, &tmp);
+    }
+
+    //display all elements in the list, then free it
+    foreachList(&ds_list, NULL, Print_dataset);
+    while(ds_list.structure)
+        popListTop(&ds_list);
+/*
     //send message to child
     //wait for a message from the client
     if (receiveData(rem_sock, buffer, MAXDATASIZE-1, NULL, 1) == -1)
@@ -136,7 +152,7 @@ int process_childrequest(int rem_sock){
         print_error("server: sendData: %s", strerror(errno));
         return -1;
     }
-
+*/
     print_success("server: %s -> request processed", child_addr);
     return 0;
 }

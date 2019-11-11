@@ -17,8 +17,7 @@ void sigalrm_handler(int s);
 
 int main(int argc, char *argv[])
 {
-    t_algo_meta ds_list = {NULL, 0, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset, NULL, NULL, NULL, dataset_right, dataset_left};
-    dataset_t tmp = {0};
+//    dataset_t tmp = {0};
 	int sockfd=0;
 	char s[INET6_ADDRSTRLEN] = {0};
 	struct sigaction sa = {0};
@@ -57,21 +56,6 @@ int main(int argc, char *argv[])
     //notify the successful connection to the server
     socket_to_ip(&sockfd, s, sizeof(s));
     print_neutral("client: connecting to %s", s);
-
-    //fill in 5 dummy elements and add them in a list
-    for(int i=1 ; i<6 ; i++)
-    {
-        tmp.id = i;
-        sprintf(tmp.type, "type_%d", i);
-        tmp.price = 3.1416*(float)i;
-
-        insertListSorted(&ds_list, &tmp);
-    }
-
-    //display all elements in the list, then free it
-    foreachList(&ds_list, NULL, Print_dataset);
-    while(ds_list.structure)
-        popListTop(&ds_list);
 
 /*
     //send the message to the server
