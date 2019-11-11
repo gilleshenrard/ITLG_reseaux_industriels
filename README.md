@@ -1,14 +1,14 @@
 # Reseaux Industriels
-## Exercice 2 - Echo server
+## Exercice 3 - Custom Protocol
 ---
 ### 1. Intro
-This assignment aims to learn the basics of sockets programmation in C on UNIX-based systems by creating basic Echo servers and clients (RFC862).
-Two executables are created (client and server) and both can be configured to handle either TCP or UDP.
+This assignment aims to learn the basics of sockets programmation in C on UNIX-based systems by creating a custom data transmission protocol.
+Two executables are created (client and server) and both will use TCP transmission.
 
 Use :
 ```shell
-./server port tcp|udp
-./client host port tcp|udp [message]
+./server port
+./client host port
 ```
 
 ### 2. Set up
@@ -21,10 +21,9 @@ A host-only connection (192.168.56.0/24) has been created to allow machines to c
 The IP addresses are set as followed :
 * host : 192.168.56.1
 * clapton server (TCP) : 192.168.56.10
-* vaughan server (UDP) : 192.168.56.11
-Note that both hostnames have to be added in /etc/hosts
+Note that the server hostname has to be added in /etc/hosts
 
-The code is edited and compiled in a directory shared with both guests, so it is centralised and only one version is edited and executed.
+The code is edited and compiled in a directory shared with the guest, so it is centralised and only one version is edited and executed.
 
 ### 3. Current features
 * Network-related functions :
@@ -34,7 +33,7 @@ int negociate_socket(char* host, char* service, int socktype, char ACTION, void 
 int socket_to_ip(int* fd, char* address, int address_len);
 ```
 
-* Screen-related functions :
+* Display-related functions :
 ```C
 void format_output(char* final_msg, char* format, va_list* arg);
 void print_success(char* msg, ...);
@@ -42,14 +41,28 @@ void print_error(char* msg, ...);
 void print_neutral(char* msg, ...);
 ```
 
+* Algorithmic-related functions :
+```C
+int insertListTop(t_algo_meta*, void*);
+int popListTop(t_algo_meta*);
+int insertListSorted(t_algo_meta*,  void*);
+int foreachList(t_algo_meta*, void*, int (*doAction)(void*, void*));
+```
+
 A bash script [tests.sh](https://github.com/gilleshenrard/ITLG_reseaux_industriels/blob/master/tests.sh) has been made to execute and test possible errors
 
 ### 4. Currently implemented in the final assignment
-* Server, both in TCP and UDP
-* Client, both in TCP and UDP (will work with a connected datagram socket in UDP)
+* Server
+* Client
+* Network-related functions
+* Display-related functions
+* Algorithmic-related functions
+* Dataset-related functions
 
 ### 5. To Do
 * improve signals handling
+* implement serialisation
+* implement actual protocol
 
 ### 6. Known issues
 n/a
