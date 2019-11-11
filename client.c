@@ -58,6 +58,7 @@ int main(int argc, char *argv[])
     socket_to_ip(&sockfd, s, sizeof(s));
     print_neutral("client: connecting to %s", s);
 
+    //fill in 5 dummy elements and add them in a list
     for(int i=1 ; i<6 ; i++)
     {
         tmp.id = i;
@@ -67,11 +68,10 @@ int main(int argc, char *argv[])
         insertListSorted(&ds_list, &tmp);
     }
 
+    //display all elements in the list, then free it
     foreachList(&ds_list, NULL, Print_dataset);
     while(ds_list.structure)
         popListTop(&ds_list);
-
-    print_neutral("%d elements left", ds_list.nbelements);
 
 /*
     //send the message to the server
