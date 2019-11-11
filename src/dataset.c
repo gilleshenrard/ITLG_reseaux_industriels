@@ -1,11 +1,11 @@
 #include "dataset.h"
 
 /****************************************************************************************/
-/*  I : dataset record to print                                                        */
-/*  P : Prints an dataset record                                                       */
+/*  I : dataset record to print                                                         */
+/*  P : Prints an dataset record                                                        */
 /*  O : /                                                                               */
 /****************************************************************************************/
-void Print_dataset(void* rec){
+int Print_dataset(void* rec, void* nullable){
     dataset_t* ds = (dataset_t*)rec;
 
     printf("%4d  %32s  %4f\n",
@@ -13,7 +13,7 @@ void Print_dataset(void* rec){
             ds->type,
             ds->price);
 
-    return;
+    return 0;
 }
 
 /************************************************************/

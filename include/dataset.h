@@ -15,13 +15,13 @@ struct dataset_t{
 };
 
 // display methods
-void Print_dataset(void* rec);
+int Print_dataset(void* rec, void* nullable);
 char* toString_dataset(void* current);
 
 // dynamic structures methods
 void* allocate_dataset(void);
-int compare_dataset_index_int(void* a, void* b);
-int copt_dataset(void* oldelem, void* newelem);
+int compare_dataset_id(void* a, void* b);
+int copy_dataset(void* oldelem, void* newelem);
 int swap_dataset(void* first, void* second);
 void** dataset_right(void* current);
 void** dataset_left(void* current);
