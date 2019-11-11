@@ -12,6 +12,7 @@
 #include "screen.h"
 #include "dataset.h"
 #include "algo.h"
+#include "serialisation.h"
 
 void sigalrm_handler(int s);
 

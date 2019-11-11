@@ -12,6 +12,7 @@
 #include "screen.h"
 #include "dataset.h"
 #include "algo.h"
+#include "serialisation.h"
 
 void sigchld_handler(int s);
 int process_childrequest(int rem_sock);

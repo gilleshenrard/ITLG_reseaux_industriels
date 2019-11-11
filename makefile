@@ -14,9 +14,9 @@ Libpath := lib
 
 CXX = gcc
 
-Obj := $(Opath)/network.o $(Opath)/screen.o $(Opath)/dataset.o $(Opath)/algo.o
-Libflags := -lnetwork -lscreen -ldataset -lalgo
-Libbuilds := libnetwork libscreen libdataset libalgo
+Obj := $(Opath)/network.o $(Opath)/screen.o $(Opath)/dataset.o $(Opath)/algo.o $(Opath)/serialisation.o
+Libflags := -lnetwork -lscreen -ldataset -lalgo	-lserialisation
+Libbuilds := libnetwork libscreen libdataset libalgo libserialise
 
 install :
 	make $(Libbuilds) $(Client) $(Server)
@@ -52,6 +52,13 @@ libalgo : $(Opath)/algo.c
 	$(CXX) -Wall -Werror -fPIC -I$(Incpath) -c $^ -o $(Opath)/algo.o
 	mkdir -p $(Libpath)
 	$(CXX) -fPIC -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/algo.o
+	ldconfig -n $(Libpath)/
+	ln -sf $@.so.1 $(Libpath)/$@.so
+
+libserialise : $(Opath)/serialisation.c
+	$(CXX) -Wall -Werror -fPIC -I$(Incpath) -c $^ -o $(Opath)/serialisation.o
+	mkdir -p $(Libpath)
+	$(CXX) -fPIC -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/serialisation.o
 	ldconfig -n $(Libpath)/
 	ln -sf $@.so.1 $(Libpath)/$@.so
 
