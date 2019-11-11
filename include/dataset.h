@@ -25,6 +25,5 @@ int copy_dataset(void* oldelem, void* newelem);
 int swap_dataset(void* first, void* second);
 void** dataset_right(void* current);
 void** dataset_left(void* current);
-void* free_dataset(void* dataset, void* nullable);
 
 #endif // DATASET_H_INCLUDED

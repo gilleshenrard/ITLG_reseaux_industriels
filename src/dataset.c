@@ -147,15 +147,3 @@ void** dataset_left(void* current){
 
     return (void**)&currentcon->previous;
 }
-
-/************************************************************/
-/*  I : dataset AVL leaf to free                           */
-/*      /                                                   */
-/*  P : Frees the memory for the current dataset           */
-/*  O :  0 if OK                                            */
-/*      -1 if error                                         */
-/************************************************************/
-void* free_dataset(void* dataset, void* nullable){
-    free(dataset);
-    return 0;
-}
