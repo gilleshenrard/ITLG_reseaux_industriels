@@ -7,6 +7,7 @@ Server := server
 
 #paths for Object files (Opath)
 Opath := src
+Bpath := bin
 
 #Library & header paths
 Incpath := include
@@ -16,16 +17,18 @@ CXX = gcc
 
 Obj := $(Opath)/network.o $(Opath)/screen.o $(Opath)/dataset.o $(Opath)/algo.o $(Opath)/serialisation.o
 Libflags := -lnetwork -lscreen -ldataset -lalgo	-lserialisation
-Libbuilds := libnetwork libscreen libdataset libalgo libserialise
+Libbuilds := libnetwork libscreen libdataset libalgo libserialisation
 
 install :
 	make $(Libbuilds) $(Client) $(Server)
 
 $(Client) :
-	$(CXX) -Wall -Werror -L$(Libpath) -I$(Incpath) -o $@ $@.c $(Libflags)
+	mkdir -p $(Bpath)
+	$(CXX) -Wall -Werror -L$(Libpath) -I$(Incpath) -o$(Bpath)/$@ $@.c $(Libflags)
 
 $(Server) :
-	$(CXX) -Wall -Werror -L$(Libpath) -I$(Incpath) -o $@ $@.c $(Libflags)
+	mkdir -p $(Bpath)
+	$(CXX) -Wall -Werror -L$(Libpath) -I$(Incpath) -o $(Bpath)/$@ $@.c $(Libflags)
 
 libnetwork : $(Opath)/network.c
 	$(CXX) -Wall -Werror -fPIC -I$(Incpath) -c $^ -o $(Opath)/network.o
@@ -55,7 +58,7 @@ libalgo : $(Opath)/algo.c
 	ldconfig -n $(Libpath)/
 	ln -sf $@.so.1 $(Libpath)/$@.so
 
-libserialise : $(Opath)/serialisation.c
+libserialisation : $(Opath)/serialisation.c
 	$(CXX) -Wall -Werror -fPIC -I$(Incpath) -c $^ -o $(Opath)/serialisation.o
 	mkdir -p $(Libpath)
 	$(CXX) -fPIC -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/serialisation.o
@@ -63,4 +66,4 @@ libserialise : $(Opath)/serialisation.c
 	ln -sf $@.so.1 $(Libpath)/$@.so
 
 clean:
-	rm -rf $(Opath)/*.o $(Libpath)/*.so* $(Client) $(Server)
+	rm -rf $(Opath)/*.o $(Libpath)/*.so* bin/*
