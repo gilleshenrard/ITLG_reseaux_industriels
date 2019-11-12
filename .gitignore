@@ -55,6 +55,7 @@ dkms.conf
 
 # code::blocks files
 bin/
+bin
 *.cbp
 *.depend
 *.layout
