@@ -5,9 +5,12 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdint.h>
 
+#define pack754_16(f) (pack754((f), 16, 5))
 #define pack754_32(f) (pack754((f), 32, 8))
 #define pack754_64(f) (pack754((f), 64, 11))
+#define unpack754_16(i) (unpack754((i), 16, 5))
 #define unpack754_32(i) (unpack754((i), 32, 8))
 #define unpack754_64(i) (unpack754((i), 64, 11))
 
