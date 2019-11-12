@@ -15,7 +15,7 @@
 int Print_dataset(void* rec, void* nullable){
     dataset_t* ds = (dataset_t*)rec;
 
-    printf("%4d  %32s  %4f\n",
+    printf("%4d  %32s  %4.8f\n",
             ds->id,
             ds->type,
             ds->price);

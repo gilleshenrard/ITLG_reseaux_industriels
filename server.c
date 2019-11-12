@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 10/11/2019
+** Last modified : 12/11/2019
 */
 
 #include "global.h"
@@ -117,7 +117,9 @@ void sigchld_handler(int s)
 int process_childrequest(int rem_sock){
     t_algo_meta ds_list = {NULL, 0, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset, NULL, NULL, NULL, dataset_right, dataset_left};
     dataset_t tmp = {0};
+    unsigned char serialised[64] = {0};
     char child_addr[INET6_ADDRSTRLEN] = {0};
+	unsigned long long int fhold = 0;
 
     //retrieve client's information
     socket_to_ip(&rem_sock, child_addr, sizeof(child_addr));
@@ -126,12 +128,27 @@ int process_childrequest(int rem_sock){
     //fill in 5 dummy elements and add them in a list
     for(int i=1 ; i<6 ; i++)
     {
+        //prepare dummy values
         tmp.id = i;
         sprintf(tmp.type, "type_%d", i);
-        tmp.price = 3.1416*(float)i;
+        tmp.price = 3.141593*(float)i;
 
+        //test serialise data
+        fhold = pack754_32(tmp.price);
+        pack(serialised, "lsd", tmp.id, tmp.type, tmp.price);
+
+        //deserialise
+        unpack(serialised, "lsd", &tmp.id, tmp.type, &tmp.price);
+        tmp.price = unpack754_32(fhold);
+
+        //insert in the linked list
         insertListSorted(&ds_list, &tmp);
+
+        //clear up the buffers
+        memset(&serialised, 0, sizeof(serialised));
+        memset(&tmp, 0, sizeof(dataset_t));
     }
+    printf("---------------------------------------------------------------------\n");
 
     //display all elements in the list, then free it
     foreachList(&ds_list, NULL, Print_dataset);

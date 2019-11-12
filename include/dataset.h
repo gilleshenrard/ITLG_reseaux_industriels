@@ -2,11 +2,12 @@
 #define DATASET_H_INCLUDED
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 typedef struct dataset_t dataset_t;
 
 struct dataset_t{
-    int32_t     id;
+    uint32_t    id;
     char        type[32];
     float       price;
     int32_t     height;
