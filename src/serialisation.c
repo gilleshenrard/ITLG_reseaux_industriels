@@ -7,6 +7,11 @@
 */
 #include "serialisation.h"
 
+/****************************************************************/
+/*  I : floating point value to encode                          */
+/*  P : serialise float numbers to IEEE-754 format variables    */
+/*  O : serialised value                                        */
+/****************************************************************/
 uint64_t pack754(long double f, unsigned bits, unsigned expbits)
 {
     long double fnorm;
@@ -51,6 +56,11 @@ uint64_t pack754(long double f, unsigned bits, unsigned expbits)
     return (sign<<(bits-1)) | (exp<<(bits-expbits-1)) | significand;
 }
 
+/****************************************************************/
+/*  I : IEEE-754 value to deserialise to a float                */
+/*  P : deserialise IEEE-754 format variables to float numbers  */
+/*  O : deserialised value                                      */
+/****************************************************************/
 long double unpack754(uint64_t i, unsigned bits, unsigned expbits)
 {
     long double result;
@@ -83,18 +93,24 @@ long double unpack754(uint64_t i, unsigned bits, unsigned expbits)
     return result;
 }
 
-/*
-** packi16() -- store a 16-bit int into a char buffer (like htons())
-*/
+/****************************************************************/
+/*  I : buffer to fill with the serialised data                 */
+/*      integer to serialise                                    */
+/*  P : store a 16-bit int into a char buffer (like htons())    */
+/*  O : /                                                       */
+/****************************************************************/
 void packi16(unsigned char *buf, unsigned int i)
 {
     *buf++ = i>>8;
     *buf++ = i;
 }
 
-/*
-** packi32() -- store a 32-bit int into a char buffer (like htonl())
-*/
+/****************************************************************/
+/*  I : buffer to fill with the serialised data                 */
+/*      integer to serialise                                    */
+/*  P : store a 32-bit int into a char buffer (like htons())    */
+/*  O : /                                                       */
+/****************************************************************/
 void packi32(unsigned char *buf, unsigned long int i)
 {
     *buf++ = i>>24;
@@ -103,9 +119,12 @@ void packi32(unsigned char *buf, unsigned long int i)
     *buf++ = i;
 }
 
-/*
-** packi64() -- store a 64-bit int into a char buffer (like htonl())
-*/
+/****************************************************************/
+/*  I : buffer to fill with the serialised data                 */
+/*      integer to serialise                                    */
+/*  P : store a 64-bit int into a char buffer (like htons())    */
+/*  O : /                                                       */
+/****************************************************************/
 void packi64(unsigned char *buf, unsigned long long int i)
 {
     *buf++ = i>>56;
@@ -118,9 +137,11 @@ void packi64(unsigned char *buf, unsigned long long int i)
     *buf++ = i;
 }
 
-/*
-** unpacki16() -- unpack a 16-bit int from a char buffer (like ntohs())
-*/
+/********************************************************************/
+/*  I : buffer with the serialised data                             */
+/*  P : unpack a 16-bit int from a char buffer (like ntohs())       */
+/*  O : deserialised data                                           */
+/********************************************************************/
 int unpacki16(unsigned char *buf)
 {
     unsigned int i2 = ((unsigned int)buf[0]<<8) | buf[1];
@@ -137,17 +158,21 @@ int unpacki16(unsigned char *buf)
     return i;
 }
 
-/*
-** unpacku16() -- unpack a 16-bit unsigned from a char buffer (like ntohs())
-*/
+/********************************************************************/
+/*  I : buffer with the serialised data                             */
+/*  P : unpack a 16-bit unsigned from a char buffer (like ntohs())  */
+/*  O : deserialised data                                           */
+/********************************************************************/
 unsigned int unpacku16(unsigned char *buf)
 {
     return ((unsigned int)buf[0]<<8) | buf[1];
 }
 
-/*
-** unpacki32() -- unpack a 32-bit int from a char buffer (like ntohl())
-*/
+/********************************************************************/
+/*  I : buffer with the serialised data                             */
+/*  P : unpack a 32-bit int from a char buffer (like ntohl())       */
+/*  O : deserialised data                                           */
+/********************************************************************/
 long int unpacki32(unsigned char *buf)
 {
     unsigned long int i2 = ((unsigned long int)buf[0]<<24) |
@@ -168,9 +193,11 @@ long int unpacki32(unsigned char *buf)
     return i;
 }
 
-/*
-** unpacku32() -- unpack a 32-bit unsigned from a char buffer (like ntohl())
-*/
+/********************************************************************/
+/*  I : buffer with the serialised data                             */
+/*  P : unpack a 32-bit unsigned from a char buffer (like ntohl())  */
+/*  O : deserialised data                                           */
+/********************************************************************/
 unsigned long int unpacku32(unsigned char *buf)
 {
     return ((unsigned long int)buf[0]<<24) |
@@ -179,9 +206,11 @@ unsigned long int unpacku32(unsigned char *buf)
            buf[3];
 }
 
-/*
-** unpacki64() -- unpack a 64-bit int from a char buffer (like ntohl())
-*/
+/********************************************************************/
+/*  I : buffer with the serialised data                             */
+/*  P : unpack a 64-bit int from a char buffer (like ntohl())       */
+/*  O : deserialised data                                           */
+/********************************************************************/
 long long int unpacki64(unsigned char *buf)
 {
     unsigned long long int i2 = ((unsigned long long int)buf[0]<<56) |
@@ -206,9 +235,11 @@ long long int unpacki64(unsigned char *buf)
     return i;
 }
 
-/*
-** unpacku64() -- unpack a 64-bit unsigned from a char buffer (like ntohl())
-*/
+/********************************************************************/
+/*  I : buffer with the serialised data                             */
+/*  P : unpack a 64-bit unsigned from a char buffer (like ntohl())  */
+/*  O : deserialised data                                           */
+/********************************************************************/
 unsigned long long int unpacku64(unsigned char *buf)
 {
     return ((unsigned long long int)buf[0]<<56) |
@@ -220,38 +251,17 @@ unsigned long long int unpacku64(unsigned char *buf)
            ((unsigned long long int)buf[6]<<8) |
            buf[7];
 }
+
 /*
 ** pack() -- store data dictated by the format string in the buffer
 **
-**
-bits |signed
-unsigned
-float
-string
-**
------+----------------------------------
-**
-8 |
-c
-C
-**
-16 |
-h
-H
-f
-**
-32 |
-l
-L
-d
-**
-64 |
-q
-Q
-g
-**
-- |
-s
+** bits |signed   unsigned   float   string
+** -----+----------------------------------
+**    8 |   c        C
+**   16 |   h        H         f
+**   32 |   l        L         d
+**   64 |   q        Q         g
+**    - |                               s
 **
 ** (16-bit unsigned length is automatically prepended to strings)
 */
@@ -367,35 +377,13 @@ unsigned int pack(unsigned char *buf, char *format, ...)
 /*
 ** unpack() -- unpack data dictated by the format string into the buffer
 **
-**
-bits |signed
-unsigned
-float
-string
-**
------+----------------------------------
-**
-8 |
-c
-C
-**
-16 |
-h
-H
-f
-**
-32 |
-l
-L
-d
-**
-64 |
-q
-Q
-g
-**
-- |
-s
+** bits |signed   unsigned   float   string
+** -----+----------------------------------
+**    8 |   c        C
+**   16 |   h        H         f
+**   32 |   l        L         d
+**   64 |   q        Q         g
+**    - |                               s
 **
 ** (string is extracted based on its stored length, but 's' can be
 ** prepended with a max length)
