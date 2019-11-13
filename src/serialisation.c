@@ -279,7 +279,7 @@ unsigned int pack(unsigned char *buf, char *format, ...)
     float f;
 
     // floats
-    double d;
+    float d;
     long double g;
     unsigned long long int fhold;
     char *s;
@@ -402,7 +402,7 @@ void unpack(unsigned char *buf, char *format, ...)
     float *f;
 
     // floats
-    double *d;
+    float *d;
     long double *g;
     unsigned long long int fhold;
     char *s;
@@ -465,7 +465,7 @@ void unpack(unsigned char *buf, char *format, ...)
             buf += 2;
             break;
         case 'd': // float-32
-            d = va_arg(ap, double*);
+            d = va_arg(ap, float*);
             fhold = unpacku32(buf);
             *d = unpack754_32(fhold);
             buf += 4;
