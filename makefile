@@ -14,7 +14,7 @@ Incpath := include
 Libpath := lib
 
 #Compiler and common flags
-CXX = gcc -fPIC -Wall -Werror
+CXX = gcc -fPIC -Wall -Werror -g
 
 #Library list
 Libflags := -lnetwork -lscreen -ldataset -lalgo	-lserialisation
