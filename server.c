@@ -117,9 +117,7 @@ void sigchld_handler(int s)
 int process_childrequest(int rem_sock){
     t_algo_meta ds_list = {NULL, 0, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset, NULL, NULL, NULL, dataset_right, dataset_left};
     dataset_t tmp = {0};
-    unsigned char serialised[64] = {0};
     char child_addr[INET6_ADDRSTRLEN] = {0};
-	unsigned long long int fhold = 0;
 
     //retrieve client's information
     socket_to_ip(&rem_sock, child_addr, sizeof(child_addr));
@@ -133,20 +131,8 @@ int process_childrequest(int rem_sock){
         sprintf(tmp.type, "type_%d", i);
         tmp.price = 3.141593*(float)i;
 
-        //test serialise data
-        fhold = pack754_32(tmp.price);
-        pack(serialised, "lsd", tmp.id, tmp.type, tmp.price);
-
-        //deserialise
-        unpack(serialised, "lsd", &tmp.id, tmp.type, &tmp.price);
-        tmp.price = unpack754_32(fhold);
-
         //insert in the linked list
         insertListSorted(&ds_list, &tmp);
-
-        //clear up the buffers
-        memset(&serialised, 0, sizeof(serialised));
-        memset(&tmp, 0, sizeof(dataset_t));
     }
     printf("---------------------------------------------------------------------\n");
 

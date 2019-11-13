@@ -18,10 +18,12 @@ void sigalrm_handler(int s);
 
 int main(int argc, char *argv[])
 {
-//    dataset_t tmp = {0};
+    dataset_t tmp = {0};
 	int sockfd=0;
-	char s[INET6_ADDRSTRLEN] = {0};
+//	char s[INET6_ADDRSTRLEN] = {0};
 	struct sigaction sa = {0};
+    unsigned char serialised[64] = {0};
+	//unsigned long long int fhold = 0;
 
 	//checks if the hostname and the port number have been provided
 	if (argc!=3)
@@ -41,6 +43,30 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+    //fill in 5 dummy elements and add them in a list
+    for(int i=1 ; i<6 ; i++)
+    {
+        //prepare dummy values
+        tmp.id = i;
+        sprintf(tmp.type, "type_%d", i);
+        tmp.price = 3.141593*(float)i;
+
+        //test serialise data
+        //fhold = pack754_32(tmp.price);
+        pack(serialised, "lsd", tmp.id, tmp.type, tmp.price);
+
+        //deserialise
+        unpack(serialised, "lsd", &tmp.id, tmp.type, &tmp.price);
+        //tmp.price = unpack754_32(fhold);
+
+        Print_dataset(&tmp, NULL);
+
+        //clear up the buffers
+        //memset(&serialised, 0, sizeof(serialised));
+        //memset(&tmp, 0, sizeof(dataset_t));
+    }
+
+/*
     //set connection timeout alarm
     alarm(TIMEOUT);
 
@@ -58,7 +84,7 @@ int main(int argc, char *argv[])
     socket_to_ip(&sockfd, s, sizeof(s));
     print_neutral("client: connecting to %s", s);
 
-/*
+
     //send the message to the server
     if (sendData(sockfd, buf, strlen(buf), NULL, 1) == -1)
     {
