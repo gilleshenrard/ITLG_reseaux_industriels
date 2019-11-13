@@ -23,7 +23,6 @@ int main(int argc, char *argv[])
 //	char s[INET6_ADDRSTRLEN] = {0};
 	struct sigaction sa = {0};
     unsigned char serialised[64] = {0};
-	//unsigned long long int fhold = 0;
 
 	//checks if the hostname and the port number have been provided
 	if (argc!=3)
@@ -51,19 +50,14 @@ int main(int argc, char *argv[])
         sprintf(tmp.type, "type_%d", i);
         tmp.price = 3.141593*(float)i;
 
-        //test serialise data
-        //fhold = pack754_32(tmp.price);
+        //test data serialisation
         pack(serialised, "lsd", tmp.id, tmp.type, tmp.price);
-
-        //deserialise
         unpack(serialised, "lsd", &tmp.id, tmp.type, &tmp.price);
-        //tmp.price = unpack754_32(fhold);
-
         Print_dataset(&tmp, NULL);
 
         //clear up the buffers
-        //memset(&serialised, 0, sizeof(serialised));
-        //memset(&tmp, 0, sizeof(dataset_t));
+        memset(&serialised, 0, sizeof(serialised));
+        memset(&tmp, 0, sizeof(dataset_t));
     }
 
 /*
