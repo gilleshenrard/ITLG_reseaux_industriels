@@ -26,14 +26,17 @@ Libbuilds := libnetwork libscreen libdataset libalgo libserialisation
 
 $(Client) : $(Client).c $(Libbuilds)
 	echo 'Building' $@
+	mkdir -p $(Bpath)
 	$(CXX) -L$(Libpath) -I$(Incpath) -o$(Bpath)/$@ $@.c $(Libflags)
 
 $(Server) : $(Server).c $(Libbuilds)
 	echo 'Building' $@
+	mkdir -p $(Bpath)
 	$(CXX) -L$(Libpath) -I$(Incpath) -o $(Bpath)/$@ $@.c $(Libflags)
 
 libnetwork : $(Opath)/network.c
 	echo 'Building' $@
+	mkdir -p $(Libpath)
 	$(CXX) -I$(Incpath) -c $^ -o $(Opath)/network.o
 	$(CXX) -shared -Wl,-soname,$@.so.2 -o $(Libpath)/$@.so.2.0 $(Opath)/network.o
 	ldconfig -n $(Libpath)/
@@ -41,6 +44,7 @@ libnetwork : $(Opath)/network.c
 
 libscreen : $(Opath)/screen.c
 	echo 'Building' $@
+	mkdir -p $(Libpath)
 	$(CXX) -I$(Incpath) -c $^ -o $(Opath)/screen.o
 	$(CXX) -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/screen.o
 	ldconfig -n $(Libpath)/
@@ -48,6 +52,7 @@ libscreen : $(Opath)/screen.c
 
 libdataset : $(Opath)/dataset.c
 	echo 'Building' $@
+	mkdir -p $(Libpath)
 	$(CXX) -I$(Incpath) -c $^ -o $(Opath)/dataset.o
 	$(CXX) -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/dataset.o
 	ldconfig -n $(Libpath)/
@@ -55,6 +60,7 @@ libdataset : $(Opath)/dataset.c
 
 libalgo : $(Opath)/algo.c
 	echo 'Building' $@
+	mkdir -p $(Libpath)
 	$(CXX) -I$(Incpath) -c $^ -o $(Opath)/algo.o
 	$(CXX) -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/algo.o
 	ldconfig -n $(Libpath)/
@@ -62,6 +68,7 @@ libalgo : $(Opath)/algo.c
 
 libserialisation : $(Opath)/serialisation.c
 	echo 'Building' $@
+	mkdir -p $(Libpath)
 	$(CXX) -I$(Incpath) -c $^ -o $(Opath)/serialisation.o
 	$(CXX) -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/serialisation.o
 	ldconfig -n $(Libpath)/
@@ -72,8 +79,7 @@ libserialisation : $(Opath)/serialisation.c
 #
 
 install :
-	echo 'Creating directories and building everything'
-	mkdir -p $(Bpath) $(Libpath)
+	echo 'Building everything'
 	make $(Client) $(Server)
 
 uninstall :
