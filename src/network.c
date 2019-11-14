@@ -192,7 +192,7 @@ int acceptServ(int sockfd, char* client, int ip_size)
 /*      flag to indicate whether the socket is connected or not         */
 /*  P : Reads data sent by the client, fills up the data buffer and the */
 /*          IP buffer                                                   */
-/*  O : on success : 0                                                  */
+/*  O : on success : number of bytes received                           */
 /*      on error : -1, and errno is set                                 */
 /************************************************************************/
 int receiveData(int sockfd, void* buf, int bufsz, struct sockaddr_storage* client, int connected)
@@ -209,11 +209,11 @@ int receiveData(int sockfd, void* buf, int bufsz, struct sockaddr_storage* clien
     else
     {
         //wait data on a non-connected socket
-        if (recvfrom(sockfd, buf, bufsz, 0, (struct sockaddr *)&client, &size) == -1)
+        if ((numbytes = recvfrom(sockfd, buf, bufsz, 0, (struct sockaddr *)&client, &size)) == -1)
             return -1;
     }
 
-    return 0;
+    return numbytes;
 }
 
 /************************************************************************/
@@ -223,7 +223,7 @@ int receiveData(int sockfd, void* buf, int bufsz, struct sockaddr_storage* clien
 /*      buffer to fill with the IP address                              */
 /*      flag to indicate whether the socket is connected or not         */
 /*  P : Sends data to the client                                        */
-/*  O : on success : 0                                                  */
+/*  O : on success : number of bytes sent                               */
 /*      on error : -1, and errno is set                                 */
 /************************************************************************/
 int sendData(int sockfd, void* buf, int bufsz, struct sockaddr_storage* client, int connected)
@@ -240,7 +240,7 @@ int sendData(int sockfd, void* buf, int bufsz, struct sockaddr_storage* client, 
     else
     {
         //wait data on a non-connected socket
-        if (sendto(sockfd, buf, bufsz, 0, (struct sockaddr *)client, size) == -1)
+        if ((numbytes = sendto(sockfd, buf, bufsz, 0, (struct sockaddr *)client, size)) == -1)
             return -1;
     }
 
