@@ -7,6 +7,7 @@
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once
 #define TIMEOUT     5
+#define HEAD_F      "ll"
 
 typedef struct{
     uint32_t nbelem;

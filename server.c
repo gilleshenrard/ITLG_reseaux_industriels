@@ -122,11 +122,13 @@ int protSer(int rem_sock){
     dataset_t tmp = {0};
     unsigned char serialised[64] = {0};
     int datasz = 0;
-    head_t header = {5, 0};
+    head_t header = {0};
 
+    //prepare the header with the data information
+    header.nbelem = 5;
     header.szelem = sizeof(tmp.id) + sizeof(tmp.type) + sizeof(tmp.price);
-    datasz = pack(serialised, "ll", header.nbelem, header.szelem);
-    if (sendData(rem_sock, serialised, datasz, NULL, 1) == -1)
+    datasz = pack(serialised, HEAD_F, header.nbelem, header.szelem);
+    if (sendData(rem_sock, serialised, sizeof(serialised), NULL, 1) == -1)
     {
         print_error("server: sendData: %s", strerror(errno));
         return -1;
@@ -134,7 +136,7 @@ int protSer(int rem_sock){
     memset(&serialised, 0, sizeof(serialised));
 
     //fill in 5 dummy elements and add them in a list
-    for(int i=1 ; i<6 ; i++)
+    for(int i=1 ; i<header.nbelem+1 ; i++)
     {
         //prepare dummy values
         tmp.id = i;
@@ -142,7 +144,7 @@ int protSer(int rem_sock){
         tmp.price = 3.141593*(float)i;
 
         //test data serialisation
-        datasz = pack(serialised, "lsd", tmp.id, tmp.type, tmp.price);
+        datasz = pack(serialised, DATA_F, tmp.id, tmp.type, tmp.price);
 
         //send the reply
         if (sendData(rem_sock, serialised, datasz, NULL, 1) == -1)
@@ -150,6 +152,11 @@ int protSer(int rem_sock){
             print_error("server: sendData: %s", strerror(errno));
             return -1;
         }
+
+        //trace the data sent
+        memset(&tmp, 0, sizeof(dataset_t));
+        unpack(serialised, "lsd", &tmp.id, tmp.type, &tmp.price);
+        Print_dataset(&tmp, NULL);
 
         //clear up the buffers
         memset(&serialised, 0, sizeof(serialised));
