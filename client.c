@@ -4,7 +4,7 @@
 ** -------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 10/11/2019
+** Last modified : 14/11/2019
 */
 
 #include "global.h"
@@ -15,14 +15,12 @@
 #include "serialisation.h"
 
 void sigalrm_handler(int s);
+int protCli(int sockfd);
 
 int main(int argc, char *argv[])
 {
-    dataset_t tmp = {0};
 	int sockfd=0;
-//	char s[INET6_ADDRSTRLEN] = {0};
 	struct sigaction sa = {0};
-    unsigned char serialised[64] = {0};
 
 	//checks if the hostname and the port number have been provided
 	if (argc!=3)
@@ -34,7 +32,6 @@ int main(int argc, char *argv[])
     //prepare main process for SIGALRM signals
 	sa.sa_handler = sigalrm_handler;
 	sigemptyset(&sa.sa_mask);
-	//sigaddset(&sa.sa_mask, SIGALRM);
 	sa.sa_flags = 0;
 	if (sigaction(SIGALRM, &sa, NULL) == -1)
 	{
@@ -42,25 +39,6 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-    //fill in 5 dummy elements and add them in a list
-    for(int i=1 ; i<6 ; i++)
-    {
-        //prepare dummy values
-        tmp.id = i;
-        sprintf(tmp.type, "type_%d", i);
-        tmp.price = 3.141593*(float)i;
-
-        //test data serialisation
-        pack(serialised, "lsd", tmp.id, tmp.type, tmp.price);
-        unpack(serialised, "lsd", &tmp.id, tmp.type, &tmp.price);
-        Print_dataset(&tmp, NULL);
-
-        //clear up the buffers
-        memset(&serialised, 0, sizeof(serialised));
-        memset(&tmp, 0, sizeof(dataset_t));
-    }
-
-/*
     //set connection timeout alarm
     alarm(TIMEOUT);
 
@@ -74,31 +52,12 @@ int main(int argc, char *argv[])
     //stop timeout alarm and free the server info list
     alarm(0);
 
-    //notify the successful connection to the server
-    socket_to_ip(&sockfd, s, sizeof(s));
-    print_neutral("client: connecting to %s", s);
-
-
-    //send the message to the server
-    if (sendData(sockfd, buf, strlen(buf), NULL, 1) == -1)
-    {
-        print_error("client: send: %s", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
-    //wipe out the buffer
-    memset(buf, 0, MAXDATASIZE);
-
-    //receive message from the server
-    if (receiveData(sockfd, buf, MAXDATASIZE-1, NULL, 1) == -1)
-    {
-        print_error("client: receiveData: %s", strerror(errno));
+    //handle the protocol on the client side
+    if(protCli(sockfd) == -1){
         close(sockfd);
         exit(EXIT_FAILURE);
     }
 
-    print_success("client: received '%s' (size: %ld) from the server\n", buf, strlen(buf));
-*/
 	close(sockfd);
 	exit(EXIT_SUCCESS);
 }
@@ -111,4 +70,44 @@ int main(int argc, char *argv[])
 void sigalrm_handler(int s)
 {
     print_error("client: connection attempt timeout");
+}
+
+/************************************************************************/
+/*  I : client socket file descriptor                                   */
+/*  P : Handle the protocol on the client side                          */
+/*  O : /                                                               */
+/************************************************************************/
+int protCli(int sockfd)
+{
+    t_algo_meta ds_list = {NULL, 0, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset, NULL, NULL, NULL, dataset_right, dataset_left};
+    unsigned char serialised[64] = {0};
+	char s[INET6_ADDRSTRLEN] = {0};
+	dataset_t tmp = {0};
+
+    //notify the successful connection to the server
+    socket_to_ip(&sockfd, s, sizeof(s));
+    print_neutral("client: connecting to %s", s);
+
+    for(int i=1 ; i<6 ; i++)
+    {
+        //receive message from the server
+        if (receiveData(sockfd, serialised, sizeof(serialised)-1, NULL, 1) == -1)
+        {
+            print_error("client: receiveData: %s", strerror(errno));
+            return -1;
+        }
+
+        unpack(serialised, "lsd", &tmp.id, tmp.type, &tmp.price);
+
+        insertListSorted(&ds_list, (void*)&tmp);
+    }
+
+    //display all elements in the list, then free it
+    foreachList(&ds_list, NULL, Print_dataset);
+    while(ds_list.structure)
+        popListTop(&ds_list);
+
+    //print_success("client: received '%s' (size: %ld) from the server\n", serialised, strlen(serialised));
+
+    return 0;
 }

@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 12/11/2019
+** Last modified : 14/11/2019
 */
 
 #include "global.h"
@@ -71,12 +71,16 @@ int main(int argc, char *argv[])
                 // child doesn't need the listener in a TCP connection
                 close(loc_socket);
 
+                print_neutral("server: %s -> processing request", s);
+
                 //process the request (remote socket if TCP, local socket if UDP)
                 if(process_childrequest(rem_socket) == -1)
                 {
                     print_error("server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
                 }
+
+                print_success("server: %s -> request processed", s);
 
                 //close connection socket and exit child process
                 close(rem_socket);
@@ -115,13 +119,9 @@ void sigchld_handler(int s)
 /*       0 otherwise                                                    */
 /************************************************************************/
 int process_childrequest(int rem_sock){
-    t_algo_meta ds_list = {NULL, 0, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset, NULL, NULL, NULL, dataset_right, dataset_left};
     dataset_t tmp = {0};
-    char child_addr[INET6_ADDRSTRLEN] = {0};
-
-    //retrieve client's information
-    socket_to_ip(&rem_sock, child_addr, sizeof(child_addr));
-    print_neutral("server: %s -> processing request", child_addr);
+    unsigned char serialised[64] = {0};
+    int datasz = 0;
 
     //fill in 5 dummy elements and add them in a list
     for(int i=1 ; i<6 ; i++)
@@ -131,32 +131,20 @@ int process_childrequest(int rem_sock){
         sprintf(tmp.type, "type_%d", i);
         tmp.price = 3.141593*(float)i;
 
-        //insert in the linked list
-        insertListSorted(&ds_list, &tmp);
-    }
-    printf("---------------------------------------------------------------------\n");
+        //test data serialisation
+        datasz = pack(serialised, "lsd", tmp.id, tmp.type, tmp.price);
 
-    //display all elements in the list, then free it
-    foreachList(&ds_list, NULL, Print_dataset);
-    while(ds_list.structure)
-        popListTop(&ds_list);
-/*
-    //send message to child
-    //wait for a message from the client
-    if (receiveData(rem_sock, buffer, MAXDATASIZE-1, NULL, 1) == -1)
-    {
-        print_error("server: receiveData: %s", strerror(errno));
-        return -1;
-    }
-    print_neutral("server: %s -> sent '%s' (size : %ld)", child_addr, buffer, strlen(buffer));
+        //send the reply
+        if (sendData(rem_sock, serialised, datasz, NULL, 1) == -1)
+        {
+            print_error("server: sendData: %s", strerror(errno));
+            return -1;
+        }
 
-    //send the reply
-    if (sendData(rem_sock, buffer, strlen(buffer), NULL, 1) == -1)
-    {
-        print_error("server: sendData: %s", strerror(errno));
-        return -1;
+        //clear up the buffers
+        memset(&serialised, 0, sizeof(serialised));
+        memset(&tmp, 0, sizeof(dataset_t));
     }
-*/
-    print_success("server: %s -> request processed", child_addr);
+
     return 0;
 }
