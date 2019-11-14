@@ -120,49 +120,41 @@ void sigchld_handler(int s)
 /************************************************************************/
 int protSer(int rem_sock){
     dataset_t tmp = {0};
-    unsigned char serialised[64] = {0};
-    int datasz = 0;
+    unsigned char serialised[MAXDATASIZE] = {0};
     head_t header = {0};
 
     //prepare the header with the data information
     header.nbelem = 5;
     header.szelem = sizeof(tmp.id) + sizeof(tmp.type) + sizeof(tmp.price);
-    datasz = pack(serialised, HEAD_F, header.nbelem, header.szelem);
-    if (sendData(rem_sock, serialised, sizeof(serialised), NULL, 1) == -1)
+    pack(serialised, HEAD_F, header.nbelem, header.szelem);
+    if (sendData(rem_sock, serialised, sizeof(head_t), NULL, 1) == -1)
     {
         print_error("server: sendData: %s", strerror(errno));
         return -1;
     }
-    memset(&serialised, 0, sizeof(serialised));
 
     //fill in 5 dummy elements and add them in a list
     for(int i=1 ; i<header.nbelem+1 ; i++)
     {
+        //clear up the buffers
+        memset(&tmp, 0, sizeof(dataset_t));
+        memset(&serialised, 0, sizeof(serialised));
+
         //prepare dummy values
         tmp.id = i;
         sprintf(tmp.type, "type_%d", i);
         tmp.price = 3.141593*(float)i;
 
         //test data serialisation
-        datasz = pack(serialised, DATA_F, tmp.id, tmp.type, tmp.price);
+        pack(serialised, DATA_F, tmp.id, tmp.type, tmp.price);
+        print_neutral("sent : %x", serialised);
 
         //send the reply
-        if (sendData(rem_sock, serialised, datasz, NULL, 1) == -1)
+        if (sendData(rem_sock, serialised, header.szelem, NULL, 1) == -1)
         {
             print_error("server: sendData: %s", strerror(errno));
             return -1;
         }
-
-        print_neutral("sent : %x", serialised);
-
-        //trace the data sent
-        memset(&tmp, 0, sizeof(dataset_t));
-        unpack(serialised, "lsd", &tmp.id, tmp.type, &tmp.price);
-        Print_dataset(&tmp, NULL);
-
-        //clear up the buffers
-        memset(&serialised, 0, sizeof(serialised));
-        memset(&tmp, 0, sizeof(dataset_t));
     }
 
     return 0;

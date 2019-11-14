@@ -86,12 +86,12 @@ void sigalrm_handler(int s)
 int protCli(int sockfd)
 {
     t_algo_meta ds_list = {NULL, 0, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset, NULL, NULL, NULL, dataset_right, dataset_left};
-    unsigned char serialised[64] = {0};
+    unsigned char serialised[MAXDATASIZE] = {0};
 	dataset_t tmp = {0};
 	head_t header = {0};
 
 	//wait for the header containing the data info
-    if (receiveData(sockfd, serialised, sizeof(serialised)-1, NULL, 1) == -1)
+    if (receiveData(sockfd, serialised, sizeof(head_t), NULL, 1) == -1)
     {
         print_error("client: receiveData: %s", strerror(errno));
         return -1;
@@ -104,7 +104,7 @@ int protCli(int sockfd)
     for(int i=0 ; i<header.nbelem ; i++)
     {
         //receive message from the server
-        if (receiveData(sockfd, serialised, sizeof(serialised)-1, NULL, 1) == -1)
+        if (receiveData(sockfd, serialised, header.szelem, NULL, 1) == -1)
         {
             print_error("client: receiveData: %s", strerror(errno));
             return -1;
