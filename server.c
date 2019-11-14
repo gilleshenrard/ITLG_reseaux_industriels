@@ -122,6 +122,11 @@ int protSer(int rem_sock){
     dataset_t tmp = {0};
     unsigned char serialised[MAXDATASIZE] = {0};
     head_t header = {0};
+    char msg[5][64] = { "test1",
+                        "seriously this works well",
+                        "I can't believe it",
+                        "I mean look at this s**t!",
+                        "This is amazing and yet this final message is waaaaay too long"};
 
     //prepare the header with the data information
     header.nbelem = 5;
@@ -142,7 +147,7 @@ int protSer(int rem_sock){
 
         //prepare dummy values
         tmp.id = i;
-        sprintf(tmp.type, "type_%d", i);
+        strncpy(tmp.type, msg[i-1], sizeof(tmp.type));
         tmp.price = 3.141593*(float)i;
 
         //test data serialisation

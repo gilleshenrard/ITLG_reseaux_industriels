@@ -114,8 +114,7 @@ int protCli(int sockfd)
 
         //unpack the data and store it
         unpack(serialised, DATA_F, &tmp.id, tmp.type, &tmp.price);
-        Print_dataset(&tmp, NULL);
-        //insertListSorted(&ds_list, (void*)&tmp);
+        insertListSorted(&ds_list, (void*)&tmp);
 
         //clear the memory buffers
         memset(&serialised, 0, sizeof(serialised));
