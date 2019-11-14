@@ -75,7 +75,8 @@ void sigalrm_handler(int s)
 /************************************************************************/
 /*  I : client socket file descriptor                                   */
 /*  P : Handle the protocol on the client side                          */
-/*  O : /                                                               */
+/*  O : 0 if ok                                                         */
+/*      -1 otherwise                                                    */
 /************************************************************************/
 int protCli(int sockfd)
 {
@@ -83,10 +84,20 @@ int protCli(int sockfd)
     unsigned char serialised[64] = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
 	dataset_t tmp = {0};
+	head_t header = {0};
 
     //notify the successful connection to the server
     socket_to_ip(&sockfd, s, sizeof(s));
     print_neutral("client: connecting to %s", s);
+
+
+    if (receiveData(sockfd, serialised, sizeof(serialised)-1, NULL, 1) == -1)
+    {
+        print_error("client: receiveData: %s", strerror(errno));
+        return -1;
+    }
+    unpack(serialised, "ll", &header.nbelem, &header.szelem);
+    memset(&serialised, 0, sizeof(serialised));
 
     for(int i=1 ; i<6 ; i++)
     {

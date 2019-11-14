@@ -15,7 +15,7 @@
 #include "serialisation.h"
 
 void sigchld_handler(int s);
-int process_childrequest(int rem_sock);
+int protSer(int rem_sock);
 
 int main(int argc, char *argv[])
 {
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
                 print_neutral("server: %s -> processing request", s);
 
                 //process the request (remote socket if TCP, local socket if UDP)
-                if(process_childrequest(rem_socket) == -1)
+                if(protSer(rem_socket) == -1)
                 {
                     print_error("server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
@@ -118,10 +118,20 @@ void sigchld_handler(int s)
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int process_childrequest(int rem_sock){
+int protSer(int rem_sock){
     dataset_t tmp = {0};
     unsigned char serialised[64] = {0};
     int datasz = 0;
+    head_t header = {5, 0};
+
+    header.szelem = sizeof(tmp.id) + sizeof(tmp.type) + sizeof(tmp.price);
+    datasz = pack(serialised, "ll", header.nbelem, header.szelem);
+    if (sendData(rem_sock, serialised, datasz, NULL, 1) == -1)
+    {
+        print_error("server: sendData: %s", strerror(errno));
+        return -1;
+    }
+    memset(&serialised, 0, sizeof(serialised));
 
     //fill in 5 dummy elements and add them in a list
     for(int i=1 ; i<6 ; i++)
