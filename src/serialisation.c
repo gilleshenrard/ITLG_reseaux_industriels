@@ -2,7 +2,8 @@
 ** serialisation.c
 ** Library regrouping serialisation-based functions
 ** ------------------------------------------
-** Made by Gilles Henrard
+** Based on Brian 'Beej Jorgensen' Hall's code
+** Modified by Gilles Henrard
 ** Last modified : 14/11/2019
 */
 #include "serialisation.h"
