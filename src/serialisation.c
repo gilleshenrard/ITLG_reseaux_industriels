@@ -3,7 +3,7 @@
 ** Library regrouping serialisation-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 12/11/2019
+** Last modified : 14/11/2019
 */
 #include "serialisation.h"
 
