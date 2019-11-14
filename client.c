@@ -110,6 +110,8 @@ int protCli(int sockfd)
             return -1;
         }
 
+        print_neutral("received : %x", serialised);
+
         //unpack the data and store it
         unpack(serialised, DATA_F, &tmp.id, tmp.type, &tmp.price);
         Print_dataset(&tmp, NULL);

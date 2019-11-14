@@ -153,6 +153,8 @@ int protSer(int rem_sock){
             return -1;
         }
 
+        print_neutral("sent : %x", serialised);
+
         //trace the data sent
         memset(&tmp, 0, sizeof(dataset_t));
         unpack(serialised, "lsd", &tmp.id, tmp.type, &tmp.price);
