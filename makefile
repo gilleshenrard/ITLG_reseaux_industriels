@@ -11,15 +11,15 @@ cbin := bin
 CC := gcc
 CFLAGS:= -fPIC -Wall -Werror -g -I$(chead)
 lib_f:= -lscreen -lnetwork -ldataset -lalgo -lserialisation
-lib_b:= libscreen.so libnetwork.so libdataset.so libalgo.so libserialisation.so
+lib_b:= $(clib)/libscreen.so $(clib)/libnetwork.so $(clib)/libdataset.so $(clib)/libalgo.so $(clib)/libserialisation.so
 
 
 #executables compilation
-client: client.c $(lib_b)
+client: client.c $(lib_b) blib
 	echo "Building client"
 	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
 
-server: server.c $(lib_b)
+server: server.c $(lib_b) blibb
 	echo "Builing server"
 	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
 
@@ -29,38 +29,9 @@ server: server.c $(lib_b)
 	echo "Building $@"
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-
-#libraries compilation and linking (version number -> *.so file)
-libscreen.so : src/screen.o
-	echo "Building $@"
-	$(CC) -shared -Wl,-soname,$@.1 -o $(clib)/$@.1.0 $<
-	ldconfig -n $(clib)/
-	ln -sf $@.1 $(clib)/$@
-
-libnetwork.so : src/network.o
-	echo "Building $@"
-	$(CC) -shared -Wl,-soname,$@.1 -o $(clib)/$@.1.0 $<
-	ldconfig -n $(clib)/
-	ln -sf $@.1 $(clib)/$@
-
-libalgo.so : src/algo.o
-	echo "Building $@"
-	$(CC) -shared -Wl,-soname,$@.1 -o $(clib)/$@.1.0 $<
-	ldconfig -n $(clib)/
-	ln -sf $@.1 $(clib)/$@
-
-libdataset.so : src/dataset.o
-	echo "Building $@"
-	$(CC) -shared -Wl,-soname,$@.1 -o $(clib)/$@.1.1 $<
-	ldconfig -n $(clib)/
-	ln -sf $@.1 $(clib)/$@
-
-libserialisation.so : src/serialisation.o
-	echo "Building $@"
-	$(CC) -shared -Wl,-soname,$@.1 -o $(clib)/$@.1.1 $<
-	ldconfig -n $(clib)/
-	ln -sf $@.1 $(clib)/$@
-
+.PHONY: blib
+blib:
+	$(MAKE) -f lib/build.mk
 
 #overall functions
 all: client server
