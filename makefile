@@ -8,7 +8,7 @@ clib := lib
 cbin := bin
 
 #flags necessary to the compilation
-CC ?= gcc
+CC := gcc
 CFLAGS:= -fPIC -Wall -Werror -g -I$(chead)
 lib_f:= -lscreen -lnetwork -ldataset -lalgo -lserialisation
 lib_b:= libscreen.so libnetwork.so libdataset.so libalgo.so libserialisation.so
@@ -17,11 +17,11 @@ lib_b:= libscreen.so libnetwork.so libdataset.so libalgo.so libserialisation.so
 #executables compilation
 client: client.c $(lib_b)
 	echo "Building client"
-	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ -c $< $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
+	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
 
 server: server.c $(lib_b)
 	echo "Builing server"
-	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ -c $< $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
+	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
 
 
 #objects compilation from the source files
