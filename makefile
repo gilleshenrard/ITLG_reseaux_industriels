@@ -27,12 +27,12 @@ Libbuilds := libnetwork libscreen libdataset libalgo libserialisation
 $(Client) : $(Client).c $(Libbuilds)
 	echo 'Building' $@
 	mkdir -p $(Bpath)
-	$(CXX) -L$(Libpath) -I$(Incpath) -o$(Bpath)/$@ $@.c $(Libflags)
+	$(CXX) -L$(Libpath) -I$(Incpath) -o$(Bpath)/$@ $@.c $(Libflags) -Wl,-rpath,"$(ORIGIN)$(Libpath)"
 
 $(Server) : $(Server).c $(Libbuilds)
 	echo 'Building' $@
 	mkdir -p $(Bpath)
-	$(CXX) -L$(Libpath) -I$(Incpath) -o $(Bpath)/$@ $@.c $(Libflags)
+	$(CXX) -L$(Libpath) -I$(Incpath) -o $(Bpath)/$@ $@.c $(Libflags) -Wl,-rpath,"$(ORIGIN)$(Libpath)"
 
 libnetwork : $(Opath)/network.c
 	echo 'Building' $@
