@@ -1,92 +1,73 @@
-# Makefile for all libraries, client and server
-# Warning : when executing programs, do not forget to run 'export LD_LIBRARY_PATH=../lib'
+#list of all src and object files
+csrc := $(wildcard src/*.c)
+cobj := $(csrc:.c=.o)
 
-# Project name
-Client := client
-Server := server
+#directories containing the headers, libraries and executables
+chead:= include
+clib := lib
+cbin := bin
 
-#paths for Object files (Opath)
-Opath := src
-Bpath := bin
+#flags necessary to the compilation
+CC ?= gcc
+CFLAGS:= -fPIC -Wall -Werror -g -I$(chead)
+lib_f:= -lscreen -lnetwork -ldataset -lalgo -lserialisation
+lib_b:= libscreen libnetwork libdataset libalgo libserialisation
 
-#Library & header paths
-Incpath := include
-Libpath := lib
 
-#Compiler and common flags
-CXX = gcc -fPIC -Wall -Werror -g
+#executables compilation
+client: client.c $(lib_b)
+	echo "Building client"
+	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ -c $< $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
 
-#Library list
-Libflags := -lnetwork -lscreen -ldataset -lalgo	-lserialisation
-Libbuilds := libnetwork libscreen libdataset libalgo libserialisation
+server: server.c $(lib_b)
+	echo "Builing server"
+	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ -c $< $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
 
-#
-# Actual build targets
-#
 
-$(Client) : $(Client).c $(Libbuilds)
-	echo 'Building' $@
-	mkdir -p $(Bpath)
-	$(CXX) -L$(Libpath) -I$(Incpath) -o$(Bpath)/$@ $@.c $(Libflags) -Wl,-rpath,"$(ORIGIN)$(Libpath)"
+#objects compilation from the source files
+%.o: %.c
+	echo "Building $@"
+	$(CC) $(CFLAGS) -o $@ -c $<
 
-$(Server) : $(Server).c $(Libbuilds)
-	echo 'Building' $@
-	mkdir -p $(Bpath)
-	$(CXX) -L$(Libpath) -I$(Incpath) -o $(Bpath)/$@ $@.c $(Libflags) -Wl,-rpath,"$(ORIGIN)$(Libpath)"
 
-libnetwork : $(Opath)/network.c
-	echo 'Building' $@
-	mkdir -p $(Libpath)
-	$(CXX) -I$(Incpath) -c $^ -o $(Opath)/network.o
-	$(CXX) -shared -Wl,-soname,$@.so.2 -o $(Libpath)/$@.so.2.0 $(Opath)/network.o
-	ldconfig -n $(Libpath)/
-	ln -sf $@.so.2 $(Libpath)/$@.so
+#libraries compilation and linking (version number -> *.so file)
+libscreen : src/screen.o
+	echo "Building $@"
+	$(CC) -shared -Wl,-soname,$@.so.1 -o $(clib)/$@.so.1.0 $<
+	ldconfig -n $(clib)/
+	ln -sf $@.so.1 $(clib)/$@.so
 
-libscreen : $(Opath)/screen.c
-	echo 'Building' $@
-	mkdir -p $(Libpath)
-	$(CXX) -I$(Incpath) -c $^ -o $(Opath)/screen.o
-	$(CXX) -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/screen.o
-	ldconfig -n $(Libpath)/
-	ln -sf $@.so.1 $(Libpath)/$@.so
+libnetwork : src/network.o
+	echo "Building $@"
+	$(CC) -shared -Wl,-soname,$@.so.1 -o $(clib)/$@.so.1.0 $<
+	ldconfig -n $(clib)/
+	ln -sf $@.so.1 $(clib)/$@.so
 
-libdataset : $(Opath)/dataset.c
-	echo 'Building' $@
-	mkdir -p $(Libpath)
-	$(CXX) -I$(Incpath) -c $^ -o $(Opath)/dataset.o
-	$(CXX) -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/dataset.o
-	ldconfig -n $(Libpath)/
-	ln -sf $@.so.1 $(Libpath)/$@.so
+libalgo : src/algo.o
+	echo "Building $@"
+	$(CC) -shared -Wl,-soname,$@.so.1 -o $(clib)/$@.so.1.0 $<
+	ldconfig -n $(clib)/
+	ln -sf $@.so.1 $(clib)/$@.so
 
-libalgo : $(Opath)/algo.c
-	echo 'Building' $@
-	mkdir -p $(Libpath)
-	$(CXX) -I$(Incpath) -c $^ -o $(Opath)/algo.o
-	$(CXX) -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/algo.o
-	ldconfig -n $(Libpath)/
-	ln -sf $@.so.1 $(Libpath)/$@.so
+libdataset : src/dataset.o
+	echo "Building $@"
+	$(CC) -shared -Wl,-soname,$@.so.1 -o $(clib)/$@.so.1.1 $<
+	ldconfig -n $(clib)/
+	ln -sf $@.so.1 $(clib)/$@.so
 
-libserialisation : $(Opath)/serialisation.c
-	echo 'Building' $@
-	mkdir -p $(Libpath)
-	$(CXX) -I$(Incpath) -c $^ -o $(Opath)/serialisation.o
-	$(CXX) -shared -Wl,-soname,$@.so.1 -o $(Libpath)/$@.so.1.0 $(Opath)/serialisation.o
-	ldconfig -n $(Libpath)/
-	ln -sf $@.so.1 $(Libpath)/$@.so
+libserialisation : src/serialisation.o
+	echo "Building $@"
+	$(CC) -shared -Wl,-soname,$@.so.1 -o $(clib)/$@.so.1.1 $<
+	ldconfig -n $(clib)/
+	ln -sf $@.so.1 $(clib)/$@.so
 
-#
-# install and clean targets
-#
 
-install :
-	echo 'Building everything'
-	make $(Client) $(Server)
+#overall functions
+.PHONY: all
+all:
+	make client
+	make server
 
-uninstall :
-	make clean
-	echo 'Deleting directories'
-	rm -rf $(Bpath) $(Libpath)
+.PHONY: clean
 clean:
-	echo 'Deleting builds'
-	rm -rf $(Opath)/*.o $(Libpath)/*.so* bin/*
-
+	rm -rf $(cobj) $(cbin)/* $(clib)/*
