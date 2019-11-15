@@ -1,5 +1,5 @@
 # Makefile for all libraries, client and server
-# Warning : when executing programs, do not forget to run 'export LD_LIBRARY_PATH=./lib/:../lib'
+# Warning : when executing programs, do not forget to run 'export LD_LIBRARY_PATH=../lib'
 
 # Project name
 Client := client
