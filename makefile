@@ -67,4 +67,4 @@ all: client server
 
 .PHONY: clean
 clean:
-	rm -rf $(cobj) $(cbin)/* $(clib)/*
+	rm -rf $(cobj) $(cbin)/* $(clib)/*.so*
