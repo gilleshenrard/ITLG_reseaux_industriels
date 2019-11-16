@@ -1,7 +1,3 @@
-#list of all src and object files
-csrc := $(wildcard src/*.c)
-cobj := $(csrc:.c=.o)
-
 #directories containing the headers, libraries and executables
 chead:= include
 clib := lib
@@ -15,27 +11,22 @@ lib_b:= $(clib)/libscreen.so $(clib)/libnetwork.so $(clib)/libdataset.so $(clib)
 
 
 #executables compilation
-client: client.c $(lib_b) blib
+client: client.c blib $(lib_b)
 	echo "Building client"
 	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
 
-server: server.c $(lib_b) blibb
+server: server.c blib $(lib_b)
 	echo "Builing server"
 	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
 
-
-#objects compilation from the source files
-%.o: %.c
-	echo "Building $@"
-	$(CC) $(CFLAGS) -o $@ -c $<
-
 .PHONY: blib
 blib:
-	$(MAKE) -f lib/build.mk
+	$(MAKE) -f build.mk -C lib all
 
 #overall functions
 all: client server
 
 .PHONY: clean
 clean:
-	rm -rf $(cobj) $(cbin)/* $(clib)/*.so*
+	rm -rf $(cbin)/*
+	$(MAKE) -f build.mk -C lib clean

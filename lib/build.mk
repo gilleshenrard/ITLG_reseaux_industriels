@@ -1,5 +1,5 @@
 #list of all src and object files
-csrc := $(wildcard src/*.c)
+csrc := $(wildcard ../src/*.c)
 cobj := $(csrc:.c=.o)
 
 #directories containing the headers, libraries and executables
@@ -17,31 +17,31 @@ lib_b:= libscreen.so libnetwork.so libdataset.so libalgo.so libserialisation.so
 
 
 #libraries compilation and linking (version number -> *.so file)
-libscreen.so : src/screen.o
+libscreen.so : ../src/screen.o
 	echo "Building $@"
 	$(CC) -shared -Wl,-soname,$@.1 -o $@.1.0 $<
 	ldconfig -n .
 	ln -sf $@.1 $@
 
-libnetwork.so : src/network.o
+libnetwork.so : ../src/network.o
 	echo "Building $@"
 	$(CC) -shared -Wl,-soname,$@.1 -o $@.1.0 $<
 	ldconfig -n .
 	ln -sf $@.1 $@
 
-libalgo.so : src/algo.o
+libalgo.so : ../src/algo.o
 	echo "Building $@"
 	$(CC) -shared -Wl,-soname,$@.1 -o $@.1.0 $<
 	ldconfig -n .
 	ln -sf $@.1 $@
 
-libdataset.so : src/dataset.o
+libdataset.so : ../src/dataset.o
 	echo "Building $@"
 	$(CC) -shared -Wl,-soname,$@.1 -o $@.1.1 $<
 	ldconfig -n .
 	ln -sf $@.1 $@
 
-libserialisation.so : src/serialisation.o
+libserialisation.so : ../src/serialisation.o
 	echo "Building $@"
 	$(CC) -shared -Wl,-soname,$@.1 -o $@.1.1 $<
 	ldconfig -n .
