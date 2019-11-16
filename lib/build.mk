@@ -20,31 +20,31 @@ lib_b:= libscreen.so libnetwork.so libdataset.so libalgo.so libserialisation.so
 libscreen.so : ../src/screen.o
 	echo "Building $@"
 	$(CC) -shared -Wl,-soname,$@.1 -o $@.1.0 $<
-	ldconfig -n .
+	ldconfig -l libscreen.so.1.0
 	ln -sf $@.1 $@
 
 libnetwork.so : ../src/network.o
 	echo "Building $@"
 	$(CC) -shared -Wl,-soname,$@.1 -o $@.1.0 $<
-	ldconfig -n .
+	ldconfig -l libnetwork.so.1.0
 	ln -sf $@.1 $@
 
 libalgo.so : ../src/algo.o
 	echo "Building $@"
 	$(CC) -shared -Wl,-soname,$@.1 -o $@.1.0 $<
-	ldconfig -n .
+	ldconfig -l libalgo.so.1.0
 	ln -sf $@.1 $@
 
 libdataset.so : ../src/dataset.o
 	echo "Building $@"
 	$(CC) -shared -Wl,-soname,$@.1 -o $@.1.1 $<
-	ldconfig -n .
+	ldconfig -l libdataset.so.1.1
 	ln -sf $@.1 $@
 
 libserialisation.so : ../src/serialisation.o
 	echo "Building $@"
 	$(CC) -shared -Wl,-soname,$@.1 -o $@.1.1 $<
-	ldconfig -n .
+	ldconfig -l libserialisation.so.1.1
 	ln -sf $@.1 $@
 
 
