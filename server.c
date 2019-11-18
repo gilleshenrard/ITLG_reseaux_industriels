@@ -147,7 +147,7 @@ int protSer(int rem_sock){
 
         //prepare dummy values
         tmp.id = i;
-        strncpy(tmp.type, msg[i-1], sizeof(tmp.type));
+        strncpy(tmp.type, msg[i-1], sizeof(tmp.type)-1);
         tmp.price = 3.141593*(float)i;
 
         //test data serialisation
