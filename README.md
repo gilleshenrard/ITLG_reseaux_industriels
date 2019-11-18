@@ -51,18 +51,24 @@ int foreachList(t_algo_meta*, void*, int (*doAction)(void*, void*));
 
 A bash script [tests.sh](https://github.com/gilleshenrard/ITLG_reseaux_industriels/blob/master/tests.sh) has been made to execute and test possible errors
 
-### 4. Currently implemented in the final assignment
+### 5. Protocol
+At any connection via TCP on the port 3490, the server will send :
+- A data header containing the metadata of the round of packages to be sent
+
+The header is cons
+
+### 6. Currently implemented in the final assignment
 * Server
 * Client
 * Network-related functions
 * Display-related functions
 * Algorithmic-related functions
 * Dataset-related functions
+* Serialisation
 
-### 5. To Do
+### 6. To Do
 * improve signals handling
-* implement serialisation
 * implement actual protocol
 
-### 6. Known issues
+### 7. Known issues
 n/a
