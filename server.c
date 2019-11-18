@@ -146,7 +146,7 @@ int protSer(int rem_sock){
         memset(&serialised, 0, sizeof(serialised));
 
         //prepare dummy values
-        tmp.id = i;
+        tmp.id = (header.nbelem+1)-i;
         strncpy(tmp.type, msg[i-1], sizeof(tmp.type)-1);
         tmp.price = 3.141593*(float)i;
 
