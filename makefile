@@ -1,3 +1,5 @@
+#Do not forget to execute "export LD_LIBRARY_PATH=../lib" to use a debugger with Code::Blocks
+
 #directories containing the headers, libraries and executables
 chead:= include
 clib := lib
@@ -30,3 +32,5 @@ all: client server
 clean:
 	rm -rf $(cbin)/*
 	$(MAKE) -f build.mk -C lib clean
+
+
