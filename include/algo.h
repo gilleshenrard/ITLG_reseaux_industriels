@@ -40,8 +40,8 @@ typedef enum {RIGHT, LEFT} e_rotation;
 //Sorting algorithms
 int bubbleSortArray(meta_t*);
 //int bubbleSortList(t_algo_meta*);
-//int quickSortPartitioning(t_algo_meta*, long, long);
-//int quickSort(t_algo_meta*, long, long);
+int quickSortPartitioning(meta_t*, long, long);
+int quickSort(meta_t*, long, long);
 //
 ////Research algorithms
 //int binarySearch(t_algo_meta*, void*);

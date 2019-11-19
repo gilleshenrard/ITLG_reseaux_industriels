@@ -172,71 +172,71 @@ int bubbleSortArray(meta_t *meta){
 //
 //    return 0;
 //}
-//
-///************************************************************/
-///*  I : Array of meta data necessary to the algorithm       */
-///*      Lowest element of the partition                     */
-///*      Highest element of the partition                    */
-///*  P : Sorts the partitions provided by the Quick Sort     */
-///*  O : New pivot                                           */
-///************************************************************/
-///*  WARNING : is solely to be used by the quick sort func.! */
-///************************************************************/
-//int quickSortPartitioning(t_algo_meta* meta, long low, long high){
-//    void* pivot = meta->structure+(meta->elementsize*high), *elem_i=NULL, *elem_j=NULL;
-//    int i = low-1;
-//
-//    //swap the elements until the pivot is at the right place
-//    //      with lower elements before, and higher ones after
-//    for(int j=low ; j<=high-1 ; j++){
-//        elem_j = meta->structure+(meta->elementsize*j);
-//        if((*meta->doCompare)(elem_j, pivot) <= 0){
-//            i++;
-//            elem_i = meta->structure+(meta->elementsize*i);
-//            (*meta->doSwap)(elem_i, elem_j);
-//        }
-//    }
-//
-//    //place the pivot at the right place by swapping i+1 and high
-//    //      (uses elem_i and elem_j for the sake of not creating new pointers)
-//    elem_i = meta->structure+(meta->elementsize*(i+1));
-//    elem_j = meta->structure+(meta->elementsize*high);
-//    (*meta->doSwap)(elem_i, elem_j);
-//
-//    return(i+1);
-//}
-//
-///************************************************************/
-///*  I : Array of meta data necessary to the algorithm       */
-///*      Lowest index in the array (most likely 0)           */
-///*      Highest index in the array (last element)           */
-///*  P : Sorts the provided array using the Quick Sort algo  */
-///*  O :  0 -> Sorted                                        */
-///*      -1 -> Error                                         */
-///************************************************************/
-//int quickSort(t_algo_meta* meta, long low, long high){
-//    int pivot=0;
-//
-//    //no meta data available
-//    if(!meta || !meta->doCompare || !meta->doSwap)
-//        return -1;
-//
-//    //list is empty
-//    if(!meta->structure)
-//        return 0;
-//
-//    if(low < high){
-//        pivot = quickSortPartitioning(meta, low, high);
-//
-//        if(quickSort(meta, low, pivot-1) < 0)
-//            return -1;
-//        if(quickSort(meta, pivot+1, high) <0)
-//            return -1;
-//    }
-//
-//    return 0;
-//}
-//
+
+/************************************************************/
+/*  I : Array of meta data necessary to the algorithm       */
+/*      Lowest element of the partition                     */
+/*      Highest element of the partition                    */
+/*  P : Sorts the partitions provided by the Quick Sort     */
+/*  O : New pivot                                           */
+/************************************************************/
+/*  WARNING : is solely to be used by the quick sort func.! */
+/************************************************************/
+int quickSortPartitioning(meta_t* meta, long low, long high){
+    void* pivot = meta->structure+(meta->elementsize*high), *elem_i=NULL, *elem_j=NULL;
+    int i = low-1;
+
+    //swap the elements until the pivot is at the right place
+    //      with lower elements before, and higher ones after
+    for(int j=low ; j<=high-1 ; j++){
+        elem_j = meta->structure+(meta->elementsize*j);
+        if((*meta->doCompare)(elem_j, pivot) <= 0){
+            i++;
+            elem_i = meta->structure+(meta->elementsize*i);
+            (*meta->doSwap)(elem_i, elem_j);
+        }
+    }
+
+    //place the pivot at the right place by swapping i+1 and high
+    //      (uses elem_i and elem_j for the sake of not creating new pointers)
+    elem_i = meta->structure+(meta->elementsize*(i+1));
+    elem_j = meta->structure+(meta->elementsize*high);
+    (*meta->doSwap)(elem_i, elem_j);
+
+    return(i+1);
+}
+
+/************************************************************/
+/*  I : Array of meta data necessary to the algorithm       */
+/*      Lowest index in the array (most likely 0)           */
+/*      Highest index in the array (last element)           */
+/*  P : Sorts the provided array using the Quick Sort algo  */
+/*  O :  0 -> Sorted                                        */
+/*      -1 -> Error                                         */
+/************************************************************/
+int quickSort(meta_t* meta, long low, long high){
+    int pivot=0;
+
+    //no meta data available
+    if(!meta || !meta->doCompare || !meta->doSwap)
+        return -1;
+
+    //list is empty
+    if(!meta->structure)
+        return 0;
+
+    if(low < high){
+        pivot = quickSortPartitioning(meta, low, high);
+
+        if(quickSort(meta, low, pivot-1) < 0)
+            return -1;
+        if(quickSort(meta, pivot+1, high) <0)
+            return -1;
+    }
+
+    return 0;
+}
+
 ///************************************************************/
 ///*  I : Meta data necessary to the algorithm                */
 ///*      Element to search                                   */

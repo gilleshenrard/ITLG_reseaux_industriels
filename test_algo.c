@@ -10,14 +10,16 @@
 #include "algo.h"
 #include "dataset.h"
 
-int tst_bubblesortarray(void);
 int setup_data(dataset_t** data, long nb);
+int tst_bubblesortarray(void);
+int tst_quicksortarray(void);
 
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
 
-    tst_bubblesortarray();
+    //tst_bubblesortarray();
+    tst_quicksortarray();
 
 	exit(EXIT_SUCCESS);
 }
@@ -80,6 +82,49 @@ int tst_bubblesortarray()
 
     //sort it
     if(bubbleSortArray(&arr) == -1)
+    {
+        fprintf(stderr, "bubbleSortArray : error\n");
+        free(arr.structure);
+        return -1;
+    }
+
+    //display all the datasets
+    for(int i=0 ; i<20 ; i++)
+        Print_dataset(arr.structure + (i*sizeof(dataset_t)), NULL);
+
+    //free memory
+    free(arr.structure);
+    return 0;
+}
+
+/************************************************************/
+/*  I : /                                                   */
+/*  P : Tests out the quick sort algo with arrays           */
+/*  O :  0 -> Success                                       */
+/*      -1 -> Error                                         */
+/************************************************************/
+int tst_quicksortarray()
+{
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset};
+
+    printf("/******************************************************************/\n");
+    printf("/********************* tst_quicksortarray *************************/\n");
+    printf("/******************************************************************/\n");
+
+    //generate 20 random datasets
+    if(setup_data((dataset_t**)&arr.structure, 20) == -1)
+    {
+        fprintf(stderr, "quickSortArray : error\n");
+        return -1;
+    }
+
+    //display the unsorted data
+    for(int i=0 ; i<20 ; i++)
+        Print_dataset(arr.structure + (i*sizeof(dataset_t)), NULL);
+    printf("----------------------------------------------------------\n");
+
+    //sort it
+    if(quickSort(&arr, 0, arr.nbelements-1) == -1)
     {
         fprintf(stderr, "bubbleSortArray : error\n");
         free(arr.structure);
