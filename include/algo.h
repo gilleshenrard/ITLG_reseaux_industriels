@@ -20,8 +20,6 @@ typedef struct
     long    nbelements;                     //number of elements in the structure
     int     elementsize;                    //size of a core element (actual data without algorithmic overlay)
     int     (*doCompare)(void*, void*);     //comparison method
-    int     (*doSwap)(void*, void*);        //swep method
-    int     (*doCopy)(void*, void*);        //data copy method
 } meta_t;
 
 

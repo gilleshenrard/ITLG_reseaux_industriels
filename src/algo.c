@@ -110,14 +110,20 @@
 /************************************************************/
 int bubbleSortArray(meta_t *meta){
     void *current=NULL, *next=NULL;
+    void* tmp = NULL;
 
     //no meta data available
-    if(!meta || !meta->doCompare || !meta->doSwap)
+    if(!meta || !meta->doCompare)
         return -1;
 
     //array is empty
     if(!meta->structure)
         return 0;
+
+    //allocate the size of a temporary element in order to allow swapping
+    tmp = calloc(1, meta->elementsize);
+    if(!tmp)
+        return -1;
 
     for(int i=0 ; i<meta->nbelements-1 ; i++){
         for(int j=0 ; j<meta->nbelements-i-1 ; j++){
@@ -126,10 +132,15 @@ int bubbleSortArray(meta_t *meta){
             next = meta->structure+(meta->elementsize*(j+1));
 
             if((*meta->doCompare)(current, next) > 0)
-                if((*meta->doSwap)(current, next) < 0)
-                    return -1;
+            {
+                memcpy(tmp, current, meta->elementsize);
+                memcpy(current, next, meta->elementsize);
+                memcpy(next, tmp, meta->elementsize);
+            }
         }
     }
+
+    free(tmp);
 
     return 0;
 }
@@ -183,8 +194,13 @@ int bubbleSortArray(meta_t *meta){
 /*  WARNING : is solely to be used by the quick sort func.! */
 /************************************************************/
 int quickSortPartitioning(meta_t* meta, long low, long high){
-    void* pivot = meta->structure+(meta->elementsize*high), *elem_i=NULL, *elem_j=NULL;
+    void* pivot = meta->structure+(meta->elementsize*high), *elem_i=NULL, *elem_j=NULL, *tmp = NULL;
     int i = low-1;
+
+    //allocate the size of a temporary element in order to allow swapping
+    tmp = calloc(1, meta->elementsize);
+    if(!tmp)
+        return -1;
 
     //swap the elements until the pivot is at the right place
     //      with lower elements before, and higher ones after
@@ -193,7 +209,9 @@ int quickSortPartitioning(meta_t* meta, long low, long high){
         if((*meta->doCompare)(elem_j, pivot) <= 0){
             i++;
             elem_i = meta->structure+(meta->elementsize*i);
-            (*meta->doSwap)(elem_i, elem_j);
+            memcpy(tmp, elem_i, meta->elementsize);
+            memcpy(elem_i, elem_j, meta->elementsize);
+            memcpy(elem_j, tmp, meta->elementsize);
         }
     }
 
@@ -201,7 +219,11 @@ int quickSortPartitioning(meta_t* meta, long low, long high){
     //      (uses elem_i and elem_j for the sake of not creating new pointers)
     elem_i = meta->structure+(meta->elementsize*(i+1));
     elem_j = meta->structure+(meta->elementsize*high);
-    (*meta->doSwap)(elem_i, elem_j);
+    memcpy(tmp, elem_i, meta->elementsize);
+    memcpy(elem_i, elem_j, meta->elementsize);
+    memcpy(elem_j, tmp, meta->elementsize);
+
+    free(tmp);
 
     return(i+1);
 }
@@ -218,7 +240,7 @@ int quickSort(meta_t* meta, long low, long high){
     int pivot=0;
 
     //no meta data available
-    if(!meta || !meta->doCompare || !meta->doSwap)
+    if(!meta || !meta->doCompare)
         return -1;
 
     //list is empty
@@ -301,7 +323,7 @@ int insertListTop(meta_t* meta, void *toAdd){
     dyndata_t *newElement = NULL, *tmp=NULL;
 
     //check if meta data available
-    if(!meta || !meta->doCopy || !toAdd)
+    if(!meta || !toAdd)
         return -1;
 
     //memory allocation for the new element
@@ -317,7 +339,7 @@ int insertListTop(meta_t* meta, void *toAdd){
     }
 
     //copy new element data
-    (*meta->doCopy)(newElement->data, toAdd);
+    memcpy(newElement->data, toAdd, meta->elementsize);
 
     //chain new element's previous pointer to list, if existing
     if(meta->structure){

@@ -20,9 +20,9 @@ int main(int argc, char *argv[])
 {
     srand(time(NULL));
 
-    //tst_bubblesortarray();
-    //tst_quicksortarray();
-    //tst_binarysearcharray();
+    tst_bubblesortarray();
+    tst_quicksortarray();
+    tst_binarysearcharray();
     tst_inserttoplist();
 
 	exit(EXIT_SUCCESS);
@@ -66,7 +66,7 @@ int setup_data(dataset_t** data, long nb)
 /************************************************************/
 int tst_bubblesortarray()
 {
-    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset};
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
 
     printf("/******************************************************************/\n");
     printf("/********************* tst_bubblesortarray ************************/\n");
@@ -107,7 +107,7 @@ int tst_bubblesortarray()
 /************************************************************/
 int tst_quicksortarray()
 {
-    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset};
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
 
     printf("/******************************************************************/\n");
     printf("/********************* tst_quicksortarray *************************/\n");
@@ -148,7 +148,7 @@ int tst_quicksortarray()
 /************************************************************/
 int tst_binarysearcharray()
 {
-    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset};
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
     int x = 2, found=0;
 
     printf("/*********************************************************************/\n");
@@ -204,8 +204,8 @@ int tst_binarysearcharray()
 /************************************************************/
 int tst_inserttoplist()
 {
-    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset};
-    meta_t lis = {NULL, 20, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset};
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
+    meta_t lis = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
 
     printf("/*********************************************************************/\n");
     printf("/********************* tst_inserttoplist *****************************/\n");
