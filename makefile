@@ -19,9 +19,19 @@ server: server.c blib $(lib_b)
 	echo "Builing server"
 	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
 
+test_algo: test_algo.c balgo $(clib)/libdataset.so $(clib)/libalgo.so
+	echo "Builing $@"
+	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c -lalgo -ldataset -Wl,-rpath,"$(ORIGIN)$(clib)"
+
+
 .PHONY: blib
 blib:
 	$(MAKE) -f build.mk -C lib all
+
+.PHONY: balgo
+balgo:
+	$(MAKE) -f build.mk -C lib libalgo.so
+	$(MAKE) -f build.mk -C lib libdataset.so
 
 #overall functions
 all: client server

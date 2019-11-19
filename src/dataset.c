@@ -3,7 +3,7 @@
 ** Library regrouping dataset-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 11/11/2019
+** Last modified : 19/11/2019
 */
 #include "dataset.h"
 
@@ -40,23 +40,6 @@ char* toString_dataset(void* current){
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-/****************************************************************************************/
-/*  I : /                                                                               */
-/*  P : Allocates memory for a dataset and sets its height to 1 (leaf for AVL)          */
-/*  O : dataset created if OK                                                           */
-/*      NULL if error                                                                   */
-/****************************************************************************************/
-void* allocate_dataset(void){
-    dataset_t* tmp=NULL;
-
-    //memory allocation for the new element (calloc to initialize with all 0)
-    tmp = calloc(1, sizeof(dataset_t));
-    if(tmp) tmp->height = 1;
-
-    return tmp;
-}
-
 /****************************************************************************************/
 /*  I : first dataset to compare                                                        */
 /*      second dataset to compare                                                       */
@@ -87,21 +70,12 @@ int compare_dataset_id(void* a, void* b){
 int copy_dataset(void* oldelem, void* newelem){
     dataset_t* oldTuple = (dataset_t*)oldelem;
     dataset_t* newTuple = (dataset_t*)newelem;
-    dataset_t *saveRight = NULL, *saveLeft=NULL;
 
     if(!oldelem || !newelem)
         return -1;
 
-    //save the pointer values of the old dataset
-    saveRight = oldTuple->next;
-    saveLeft = oldTuple->previous;
-
     //copy the data from the new dataset to the old one
     *oldTuple = *newTuple;
-
-    //restore the pointer values
-    oldTuple->next = saveRight;
-    oldTuple->previous = saveLeft;
 
     return 0;
 }
@@ -123,34 +97,4 @@ int swap_dataset(void* first, void* second){
     copy_dataset(second, (void*)&tmp);
 
     return 0;
-}
-
-/************************************************************/
-/*  I : /                                                   */
-/*  P : Gets the element to the right of the current        */
-/*  O : Address of the element to the right                 */
-/*          (NULL if current is null)                       */
-/************************************************************/
-void** dataset_right(void* current){
-    dataset_t* currentcon = (dataset_t*)current;
-
-    if(!current)
-        return NULL;
-
-    return (void**)&currentcon->next;
-}
-
-/************************************************************/
-/*  I : /                                                   */
-/*  P : Gets the element to the left of the current         */
-/*  O : Address of the element to the left                  */
-/*          (NULL if current is null)                       */
-/************************************************************/
-void** dataset_left(void* current){
-    dataset_t* currentcon = (dataset_t*)current;
-
-    if(!current)
-        return NULL;
-
-    return (void**)&currentcon->previous;
 }
