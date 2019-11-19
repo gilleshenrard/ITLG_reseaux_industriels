@@ -13,13 +13,15 @@
 int setup_data(dataset_t** data, long nb);
 int tst_bubblesortarray(void);
 int tst_quicksortarray(void);
+int tst_binarysearcharray(void);
 
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
 
     //tst_bubblesortarray();
-    tst_quicksortarray();
+    //tst_quicksortarray();
+    tst_binarysearcharray();
 
 	exit(EXIT_SUCCESS);
 }
@@ -134,6 +136,63 @@ int tst_quicksortarray()
     //display all the datasets
     for(int i=0 ; i<20 ; i++)
         Print_dataset(arr.structure + (i*sizeof(dataset_t)), NULL);
+
+    //free memory
+    free(arr.structure);
+    return 0;
+}
+
+/************************************************************/
+/*  I : /                                                   */
+/*  P : Tests out the binary search algo with arrays        */
+/*  O :  0 -> Success                                       */
+/*      -1 -> Error                                         */
+/************************************************************/
+int tst_binarysearcharray()
+{
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset};
+    int x = 2, found=0;
+
+    printf("/*********************************************************************/\n");
+    printf("/********************* tst_binarysearcharray *************************/\n");
+    printf("/*********************************************************************/\n");
+
+    //generate 20 random datasets
+    if(setup_data((dataset_t**)&arr.structure, 20) == -1)
+    {
+        fprintf(stderr, "quickSortArray : error\n");
+        return -1;
+    }
+
+    //sort it
+    if(quickSort(&arr, 0, arr.nbelements-1) == -1)
+    {
+        fprintf(stderr, "bubbleSortArray : error\n");
+        free(arr.structure);
+        return -1;
+    }
+
+    //display the sorted data
+    for(int i=0 ; i<20 ; i++)
+        Print_dataset(arr.structure + (i*sizeof(dataset_t)), NULL);
+    printf("----------------------------------------------------------\n");
+
+    //change comparison method
+    arr.doCompare = compare_dataset_int;
+
+    //search for 2
+    found = binarySearchArray(&arr, &x);
+    if(found == -1)
+        printf("%d was not found\n", x);
+    else
+        printf("%d was found at index %d\n", x, found);
+
+    //search for first occurence of 2
+    found = binarySearchArrayFirst(&arr, &x);
+    if(found == -1)
+        printf("First occurence of %d was not found\n", x);
+    else
+        printf("First occurence of %d was found at index %d\n", x, found);
 
     //free memory
     free(arr.structure);

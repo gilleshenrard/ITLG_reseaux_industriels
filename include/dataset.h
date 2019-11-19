@@ -20,6 +20,7 @@ char* toString_dataset(void* current);
 
 // dynamic structures methods
 int compare_dataset_id(void* a, void* b);
+int compare_dataset_int(void* a, void* b);
 int copy_dataset(void* oldelem, void* newelem);
 int swap_dataset(void* first, void* second);
 

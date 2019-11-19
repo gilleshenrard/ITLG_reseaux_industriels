@@ -42,11 +42,11 @@ int bubbleSortArray(meta_t*);
 //int bubbleSortList(t_algo_meta*);
 int quickSortPartitioning(meta_t*, long, long);
 int quickSort(meta_t*, long, long);
-//
-////Research algorithms
-//int binarySearch(t_algo_meta*, void*);
-//int binarySearchFirst(t_algo_meta*, void*);
-//
+
+//Research algorithms
+int binarySearchArray(meta_t*, void*);
+int binarySearchArrayFirst(meta_t*, void*);
+
 ////Dynamic lists
 //int insertListTop(t_algo_meta*, void*);
 //int popListTop(t_algo_meta*);
