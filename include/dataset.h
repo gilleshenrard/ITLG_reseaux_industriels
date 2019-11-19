@@ -7,13 +7,11 @@
 
 #define DATA_F  "l31sd"
 
-typedef struct dataset_t dataset_t;
-
-struct dataset_t{
+typedef struct{
     uint32_t    id;
     char        type[32];
     float       price;
-};
+}dataset_t;
 
 // display methods
 int Print_dataset(void* rec, void* nullable);
