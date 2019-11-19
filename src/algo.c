@@ -290,47 +290,54 @@ int binarySearchArrayFirst(meta_t *meta, void* toSearch){
     return i+1;
 }
 
-///************************************************************/
-///*  I : Metadata necessary to the algorithm                 */
-///*      Element to append in the list                       */
-///*  P : Inserts an element at the top of a linked list      */
-///*  O : 0 -> Element added                                  */
-///*     -1 -> Error                                          */
-///************************************************************/
-//int insertListTop(t_algo_meta* meta, void *toAdd){
-//    void *newElement = NULL, **nextelem = NULL, **previousElem = NULL;
-//
-//    //check if meta data available
-//    if(!meta || !meta->doCopy || !meta->next || !meta->previous || !toAdd)
-//        return -1;
-//
-//    //memory allocation for the new element
-//    newElement = calloc(1, meta->elementsize);
-//    if(!newElement)
-//        return -1;
-//
-//    //copy new element data
-//    (*meta->doCopy)(newElement, toAdd);
-//
-//    //chain new element's previous pointer to list, if existing
-//    if(meta->structure){
-//        //chain new element's next pointer to list
-//        nextelem = (*meta->next)(newElement);
-//        *nextelem = meta->structure;
-//        //chain list's head previous pointer to new element
-//        previousElem = (*meta->previous)(meta->structure);
-//        *previousElem = newElement;
-//    }
-//
-//    //make the new element head of the list
-//    meta->structure = newElement;
-//
-//    //increment the elements counter
-//    meta->nbelements++;
-//
-//    return 0;
-//}
-//
+/************************************************************/
+/*  I : Metadata necessary to the algorithm                 */
+/*      Element to append in the list                       */
+/*  P : Inserts an element at the top of a linked list      */
+/*  O : 0 -> Element added                                  */
+/*     -1 -> Error                                          */
+/************************************************************/
+int insertListTop(meta_t* meta, void *toAdd){
+    dyndata_t *newElement = NULL, *tmp=NULL;
+
+    //check if meta data available
+    if(!meta || !meta->doCopy || !toAdd)
+        return -1;
+
+    //memory allocation for the new element
+    newElement = calloc(1, sizeof(dyndata_t));
+    if(!newElement)
+        return -1;
+
+    newElement->data = calloc(1, meta->elementsize);
+    if(!newElement->data)
+    {
+        free(newElement);
+        return -1;
+    }
+
+    //copy new element data
+    (*meta->doCopy)(newElement->data, toAdd);
+
+    //chain new element's previous pointer to list, if existing
+    if(meta->structure){
+        //chain new element's next pointer to list
+        newElement->right = meta->structure;
+
+        //chain list's head previous pointer to new element
+        tmp = meta->structure;
+        tmp->left = newElement;
+    }
+
+    //make the new element head of the list
+    meta->structure = newElement;
+
+    //increment the elements counter
+    meta->nbelements++;
+
+    return 0;
+}
+
 ///************************************************************/
 ///*  I : Metadata necessary to the algorithm                 */
 ///*  P : Removes the first element of the list               */
@@ -413,32 +420,59 @@ int binarySearchArrayFirst(meta_t *meta, void* toSearch){
 //
 //    return 0;
 //}
-//
-///************************************************************/
-///*  I : Metadata necessary to the algorithm                 */
-///*      Parameter for the action to perform                 */
-///*      Action to perform                                   */
-///*  P : Performs an action on every element of the list     */
-///*  O : 0 -> OK                                             */
-///*     -1 -> Error                                          */
-///************************************************************/
-//int foreachList(t_algo_meta* meta, void* parameter, int (*doAction)(void*, void*)){
-//    void *next = NULL, *current=NULL;
-//
-//    if(!meta || !meta->next || !doAction)
-//        return -1;
-//
-//    next = meta->structure;
-//
-//    while(next){
-//        current = next;
-//        next = *(*meta->next)(next);
-//        if((*doAction)(current, parameter) < 0)
-//            return -1;
-//    }
-//
-//    return 0;
-//}
+
+
+/************************************************************/
+/*  I : Dynamic element to free                             */
+/*      nullable variable (necessary for compatibility)     */
+/*  P : Frees the memory of an element and its data         */
+/*  O : /                                                   */
+/************************************************************/
+int freeDynList(meta_t* meta)
+{
+    dyndata_t *next = NULL, *current=NULL;
+
+    if(!meta)
+        return -1;
+
+    next = meta->structure;
+
+    while(next){
+        current = next;
+        next = next->right;
+        free(current->data);
+        free(current);
+            return -1;
+    }
+
+    return 0;
+}
+
+/************************************************************/
+/*  I : Metadata necessary to the algorithm                 */
+/*      Parameter for the action to perform                 */
+/*      Action to perform                                   */
+/*  P : Performs an action on every element of the list     */
+/*  O : 0 -> OK                                             */
+/*     -1 -> Error                                          */
+/************************************************************/
+int foreachList(meta_t* meta, void* parameter, int (*doAction)(void*, void*)){
+    dyndata_t *next = NULL, *current=NULL;
+
+    if(!meta || !doAction)
+        return -1;
+
+    next = meta->structure;
+
+    while(next){
+        current = next;
+        next = next->right;
+        if((*doAction)(current->data, parameter) < 0)
+            return -1;
+    }
+
+    return 0;
+}
 
 /************************************************************/
 /*  I : Metadata necessary to the algorithm                 */
