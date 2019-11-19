@@ -53,9 +53,23 @@ A bash script [tests.sh](https://github.com/gilleshenrard/ITLG_reseaux_industrie
 
 ### 5. Protocol
 At any connection via TCP on the port 3490, the server will send :
-- A data header containing the metadata of the round of packages to be sent
+* A data header containing the metadata of the round of packages to be sent (serialised)
 
-The header is cons
+|  name  |  type    |             use               |
+|:------:|:--------:|:-----------------------------:|
+| nbelem | uint32_t | Number of packages to be sent |
+| szelem | uint32_t | Size of each package          |
+
+* The round of packages (serialised)
+
+The client will then deserialise the packages and add the data to a linked list, then display it
+For now, the packages consist of
+
+|  name  |  type    |             use               |
+|:------:|:--------:|:-----------------------------:|
+|   id   | uint32_t | ID of the package             |
+|  type  | char[32] | Message contained by the pkg  |
+| price  |   float  | Float value (multiple of Pi)  |
 
 ### 6. Currently implemented in the final assignment
 * Server
@@ -68,7 +82,7 @@ The header is cons
 
 ### 6. To Do
 * improve signals handling
-* implement actual protocol
+* optimise algorithmics usage
 
 ### 7. Known issues
 n/a
