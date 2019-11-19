@@ -1,8 +1,21 @@
 # This script tests all the possible outcomes between the client and the server
-# A server has to be up and running :
-#	clapton : 192.168.56.10, port 3490, tcp
 # Made by Gilles Henrard
 # Last modification : 19/11/2019
+
+# Set up
+# The assignment is programmed in C98, compiled with GNU GCC.
+# The code has been tested on :
+# * client : Ubuntu 18.04 LTS Desktop version, directly on the host
+# * Server : Ubuntu 18.04 LTS Server version, in a Virtualbox VM
+#
+# A host-only connection (192.168.56.0/24) has been created to allow machines to communicate.
+# The IP addresses are set as followed :
+# * host : 192.168.56.1/24
+# * clapton server (TCP) : 192.168.56.10/24
+# Note that the server hostname has to be added in /etc/hosts
+
+# The code is edited and compiled in a directory shared with the guest, so it is centralised and only one version is edited and executed.
+# Do not forget to execute "export LD_LIBRARY_PATH=../lib" to use a debugger with Code::Blocks
 
 #! /bin/bash
 

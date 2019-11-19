@@ -11,21 +11,7 @@ Use :
 ./client host port
 ```
 
-### 2. Set up
-The assignment is programmed in C98, compiled with GNU GCC.
-The code has been tested on :
-* client : Ubuntu 18.04 LTS Desktop version, directly on the host
-* Server : Ubuntu 18.04 LTS Server version, in a Virtualbox VM
-
-A host-only connection (192.168.56.0/24) has been created to allow machines to communicate.
-The IP addresses are set as followed :
-* host : 192.168.56.1
-* clapton server (TCP) : 192.168.56.10
-Note that the server hostname has to be added in /etc/hosts
-
-The code is edited and compiled in a directory shared with the guest, so it is centralised and only one version is edited and executed.
-
-### 3. Current features
+### 2. Current features
 * Network-related functions :
 ```C
 void *get_in_addr(struct sockaddr *sa);
@@ -51,7 +37,7 @@ int foreachList(t_algo_meta*, void*, int (*doAction)(void*, void*));
 
 A bash script [tests.sh](https://github.com/gilleshenrard/ITLG_reseaux_industriels/blob/master/tests.sh) has been made to execute and test possible errors
 
-### 5. Protocol
+### 3. Protocol
 At any connection via TCP on the port 3490, the server will send :
 * A data header containing the metadata of the round of packages to be sent (serialised)
 
@@ -71,7 +57,7 @@ For now, the packages consist of
 |  type  | char[32] | Message contained by the pkg  |
 | price  |   float  | Float value (multiple of Pi)  |
 
-### 6. Currently implemented in the final assignment
+### 4. Currently implemented in the final assignment
 * Server
 * Client
 * Network-related functions
@@ -80,9 +66,9 @@ For now, the packages consist of
 * Dataset-related functions
 * Serialisation
 
-### 6. To Do
+### 5. To Do
 * improve signals handling
 * optimise algorithmics usage
 
-### 7. Known issues
+### 6. Known issues
 n/a
