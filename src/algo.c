@@ -439,29 +439,29 @@ int binarySearchArrayFirst(meta_t *meta, void* toSearch){
 //
 //    return 0;
 //}
-//
-///************************************************************/
-///*  I : Metadata necessary to the algorithm                 */
-///*      Parameter for the action to perform                 */
-///*      Action to perform                                   */
-///*  P : Performs an action on every element of the array    */
-///*  O : 0 -> OK                                             */
-///*     -1 -> Error                                          */
-///************************************************************/
-//int foreachArray(t_algo_meta* meta, void* parameter, int (*doAction)(void*, void*)){
-//    void* tmp = NULL;
-//
-//    for(int i=0 ; i<meta->nbelements ; i++){
-//        //position the pointer properly
-//        tmp = meta->structure+(meta->elementsize*i);
-//        //execute action
-//        if((*doAction)(tmp, parameter) < 0)
-//            return -1;
-//    }
-//
-//    return 0;
-//}
-//
+
+/************************************************************/
+/*  I : Metadata necessary to the algorithm                 */
+/*      Parameter for the action to perform                 */
+/*      Action to perform                                   */
+/*  P : Performs an action on every element of the array    */
+/*  O : 0 -> OK                                             */
+/*     -1 -> Error                                          */
+/************************************************************/
+int foreachArray(meta_t* meta, void* parameter, int (*doAction)(void*, void*)){
+    void* tmp = NULL;
+
+    for(int i=0 ; i<meta->nbelements ; i++){
+        //position the pointer properly
+        tmp = meta->structure+(meta->elementsize*i);
+        //execute action
+        if((*doAction)(tmp, parameter) < 0)
+            return -1;
+    }
+
+    return 0;
+}
+
 ///************************************************************/
 ///*  I : Metadata necessary to the algorithm                 */
 ///*      Element to insert in the AVL                        */

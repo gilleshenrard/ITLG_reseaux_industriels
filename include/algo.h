@@ -52,10 +52,10 @@ int binarySearchArrayFirst(meta_t*, void*);
 //int popListTop(t_algo_meta*);
 //int insertListSorted(t_algo_meta*,  void*);
 //int foreachList(t_algo_meta*, void*, int (*doAction)(void*, void*));
-//
-////Arrays
-//int foreachArray(t_algo_meta*, void*, int (*doAction)(void*, void*));
-//
+
+//Arrays
+int foreachArray(meta_t*, void*, int (*doAction)(void*, void*));
+
 ////AVL trees
 //void* insertAVL(t_algo_meta* meta, void* avl, void* toAdd);
 //void display_AVL_tree(t_algo_meta* meta, void* avl, char dir, char* (*toString)(void*));

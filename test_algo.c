@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
 {
     srand(time(NULL));
 
-    //tst_bubblesortarray();
-    //tst_quicksortarray();
+    tst_bubblesortarray();
+    tst_quicksortarray();
     tst_binarysearcharray();
 
 	exit(EXIT_SUCCESS);
@@ -78,8 +78,7 @@ int tst_bubblesortarray()
     }
 
     //display the unsorted data
-    for(int i=0 ; i<20 ; i++)
-        Print_dataset(arr.structure + (i*sizeof(dataset_t)), NULL);
+    foreachArray(&arr, NULL, Print_dataset);
     printf("----------------------------------------------------------\n");
 
     //sort it
@@ -91,8 +90,7 @@ int tst_bubblesortarray()
     }
 
     //display all the datasets
-    for(int i=0 ; i<20 ; i++)
-        Print_dataset(arr.structure + (i*sizeof(dataset_t)), NULL);
+    foreachArray(&arr, NULL, Print_dataset);
 
     //free memory
     free(arr.structure);
@@ -121,8 +119,7 @@ int tst_quicksortarray()
     }
 
     //display the unsorted data
-    for(int i=0 ; i<20 ; i++)
-        Print_dataset(arr.structure + (i*sizeof(dataset_t)), NULL);
+    foreachArray(&arr, NULL, Print_dataset);
     printf("----------------------------------------------------------\n");
 
     //sort it
@@ -134,8 +131,7 @@ int tst_quicksortarray()
     }
 
     //display all the datasets
-    for(int i=0 ; i<20 ; i++)
-        Print_dataset(arr.structure + (i*sizeof(dataset_t)), NULL);
+    foreachArray(&arr, NULL, Print_dataset);
 
     //free memory
     free(arr.structure);
@@ -173,8 +169,7 @@ int tst_binarysearcharray()
     }
 
     //display the sorted data
-    for(int i=0 ; i<20 ; i++)
-        Print_dataset(arr.structure + (i*sizeof(dataset_t)), NULL);
+    foreachArray(&arr, NULL, Print_dataset);
     printf("----------------------------------------------------------\n");
 
     //change comparison method
