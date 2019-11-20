@@ -17,6 +17,7 @@ int tst_binarysearcharray(void);
 int tst_inserttoplist(void);
 int tst_insertlistsorted(void);
 int tst_bubblesortlist(void);
+int tst_structuresconversion(void);
 
 int main(int argc, char *argv[])
 {
@@ -26,8 +27,9 @@ int main(int argc, char *argv[])
     //tst_quicksortarray();
     //tst_binarysearcharray();
     //tst_inserttoplist();
-    tst_insertlistsorted();
+    //tst_insertlistsorted();
     //tst_bubblesortlist();
+    tst_structuresconversion();
 
 	exit(EXIT_SUCCESS);
 }
@@ -345,5 +347,61 @@ int tst_bubblesortlist()
 
     //free the memory used by the list
     freeDynList(&lis);
+    return 0;
+}
+
+/************************************************************/
+/*  I : /                                                   */
+/*  P : Tests out the conversion algorithms on structures   */
+/*  O :  0 -> Success                                       */
+/*      -1 -> Error                                         */
+/************************************************************/
+int tst_structuresconversion()
+{
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
+    meta_t lis = {NULL, 0, sizeof(dataset_t), compare_dataset_id};
+
+    printf("/*********************************************************************/\n");
+    printf("/********************* tst_structuresconversion **********************/\n");
+    printf("/*********************************************************************/\n");
+
+    //generate 20 random datasets
+    if(setup_data((dataset_t**)&arr.structure, 20) == -1)
+    {
+        fprintf(stderr, "insertTopList : error while allocating the data\n");
+        return -1;
+    }
+
+    //display the sorted data
+    foreachArray(&arr, NULL, Print_dataset);
+    printf("----------------------------------------------------------\n");
+
+    //convert the array to a list and display it
+    if(arrayToList(&arr, &lis, REPLACE) == -1)
+    {
+        fprintf(stderr, "structureConversion : error while creating the list\n");
+        free(arr.structure);
+        freeDynList(&lis);
+        return -1;
+    }
+    printf("List created:\n");
+    foreachList(&lis, NULL, Print_dataset);
+    printf("array pointer: %p, number of elments: %ld\n", arr.structure, arr.nbelements);
+    printf("----------------------------------------------------------\n");
+
+    //convert the array to a list and display it
+    if(listToArray(&lis, &arr, REPLACE) == -1)
+    {
+        fprintf(stderr, "structureConversion : error while creating the array\n");
+        free(arr.structure);
+        freeDynList(&lis);
+        return -1;
+    }
+    printf("Array created:\n");
+    foreachArray(&arr, NULL, Print_dataset);
+    printf("list pointer: %p, number of elments: %ld\n", lis.structure, lis.nbelements);
+
+    free(arr.structure);
+
     return 0;
 }

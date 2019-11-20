@@ -97,44 +97,44 @@ void* get_arrayelem(meta_t* meta, int i)
 /*  O :  0 -> Array created                                 */
 /*      -1 -> Error                                         */
 /************************************************************/
-//int listToArray(t_algo_meta* dList, t_algo_meta* dArray, e_listtoarray action){
-//    void *tmp_array = NULL, *tmp_list = NULL;
-//
-//    //check if the array doesn't exist
-//    if(dArray->structure)
-//        return -1;
-//
-//    //allocate the memory
-//    dArray->structure = calloc(dList->nbelements, dList->elementsize);
-//    if(!dArray)
-//        return -1;
-//
-//    dArray->nbelements = dList->nbelements;
-//
-//    //copy elements one by one in the array
-//    tmp_list = dList->structure;
-//    for(int i=0 ; i<dArray->nbelements ; i++){
-//        //position the pointer properly
-//        tmp_array = dArray->structure+(dArray->elementsize*i);
-//        if((*dList->doCopy)(tmp_array, tmp_list) <0)
-//            return -1;
-//
-//        //if desired, free the freshly copied element
-//        if(action == REPLACE){
-//            if(popListTop(dList) <0){
-//                return -1;
-//            }
-//            tmp_list = dList->structure;
-//        }
-//        else{
-//            //increment the list pointer
-//            tmp_list = *(*dList->next)(tmp_list);
-//        }
-//
-//    }
-//
-//    return 0;
-//}
+int listToArray(meta_t* dList, meta_t* dArray, e_listtoarray action){
+    void *tmp_array = NULL;
+    dyndata_t* tmp_list = NULL;
+
+    //check if the array doesn't exist
+    if(dArray->structure)
+        return -1;
+
+    //allocate the memory
+    dArray->structure = calloc(dList->nbelements, dList->elementsize);
+    if(!dArray)
+        return -1;
+
+    dArray->nbelements = dList->nbelements;
+
+    //copy elements one by one in the array
+    tmp_list = dList->structure;
+    for(int i=0 ; i<dArray->nbelements ; i++){
+        //position the pointer properly
+        tmp_array = get_arrayelem(dArray, i);
+        memcpy(tmp_array, tmp_list->data, dList->elementsize);
+
+        //if desired, free the freshly copied element
+        if(action == REPLACE){
+            if(popListTop(dList) <0){
+                return -1;
+            }
+            tmp_list = dList->structure;
+        }
+        else{
+            //increment the list pointer
+            tmp_list = tmp_list->right;
+        }
+
+    }
+
+    return 0;
+}
 
 /************************************************************/
 /*  I : Array to copy                                       */
@@ -156,6 +156,7 @@ int arrayToList(meta_t* dArray, meta_t* dList, e_listtoarray action){
     if(action == REPLACE)
     {
         free(dArray->structure);
+        dArray->structure = NULL;
         dArray->nbelements = 0;
     }
 
