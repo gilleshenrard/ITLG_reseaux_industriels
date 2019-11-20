@@ -30,12 +30,13 @@ int offset, offset_max;
 typedef enum {COPY, REPLACE} e_listtoarray;
 typedef enum {RIGHT, LEFT} e_rotation;
 
-//dynamic data allocation and deallocation
+//miscellaneous
 dyndata_t* allocate_dyn(meta_t* meta, void* elem);
 int free_dyn(dyndata_t* elem);
 int swap_dyn(dyndata_t* a, dyndata_t* b);
+void* get_arrayelem(meta_t* meta, int i);
 
-//miscellaneous
+//Array, list and AVL transformation
 //int listToArray(t_algo_meta* dList, t_algo_meta* dArray, e_listtoarray action);
 //int arrayToList(t_algo_meta* dArray, t_algo_meta* dList, e_listtoarray action);
 //int arrayToAVL(t_algo_meta* dArray, t_algo_meta* dAVL, e_listtoarray action);
@@ -70,7 +71,7 @@ int foreachArray(meta_t*, void*, int (*doAction)(void*, void*));
 //void* delete_AVL(t_algo_meta* meta, void* root, void* key);
 //void* min_AVL_value(t_algo_meta* meta, void* avl);
 //int delete_AVL_root(t_algo_meta* meta);
-//
+
 ////File binary trees
 //long index_tree(FILE* fp, long offset_start, long nb, t_algo_meta* meta);
 //int searchall_index(FILE* fp, long offset_root, void* key, t_algo_meta* index, t_algo_meta* list, int elem_size);

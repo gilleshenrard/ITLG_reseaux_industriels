@@ -75,6 +75,20 @@ int swap_dyn(dyndata_t* a, dyndata_t* b)
 }
 
 /************************************************************/
+/*  I : Metadata of the array                               */
+/*      index for which retrieve the element                */
+/*  P : Returns the element located at i in the array       */
+/*  O : /                                                   */
+/************************************************************/
+void* get_arrayelem(meta_t* meta, int i)
+{
+    if(i >= meta->nbelements || i < 0)
+        return NULL;
+    else
+        return meta->structure+(meta->elementsize * i);
+}
+
+/************************************************************/
 /*  I : List to copy                                        */
 /*      Array to create (MUST BE EMPTY)                     */
 /*      Action to perform on the list members (free or not) */
@@ -195,8 +209,8 @@ int bubbleSortArray(meta_t *meta){
     for(int i=0 ; i<meta->nbelements-1 ; i++){
         for(int j=0 ; j<meta->nbelements-i-1 ; j++){
             //properly place the cursors
-            current = meta->structure+(meta->elementsize*j);
-            next = meta->structure+(meta->elementsize*(j+1));
+            current = get_arrayelem(meta, j);
+            next = get_arrayelem(meta, j+1);
 
             if((*meta->doCompare)(current, next) > 0)
             {
@@ -270,7 +284,7 @@ int bubbleSortList(meta_t* meta){
 /*  WARNING : is solely to be used by the quick sort func.! */
 /************************************************************/
 int quickSortPartitioning(meta_t* meta, long low, long high){
-    void* pivot = meta->structure+(meta->elementsize*high), *elem_i=NULL, *elem_j=NULL, *tmp = NULL;
+    void* pivot = get_arrayelem(meta, high), *elem_i=NULL, *elem_j=NULL, *tmp = NULL;
     int i = low-1;
 
     //allocate the size of a temporary element in order to allow swapping
@@ -281,10 +295,10 @@ int quickSortPartitioning(meta_t* meta, long low, long high){
     //swap the elements until the pivot is at the right place
     //      with lower elements before, and higher ones after
     for(int j=low ; j<=high-1 ; j++){
-        elem_j = meta->structure+(meta->elementsize*j);
+        elem_j = get_arrayelem(meta, j);
         if((*meta->doCompare)(elem_j, pivot) <= 0){
             i++;
-            elem_i = meta->structure+(meta->elementsize*i);
+            elem_i = get_arrayelem(meta, i);
             memcpy(tmp, elem_i, meta->elementsize);
             memcpy(elem_i, elem_j, meta->elementsize);
             memcpy(elem_j, tmp, meta->elementsize);
@@ -293,8 +307,8 @@ int quickSortPartitioning(meta_t* meta, long low, long high){
 
     //place the pivot at the right place by swapping i+1 and high
     //      (uses elem_i and elem_j for the sake of not creating new pointers)
-    elem_i = meta->structure+(meta->elementsize*(i+1));
-    elem_j = meta->structure+(meta->elementsize*high);
+    elem_i = get_arrayelem(meta, i+1);
+    elem_j = get_arrayelem(meta, high);
     memcpy(tmp, elem_i, meta->elementsize);
     memcpy(elem_i, elem_j, meta->elementsize);
     memcpy(elem_j, tmp, meta->elementsize);
@@ -349,7 +363,7 @@ int binarySearchArray(meta_t *meta, void* toSearch){
     while(i<=j){
         m = (i+j)/2;
         //position the cursor
-        current = meta->structure+(meta->elementsize*m);
+        current = get_arrayelem(meta, m);
 
         if((*meta->doCompare)(current, toSearch) < 0)
             i = m+1;
@@ -382,7 +396,7 @@ int binarySearchArrayFirst(meta_t *meta, void* toSearch){
     //walk through all the occurences of the key until the first one
     do{
         i--;
-        current = meta->structure+(meta->elementsize*i);
+        current = get_arrayelem(meta, i);
     }while(i>=0 && (*meta->doCompare)(current, toSearch) >= 0);
 
     return i+1;
@@ -558,7 +572,7 @@ int foreachArray(meta_t* meta, void* parameter, int (*doAction)(void*, void*)){
 
     for(int i=0 ; i<meta->nbelements ; i++){
         //position the pointer properly
-        tmp = meta->structure+(meta->elementsize*i);
+        tmp = get_arrayelem(meta, i);
         //execute action
         if((*doAction)(tmp, parameter) < 0)
             return -1;
