@@ -62,9 +62,9 @@ int foreachList(meta_t*, void*, int (*doAction)(void*, void*));
 int foreachArray(meta_t*, void*, int (*doAction)(void*, void*));
 
 ////AVL trees
-//void* insertAVL(t_algo_meta* meta, void* avl, void* toAdd);
-//void display_AVL_tree(t_algo_meta* meta, void* avl, char dir, char* (*toString)(void*));
-//void* rotate_AVL(t_algo_meta* meta, void* avl, e_rotation side);
+dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd);
+void display_AVL_tree(meta_t* meta, dyndata_t* avl, char dir, char* (*toString)(void*));
+dyndata_t* rotate_AVL(meta_t* meta, dyndata_t* avl, e_rotation side);
 //int get_AVL_balance(t_algo_meta* meta, void* avl);
 //int foreachAVL(t_algo_meta* meta, void* avl, void* parameter, int (*doAction)(void*, void*));
 //void* search_AVL(t_algo_meta* meta, void* avl, void* key);

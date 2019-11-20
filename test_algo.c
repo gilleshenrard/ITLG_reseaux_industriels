@@ -18,6 +18,7 @@ int tst_inserttoplist(void);
 int tst_insertlistsorted(void);
 int tst_bubblesortlist(void);
 int tst_structuresconversion(void);
+int tst_insertavl(void);
 
 int main(int argc, char *argv[])
 {
@@ -29,7 +30,8 @@ int main(int argc, char *argv[])
     //tst_inserttoplist();
     //tst_insertlistsorted();
     //tst_bubblesortlist();
-    tst_structuresconversion();
+    //tst_structuresconversion();
+    tst_insertavl();
 
 	exit(EXIT_SUCCESS);
 }
@@ -400,6 +402,48 @@ int tst_structuresconversion()
     printf("Array created:\n");
     foreachArray(&arr, NULL, Print_dataset);
     printf("list pointer: %p, number of elments: %ld\n", lis.structure, lis.nbelements);
+
+    free(arr.structure);
+
+    return 0;
+}
+
+/************************************************************/
+/*  I : /                                                   */
+/*  P : Tests out the insertion in an AVL tree              */
+/*  O :  0 -> Success                                       */
+/*      -1 -> Error                                         */
+/************************************************************/
+int tst_insertavl()
+{
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
+    meta_t avl = {NULL, 0, sizeof(dataset_t), compare_dataset_id};
+
+    printf("/*********************************************************************/\n");
+    printf("/*************************** tst_insertavl ***************************/\n");
+    printf("/*********************************************************************/\n");
+
+    //generate 20 random datasets
+    if(setup_data((dataset_t**)&arr.structure, 20) == -1)
+    {
+        fprintf(stderr, "insertTopList : error while allocating the data\n");
+        return -1;
+    }
+
+    //display the sorted data
+    foreachArray(&arr, NULL, Print_dataset);
+    printf("----------------------------------------------------------\n");
+
+    for(int i=0 ; i<arr.nbelements ; i++)
+    {
+        if(insertAVL(&avl, avl.structure, get_arrayelem(&arr, i)) == NULL)
+        {
+            fprintf(stderr, "insertAVL : error while creating the AVL\n");
+            free(arr.structure);
+            return -1;
+        }
+    }
+    display_AVL_tree(&avl, avl.structure, 'T', toString_dataset);
 
     free(arr.structure);
 

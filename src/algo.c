@@ -584,167 +584,169 @@ int foreachArray(meta_t* meta, void* parameter, int (*doAction)(void*, void*)){
     return 0;
 }
 
-///************************************************************/
-///*  I : Metadata necessary to the algorithm                 */
-///*      Element to insert in the AVL                        */
-///*  P : Inserts an element in an AVL                        */
-///*  O : AVL root if ok                                      */
-///*      NULL otherwise                                      */
-///************************************************************/
-//void* insertAVL(t_algo_meta* meta, void* avl, void* toAdd){
-//    void **child_right=NULL, **child_left=NULL;
-//    int height_left=0, height_right=0, balance=0;
-//
-//    //if tree is empty
-//    if(!avl){
-//        //memory allocation for the new element
-//        avl = calloc(1, meta->elementsize);
-//        if(!avl)
-//            return NULL;
-//
-//        //copy new element data
-//        (*meta->doCopy)(avl, toAdd);
-//        (*meta->setHeight)(avl, 1);
-//        meta->nbelements++;
-//        return avl;
-//    }
-//
-//    //prepare pointers to the left and right children
-//    child_right = (*meta->next)(avl);
-//    child_left = (*meta->previous)(avl);
-//
-//    //sort whether the new element goes as right or left child
-//    //  + build a new AVL with the child as root
-//    if((*meta->doCompare)(avl, toAdd) != 0){
-//        if((*meta->doCompare)(avl, toAdd) < 0)
-//            *child_right = insertAVL(meta, *child_right, toAdd);
-//        else
-//            *child_left = insertAVL(meta, *child_left, toAdd);
-//    }
-//    else{
-//        //ignore duplicates (forbidden in AVL trees)
-//        return avl;
-//    }
-//
-//    //get the height of the left and right children AVL
-//    height_right = (*meta->getHeight)(*child_right);
-//    height_left = (*meta->getHeight)(*child_left);
-//
-//    //update the current node's height
-//    (*meta->setHeight)(avl, 1+(height_left > height_right ? height_left : height_right));
-//
-//    if(avl)
-//        balance = height_left - height_right;
-//
-//    if(balance < -1){
-//        // right right case
-//        if((*meta->doCompare)(*child_right, toAdd) < 0){
-//            return rotate_AVL(meta, avl, LEFT);
-//        }
-//        // right left case
-//        if((*meta->doCompare)(*child_right, toAdd) > 0){
-//            *child_right = rotate_AVL(meta, child_right, RIGHT);
-//            return rotate_AVL(meta, avl, LEFT);
-//        }
-//    }
-//    if(balance > 1){
-//        // left left case
-//        if((*meta->doCompare)(*child_left, toAdd) > 0){
-//            return rotate_AVL(meta, avl, RIGHT);
-//        }
-//        //left right case
-//        if((*meta->doCompare)(*child_left, toAdd) < 0){
-//            *child_left = rotate_AVL(meta, *child_left, LEFT);
-//            return rotate_AVL(meta, avl, RIGHT);
-//        }
-//    }
-//
-//    return avl;
-//}
-//
-///************************************************************/
-///*  I : Metadata necessary to the algorithm                 */
-///*      Element to browse/display                           */
-///*      Character designed to be displayed to indicate      */
-///*          node direction compared to its root             */
-///*      Method to get the string ID of the node             */
-///*  P : Displays an AVL as a tree                           */
-///*  O : /                                                   */
-///************************************************************/
-//void display_AVL_tree(t_algo_meta* meta, void* avl, char dir, char* (*toString)(void*)){
-//    char tmp[80]={0};
-//    int height = (*meta->getHeight)(avl);
-//    void** child_left=(*meta->previous)(avl);
-//    void** child_right=(*meta->next)(avl);
-//    int nbc_pad;
-//
-//    offset_max = ++offset > offset_max ? offset : offset_max;
-//
-//    if(avl){
-//        display_AVL_tree(meta, *child_left, 'L', toString);
-//
-//        nbc_pad = LG_MAX - (3 * offset) - strlen((*toString)(avl));
-//        for (int i=0;i<nbc_pad;i++)
-//            strcat(tmp,".");
-//        strcat(tmp,(*toString)(avl));
-//        printf("%*c%c %s T-%p R-%p L-%p H-%d\n", 3*offset, '-', dir, tmp, avl, *child_right, *child_left, height);
-//
-//        display_AVL_tree(meta, *child_right, 'R', toString);
-//    }
-//    offset--;
-//}
-//
-///************************************************************/
-///*  I : Metadata necessary to the algorithm                 */
-///*      AVL tree to rotate                                  */
-///*      Side of the rotation (LEFT or RIGHT)                */
-///*  P : Rotates an AVL to the side required                 */
-///*  O : Rotated AVL                                         */
-///************************************************************/
-//void* rotate_AVL(t_algo_meta* meta, void* avl, e_rotation side){
-//    void** (*normally_left)(void*);
-//    void** (*normally_right)(void*);
-//    void **child_left = NULL, **child_right=NULL;
-//    void *newTree=NULL, *rightLeaf=NULL;
-//    int height_l=0, height_r=0, height=0;
-//
-//    //invert the function pointers to get the right child
-//    //  depending on the side of the rotation
-//    normally_left = (side == RIGHT ? meta->previous : meta->next);
-//    normally_right = (side == RIGHT ? meta->next : meta->previous);
-//
-//    //prepare pointers for the new tree
-//    child_left = (*normally_left)(avl);
-//    newTree = *child_left;
-//    child_right = (*normally_right)(newTree);
-//    //problem here (11th node added in unit test)
-//    rightLeaf = *child_right;
-//
-//    //perform rotation
-//    child_right = (*normally_right)(newTree);
-//    *child_right = avl;
-//    child_left = (*normally_left)(avl);
-//    *child_left = rightLeaf;
-//
-//    //set new height of the previous root
-//    child_left = (*meta->previous)(avl);
-//    child_right = (*meta->next)(avl);
-//    height_l = (*meta->getHeight)(*child_left);
-//    height_r = (*meta->getHeight)(*child_right);
-//    height = (height_l > height_r ? height_l : height_r) + 1;
-//    (*meta->setHeight)(avl, height);
-//
-//    //set new height of the new root
-//    child_left = (*meta->previous)(newTree);
-//    child_right = (*meta->next)(newTree);
-//    height_l = (*meta->getHeight)(*child_left);
-//    height_r = (*meta->getHeight)(*child_right);
-//    height = (height_l > height_r ? height_l : height_r) + 1;
-//    (*meta->setHeight)(newTree, height);
-//
-//    return newTree;
-//}
-//
+/************************************************************/
+/*  I : Metadata necessary to the algorithm                 */
+/*      Element to insert in the AVL                        */
+/*  P : Inserts an element in an AVL                        */
+/*  O : AVL root if ok                                      */
+/*      NULL otherwise                                      */
+/************************************************************/
+dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
+    dyndata_t *child_right=NULL, *child_left=NULL;
+    int height_left=0, height_right=0, balance=0;
+
+    //if tree is empty
+    if(!avl){
+        //memory allocation for the new element
+        avl = allocate_dyn(meta, toAdd);
+        meta->nbelements++;
+        return avl;
+    }
+
+    //prepare pointers to the left and right children
+    child_right = avl->right;
+    child_left = avl->left;
+
+    //sort whether the new element goes as right or left child
+    //  + build a new AVL with the child as root
+    if((*meta->doCompare)(avl->data, toAdd) != 0){
+        if((*meta->doCompare)(avl->data, toAdd) < 0)
+            child_right = insertAVL(meta, child_right, toAdd);
+        else
+            child_left = insertAVL(meta, child_left, toAdd);
+    }
+    else{
+        //ignore duplicates (forbidden in AVL trees)
+        return avl;
+    }
+
+    //get the height of the left and right children AVL
+    height_right = child_right->height;
+    height_left = child_left->height;
+
+    //update the current node's height
+    avl->height = 1+(height_left > height_right ? height_left : height_right);
+
+    if(avl)
+        balance = height_left - height_right;
+
+    if(balance < -1){
+        // right right case
+        if((*meta->doCompare)(child_right->data, toAdd) < 0){
+            return rotate_AVL(meta, avl, LEFT);
+        }
+        // right left case
+        if((*meta->doCompare)(child_right->data, toAdd) > 0){
+            child_right = rotate_AVL(meta, child_right, RIGHT);
+            return rotate_AVL(meta, avl, LEFT);
+        }
+    }
+    if(balance > 1){
+        // left left case
+        if((*meta->doCompare)(child_left->data, toAdd) > 0){
+            return rotate_AVL(meta, avl, RIGHT);
+        }
+        //left right case
+        if((*meta->doCompare)(child_left->data, toAdd) < 0){
+            child_left = rotate_AVL(meta, child_left, LEFT);
+            return rotate_AVL(meta, avl, RIGHT);
+        }
+    }
+
+    return avl;
+}
+
+/************************************************************/
+/*  I : Metadata necessary to the algorithm                 */
+/*      Element to browse/display                           */
+/*      Character designed to be displayed to indicate      */
+/*          node direction compared to its root             */
+/*      Method to get the string ID of the node             */
+/*  P : Displays an AVL as a tree                           */
+/*  O : /                                                   */
+/************************************************************/
+void display_AVL_tree(meta_t* meta, dyndata_t* avl, char dir, char* (*toString)(void*)){
+    char tmp[80]={0};
+    int height = avl->height;
+    dyndata_t* child_left=avl->left;
+    dyndata_t* child_right=avl->right;
+    int nbc_pad;
+
+    offset_max = ++offset > offset_max ? offset : offset_max;
+
+    if(avl){
+        display_AVL_tree(meta, child_left, 'L', toString);
+
+        nbc_pad = LG_MAX - (3 * offset) - strlen((*toString)(avl));
+        for (int i=0;i<nbc_pad;i++)
+            strcat(tmp,".");
+        strcat(tmp,(*toString)(avl));
+        printf("%*c%c %s T-%p R-%p L-%p H-%d\n", 3*offset, '-', dir, tmp, avl, child_right, child_left, height);
+
+        display_AVL_tree(meta, child_right, 'R', toString);
+    }
+    offset--;
+}
+
+/************************************************************/
+/*  I : Metadata necessary to the algorithm                 */
+/*      AVL tree to rotate                                  */
+/*      Side of the rotation (LEFT or RIGHT)                */
+/*  P : Rotates an AVL to the side required                 */
+/*  O : Rotated AVL                                         */
+/************************************************************/
+dyndata_t* rotate_AVL(meta_t* meta, dyndata_t* avl, e_rotation side){
+    dyndata_t *child_left = NULL, *child_right=NULL;
+    dyndata_t *newTree=NULL, *rightLeaf=NULL;
+    int height_l=0, height_r=0;
+
+    if(side == RIGHT)
+    {
+        //prepare pointers for the new tree
+        child_left = avl->left;
+        newTree = child_left;
+        child_right = newTree->right;
+        rightLeaf = child_right;
+
+        //perform rotation
+        child_right = newTree->right;
+        child_right = avl;
+        child_left = avl->left;
+        child_left = rightLeaf;
+    }
+    else
+    {
+        //prepare pointers for the new tree
+        child_left = avl->right;
+        newTree = child_left;
+        child_right = newTree->left;
+        rightLeaf = child_right;
+
+        //perform rotation
+        child_right = newTree->left;
+        child_right = avl;
+        child_left = avl->right;
+        child_left = rightLeaf;
+    }
+
+
+    //set new height of the previous root
+    child_left = avl->left;
+    child_right = avl->right;
+    height_l = child_left->height;
+    height_r = child_right->height;
+    avl->height = (height_l > height_r ? height_l : height_r) + 1;
+
+    //set new height of the new root
+    child_left = newTree->left;
+    child_right = newTree->right;
+    height_l = child_left->height;
+    height_r = child_right->height;
+    newTree->height = (height_l > height_r ? height_l : height_r) + 1;
+
+    return newTree;
+}
+
 ///************************************************************/
 ///*  I : Metadata necessary to the algorithm                 */
 ///*      AVL tree of which to compute the balance            */
