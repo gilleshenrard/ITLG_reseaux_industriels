@@ -20,9 +20,9 @@ int main(int argc, char *argv[])
 {
     srand(time(NULL));
 
-    tst_bubblesortarray();
-    tst_quicksortarray();
-    tst_binarysearcharray();
+    //tst_bubblesortarray();
+    //tst_quicksortarray();
+    //tst_binarysearcharray();
     tst_inserttoplist();
 
 	exit(EXIT_SUCCESS);
@@ -205,7 +205,7 @@ int tst_binarysearcharray()
 int tst_inserttoplist()
 {
     meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
-    meta_t lis = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
+    meta_t lis = {NULL, 0, sizeof(dataset_t), compare_dataset_id};
 
     printf("/*********************************************************************/\n");
     printf("/********************* tst_inserttoplist *****************************/\n");
@@ -233,10 +233,18 @@ int tst_inserttoplist()
         }
     }
 
-    foreachList(&lis, NULL, Print_dataset);
-
-    //free memory
+    //free memory used by the array
     free(arr.structure);
-    freeDynList(&lis);
+
+    //list the content of the list, each time popping one element at its head
+    while(lis.structure)
+    {
+        popListTop(&lis);
+        foreachList(&lis, NULL, Print_dataset);
+        printf("Nb of elements: %ld\n", lis.nbelements);
+        printf("----------------------------------------------------------\n");
+
+    }
+
     return 0;
 }

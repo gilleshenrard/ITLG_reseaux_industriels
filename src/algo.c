@@ -340,6 +340,7 @@ int insertListTop(meta_t* meta, void *toAdd){
 
     //copy new element data
     memcpy(newElement->data, toAdd, meta->elementsize);
+    newElement->height = 1;
 
     //chain new element's previous pointer to list, if existing
     if(meta->structure){
@@ -360,41 +361,41 @@ int insertListTop(meta_t* meta, void *toAdd){
     return 0;
 }
 
-///************************************************************/
-///*  I : Metadata necessary to the algorithm                 */
-///*  P : Removes the first element of the list               */
-///*  O : 0 -> Element popped                                 */
-///*     -1 -> Error                                          */
-///************************************************************/
-//int popListTop(t_algo_meta* meta){
-//    void *head = NULL, *second=NULL, **previous = NULL;
-//
-//    //check if meta data available
-//    if(!meta || !meta->next)
-//        return -1;
-//
-//    //Structure is empty
-//    if(!meta->structure)
-//        return 0;
-//
-//    //save list head and retrieve next element
-//    head = meta->structure;
-//    second = *(*meta->next)(head);
-//    previous = (*meta->previous)(second);
-//
-//    //free and rechain
-//    //  note : free() takes a void pointer anyway, so no need to cast
-//    free(head);
-//    if(previous)
-//        *previous = NULL;
-//    meta->structure = second;
-//
-//    //update the number of elements
-//    meta->nbelements--;
-//
-//    return 0;
-//}
-//
+/************************************************************/
+/*  I : Metadata necessary to the algorithm                 */
+/*  P : Removes the first element of the list               */
+/*  O : 0 -> Element popped                                 */
+/*     -1 -> Error                                          */
+/************************************************************/
+int popListTop(meta_t* meta){
+    dyndata_t *head = NULL, *second=NULL;
+
+    //check if meta data available
+    if(!meta)
+        return -1;
+
+    //Structure is empty
+    if(!meta->structure)
+        return 0;
+
+    //save list head and retrieve next element
+    head = meta->structure;
+    second = head->right;
+
+    //free and rechain
+    //  note : free() takes a void pointer anyway, so no need to cast
+    free(head->data);
+    free(head);
+    if(second && second->left)
+        second->left = NULL;
+    meta->structure = second;
+
+    //update the number of elements
+    meta->nbelements--;
+
+    return 0;
+}
+
 ///************************************************************/
 ///*  I : Metadata necessary to the algorithm                 */
 ///*      Element to insert in the list                       */
