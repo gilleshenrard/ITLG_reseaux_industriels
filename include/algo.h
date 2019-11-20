@@ -38,9 +38,9 @@ void* get_arrayelem(meta_t* meta, int i);
 
 //Array, list and AVL transformation
 //int listToArray(t_algo_meta* dList, t_algo_meta* dArray, e_listtoarray action);
-//int arrayToList(t_algo_meta* dArray, t_algo_meta* dList, e_listtoarray action);
+int arrayToList(meta_t* dArray, meta_t* dList, e_listtoarray action);
 //int arrayToAVL(t_algo_meta* dArray, t_algo_meta* dAVL, e_listtoarray action);
-//
+
 //Sorting algorithms
 int bubbleSortArray(meta_t*);
 int bubbleSortList(meta_t*);

@@ -25,9 +25,9 @@ int main(int argc, char *argv[])
     //tst_bubblesortarray();
     //tst_quicksortarray();
     //tst_binarysearcharray();
-    tst_inserttoplist();
-    //tst_insertlistsorted();
-    tst_bubblesortlist();
+    //tst_inserttoplist();
+    tst_insertlistsorted();
+    //tst_bubblesortlist();
 
 	exit(EXIT_SUCCESS);
 }
@@ -245,11 +245,11 @@ int tst_inserttoplist()
     //list the content of the list, each time popping one element at its head
     while(lis.structure)
     {
-        printf("Data with list head purged:\n");
-        popListTop(&lis);
         foreachList(&lis, NULL, Print_dataset);
         printf("Nb of elements: %ld\n", lis.nbelements);
         printf("----------------------------------------------------------\n");
+        printf("Data with list head purged:\n");
+        popListTop(&lis);
 
     }
 
@@ -282,19 +282,13 @@ int tst_insertlistsorted()
     foreachArray(&arr, NULL, Print_dataset);
     printf("----------------------------------------------------------\n");
 
-    for(int i=0 ; i<20 ; i++)
+    if(arrayToList(&arr, &lis, REPLACE) == -1)
     {
-        if(insertListSorted(&lis, arr.structure + i*sizeof(dataset_t)) == -1)
-        {
-            fprintf(stderr, "insertListSorted : error while inserting the data\n");
-            free(arr.structure);
-            freeDynList(&lis);
-            return -1;
-        }
+        fprintf(stderr, "insertListSorted : error while inserting the data\n");
+        free(arr.structure);
+        freeDynList(&lis);
+        return -1;
     }
-
-    //free memory used by the array
-    free(arr.structure);
 
     printf("Data sorted:\n");
     //display the content of the list, and delete it

@@ -135,31 +135,33 @@ void* get_arrayelem(meta_t* meta, int i)
 //
 //    return 0;
 //}
-//
-///************************************************************/
-///*  I : Array to copy                                       */
-///*      List to create                                      */
-///*      Action to perform on the list members (free or not) */
-///*  P : Allocates memory for the list and copies the array  */
-///*          into it                                         */
-///*  O :  0 -> List created                                  */
-///*      -1 -> Error                                         */
-///************************************************************/
-//int arrayToList(t_algo_meta* dArray, t_algo_meta* dList, e_listtoarray action){
-//    void *tmp_array = dArray->structure;
-//
-//    //copy elements one by one in the list
-//    for(int i=0 ; i<dArray->nbelements ; i++){
-//        //position the pointer properly
-//        tmp_array = dArray->structure+(dArray->elementsize*i);
-//        //insert in the list
-//        if(insertListSorted(dList,  tmp_array) < 0)
-//            return -1;
-//    }
-//
-//    return 0;
-//}
-//
+
+/************************************************************/
+/*  I : Array to copy                                       */
+/*      List to create                                      */
+/*      Action to perform on the list members (free or not) */
+/*  P : Allocates memory for the list and copies the array  */
+/*          into it                                         */
+/*  O :  0 -> List created                                  */
+/*      -1 -> Error                                         */
+/************************************************************/
+int arrayToList(meta_t* dArray, meta_t* dList, e_listtoarray action){
+    //copy elements one by one in the list
+    for(int i=0 ; i<dArray->nbelements ; i++){
+        //insert in the list
+        if(insertListSorted(dList,  get_arrayelem(dArray, i)) < 0)
+            return -1;
+    }
+
+    if(action == REPLACE)
+    {
+        free(dArray->structure);
+        dArray->nbelements = 0;
+    }
+
+    return 0;
+}
+
 ///************************************************************/
 ///*  I : Array to copy                                       */
 ///*      AVL to create                                       */
