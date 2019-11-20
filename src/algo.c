@@ -8,6 +8,51 @@
 #include "algo.h"
 
 /************************************************************/
+/*  I : Metadata of the element to allocate                 */
+/*      Actual data of the element to allocate              */
+/*  P : Allocates memory for a dynamic element and copy its */
+/*          value                                           */
+/*  O : Address of the element if OK                        */
+/*      NULL if error                                       */
+/************************************************************/
+dyndata_t* allocate_dyn(meta_t* meta, void* elem)
+{
+    dyndata_t* tmp=NULL;
+
+    //memory allocation for the dynamic element
+    tmp = calloc(1, sizeof(dyndata_t));
+    if(!tmp)
+        return NULL;
+
+    //memory allocation for the actual data
+    tmp->data = calloc(1, meta->elementsize);
+    if(!tmp->data)
+    {
+        free(tmp);
+        return NULL;
+    }
+
+    //copy new element data and set AVL leaf height
+    memcpy(tmp->data, elem, meta->elementsize);
+    tmp->height = 1;
+
+    return tmp;
+}
+
+/************************************************************/
+/*  I : Element to deallocate                               */
+/*  P : Deallocates the memory for a dynamic element        */
+/*  O : /                                                   */
+/************************************************************/
+int free_dyn(dyndata_t* elem)
+{
+    free(elem->data);
+    free(elem);
+
+    return 0;
+}
+
+/************************************************************/
 /*  I : List to copy                                        */
 /*      Array to create (MUST BE EMPTY)                     */
 /*      Action to perform on the list members (free or not) */
@@ -326,21 +371,8 @@ int insertListTop(meta_t* meta, void *toAdd){
     if(!meta || !toAdd)
         return -1;
 
-    //memory allocation for the new element
-    newElement = calloc(1, sizeof(dyndata_t));
-    if(!newElement)
+    if((newElement = allocate_dyn(meta, toAdd)) == NULL)
         return -1;
-
-    newElement->data = calloc(1, meta->elementsize);
-    if(!newElement->data)
-    {
-        free(newElement);
-        return -1;
-    }
-
-    //copy new element data
-    memcpy(newElement->data, toAdd, meta->elementsize);
-    newElement->height = 1;
 
     //chain new element's previous pointer to list, if existing
     if(meta->structure){
@@ -384,8 +416,7 @@ int popListTop(meta_t* meta){
 
     //free and rechain
     //  note : free() takes a void pointer anyway, so no need to cast
-    free(head->data);
-    free(head);
+    free_dyn(head);
     if(second && second->left)
         second->left = NULL;
     meta->structure = second;
@@ -411,21 +442,8 @@ int insertListSorted(meta_t *meta, void* toAdd){
     if(!meta->structure || (*meta->doCompare)(toAdd, current->data) <= 0)
         return insertListTop(meta, toAdd);
 
-    //memory allocation for the new element
-    newElement = calloc(1, sizeof(dyndata_t));
-    if(!newElement)
+    if((newElement = allocate_dyn(meta, toAdd)) == NULL)
         return -1;
-
-    newElement->data = calloc(1, meta->elementsize);
-    if(!newElement->data)
-    {
-        free(newElement);
-        return -1;
-    }
-
-    //copy new element data
-    memcpy(newElement->data, toAdd, meta->elementsize);
-    newElement->height = 1;
 
     //walk through the list until the right place is found
     while(current!=NULL && (*meta->doCompare)(newElement->data,current->data)>0){
@@ -463,8 +481,7 @@ int freeDynList(meta_t* meta)
     while(next){
         current = next;
         next = next->right;
-        free(current->data);
-        free(current);
+        free_dyn(current);
             return -1;
     }
 

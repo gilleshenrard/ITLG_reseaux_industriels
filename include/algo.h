@@ -30,6 +30,10 @@ int offset, offset_max;
 typedef enum {COPY, REPLACE} e_listtoarray;
 typedef enum {RIGHT, LEFT} e_rotation;
 
+//dynamic data allocation and deallocation
+dyndata_t* allocate_dyn(meta_t* meta, void* elem);
+int free_dyn(dyndata_t* elem);
+
 //miscellaneous
 //int listToArray(t_algo_meta* dList, t_algo_meta* dArray, e_listtoarray action);
 //int arrayToList(t_algo_meta* dArray, t_algo_meta* dList, e_listtoarray action);
