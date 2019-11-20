@@ -754,38 +754,38 @@ dyndata_t* rotate_AVL(meta_t* meta, dyndata_t* avl, e_rotation side){
 //
 //    return height_left - height_right;
 //}
-//
-///************************************************************/
-///*  I : Metadata necessary to the algorithm                 */
-///*      Root of the AVL to which perform the action         */
-///*      Parameter for the action to perform                 */
-///*      Action to perform                                   */
-///*  P : Performs an action on every element of the AVL      */
-///*  O : 0 -> OK                                             */
-///*     -1 -> Error                                          */
-///************************************************************/
-//int foreachAVL(t_algo_meta* meta, void* avl, void* parameter, int (*doAction)(void*, void*)){
-//    void **child_left=NULL, **child_right=NULL;
-//    int ret = 0;
-//
-//    if(avl){
-//        //get the left and right children of the current root
-//        child_left = (*meta->previous)(avl);
-//        child_right = (*meta->next)(avl);
-//
-//        //perform action on left child
-//        foreachAVL(meta, *child_left, parameter, doAction);
-//
-//        //perform action on root
-//        ret = (*doAction)(avl, parameter);
-//
-//        //perform action on right child
-//        foreachAVL(meta, *child_right, parameter, doAction);
-//    }
-//
-//    return ret;
-//}
-//
+
+/************************************************************/
+/*  I : Metadata necessary to the algorithm                 */
+/*      Root of the AVL to which perform the action         */
+/*      Parameter for the action to perform                 */
+/*      Action to perform                                   */
+/*  P : Performs an action on every element of the AVL      */
+/*  O : 0 -> OK                                             */
+/*     -1 -> Error                                          */
+/************************************************************/
+int foreachAVL(meta_t* meta, dyndata_t* avl, void* parameter, int (*doAction)(void*, void*)){
+    void *child_left=NULL, *child_right=NULL;
+    int ret = 0;
+
+    if(avl){
+        //get the left and right children of the current root
+        child_left = avl->left;
+        child_right = avl->right;
+
+        //perform action on left child
+        foreachAVL(meta, child_left, parameter, doAction);
+
+        //perform action on root
+        ret = (*doAction)(avl->data, parameter);
+
+        //perform action on right child
+        foreachAVL(meta, child_right, parameter, doAction);
+    }
+
+    return ret;
+}
+
 ///************************************************************/
 ///*  I : Metadata necessary to the algorithm                 */
 ///*      AVL in which search for the key                     */

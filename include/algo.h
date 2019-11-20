@@ -66,7 +66,7 @@ dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd);
 void display_AVL_tree(meta_t* meta, dyndata_t* avl, char dir, char* (*toString)(void*));
 dyndata_t* rotate_AVL(meta_t* meta, dyndata_t* avl, e_rotation side);
 //int get_AVL_balance(t_algo_meta* meta, void* avl);
-//int foreachAVL(t_algo_meta* meta, void* avl, void* parameter, int (*doAction)(void*, void*));
+int foreachAVL(meta_t* meta, dyndata_t* avl, void* parameter, int (*doAction)(void*, void*));
 //void* search_AVL(t_algo_meta* meta, void* avl, void* key);
 //void* delete_AVL(t_algo_meta* meta, void* root, void* key);
 //void* min_AVL_value(t_algo_meta* meta, void* avl);

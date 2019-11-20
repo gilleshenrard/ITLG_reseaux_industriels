@@ -19,6 +19,7 @@ int tst_insertlistsorted(void);
 int tst_bubblesortlist(void);
 int tst_structuresconversion(void);
 int tst_insertavl(void);
+int tst_removeavl(void);
 
 int main(int argc, char *argv[])
 {
@@ -31,7 +32,8 @@ int main(int argc, char *argv[])
     //tst_insertlistsorted();
     //tst_bubblesortlist();
     //tst_structuresconversion();
-    tst_insertavl();
+    //tst_insertavl();
+    tst_removeavl();
 
 	exit(EXIT_SUCCESS);
 }
@@ -446,6 +448,50 @@ int tst_insertavl()
         }
     }
     display_AVL_tree(&avl, avl.structure, 'T', toString_dataset);
+
+    free(arr.structure);
+
+    return 0;
+}
+
+/************************************************************/
+/*  I : /                                                   */
+/*  P : Tests out the removal from an AVL tree              */
+/*  O :  0 -> Success                                       */
+/*      -1 -> Error                                         */
+/************************************************************/
+int tst_removeavl()
+{
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
+    meta_t avl = {NULL, 0, sizeof(dataset_t), compare_dataset};
+
+    printf("/*********************************************************************/\n");
+    printf("/*************************** tst_removeavl ***************************/\n");
+    printf("/*********************************************************************/\n");
+
+    //generate 20 random datasets
+    if(setup_data((dataset_t**)&arr.structure, 20) == -1)
+    {
+        fprintf(stderr, "removeAVL : error while allocating the data\n");
+        return -1;
+    }
+
+    //display the sorted data
+    foreachArray(&arr, NULL, Print_dataset);
+    printf("----------------------------------------------------------\n");
+
+    for(int i=0 ; i<arr.nbelements ; i++)
+    {
+        if((avl.structure = insertAVL(&avl, avl.structure, get_arrayelem(&arr, i))) == NULL)
+        {
+            fprintf(stderr, "removeAVL : error while creating the AVL\n");
+            free(arr.structure);
+            return -1;
+        }
+    }
+
+    foreachAVL(&avl, avl.structure, NULL, Print_dataset);
+    printf("Nb of elements: %ld\n", avl.nbelements);
 
     free(arr.structure);
 
