@@ -621,8 +621,8 @@ dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
     }
 
     //get the height of the left and right children AVL
-    height_right = child_right->height;
-    height_left = child_left->height;
+    height_right = (child_right ? child_right->height : 0);
+    height_left = (child_left ? child_left->height : 0);
 
     //update the current node's height
     avl->height = 1+(height_left > height_right ? height_left : height_right);
@@ -667,10 +667,16 @@ dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
 /************************************************************/
 void display_AVL_tree(meta_t* meta, dyndata_t* avl, char dir, char* (*toString)(void*)){
     char tmp[80]={0};
-    int height = avl->height;
-    dyndata_t* child_left=avl->left;
-    dyndata_t* child_right=avl->right;
-    int nbc_pad;
+    int height = 0;
+    dyndata_t *child_left=NULL, *child_right=NULL;
+    int nbc_pad = 0;
+
+    if(!avl)
+        return;
+
+    height = avl->height;
+    child_left = avl->left;
+    child_right = avl->right;
 
     offset_max = ++offset > offset_max ? offset : offset_max;
 

@@ -436,7 +436,7 @@ int tst_insertavl()
 
     for(int i=0 ; i<arr.nbelements ; i++)
     {
-        if(insertAVL(&avl, avl.structure, get_arrayelem(&arr, i)) == NULL)
+        if((avl.structure = insertAVL(&avl, avl.structure, get_arrayelem(&arr, i))) == NULL)
         {
             fprintf(stderr, "insertAVL : error while creating the AVL\n");
             free(arr.structure);
