@@ -464,7 +464,7 @@ int tst_removeavl()
 {
     meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
     meta_t avl = {NULL, 0, sizeof(dataset_t), compare_dataset};
-    dataset_t* tmp = NULL;
+//    dataset_t* tmp = NULL;
 
     printf("/*********************************************************************/\n");
     printf("/*************************** tst_removeavl ***************************/\n");
@@ -490,7 +490,16 @@ int tst_removeavl()
             return -1;
         }
     }
+    display_AVL_tree(&avl, avl.structure, 'T', toString_dataset);
+    printf("----------------------------------------------------------\n");
 
+    for(int i=0 ; i<avl.nbelements ; i++)
+    {
+        delete_AVL_root(&avl);
+        display_AVL_tree(&avl, avl.structure, 'T', toString_dataset);
+        getchar();
+    }
+/*
     foreachAVL(&avl, avl.structure, NULL, Print_dataset);
     printf("Nb of elements: %ld\n", avl.nbelements);
     tmp = search_AVL(&avl, avl.structure, get_arrayelem(&arr, 5));
@@ -498,7 +507,7 @@ int tst_removeavl()
         printf("Element %s not found\n", toString_dataset(get_arrayelem(&arr, 5)));
     else
         printf("Element %s found\n", toString_dataset(tmp));
-
+*/
     free(arr.structure);
 
     return 0;
