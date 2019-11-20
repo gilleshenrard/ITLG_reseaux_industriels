@@ -28,10 +28,10 @@ int main(int argc, char *argv[])
     //tst_quicksortarray();
     //tst_binarysearcharray();
     //tst_inserttoplist();
-    tst_insertlistsorted();
+    //tst_insertlistsorted();
     //tst_bubblesortlist();
     //tst_structuresconversion();
-    //tst_insertavl();
+    tst_insertavl();
 
 	exit(EXIT_SUCCESS);
 }

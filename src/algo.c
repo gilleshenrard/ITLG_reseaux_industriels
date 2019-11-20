@@ -592,7 +592,6 @@ int foreachArray(meta_t* meta, void* parameter, int (*doAction)(void*, void*)){
 /*      NULL otherwise                                      */
 /************************************************************/
 dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
-    dyndata_t *child_right=NULL, *child_left=NULL;
     int height_left=0, height_right=0, balance=0;
 
     //if tree is empty
@@ -603,17 +602,13 @@ dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
         return avl;
     }
 
-    //prepare pointers to the left and right children
-    child_right = avl->right;
-    child_left = avl->left;
-
     //sort whether the new element goes as right or left child
     //  + build a new AVL with the child as root
     if((*meta->doCompare)(avl->data, toAdd) != 0){
         if((*meta->doCompare)(avl->data, toAdd) < 0)
-            child_right = insertAVL(meta, child_right, toAdd);
+            avl->right = insertAVL(meta, avl->right, toAdd);
         else
-            child_left = insertAVL(meta, child_left, toAdd);
+            avl->left = insertAVL(meta, avl->left, toAdd);
     }
     else{
         //ignore duplicates (forbidden in AVL trees)
@@ -621,8 +616,8 @@ dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
     }
 
     //get the height of the left and right children AVL
-    height_right = (child_right ? child_right->height : 0);
-    height_left = (child_left ? child_left->height : 0);
+    height_right = (avl->right ? avl->right->height : 0);
+    height_left = (avl->left ? avl->left->height : 0);
 
     //update the current node's height
     avl->height = 1+(height_left > height_right ? height_left : height_right);
@@ -632,23 +627,23 @@ dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
 
     if(balance < -1){
         // right right case
-        if((*meta->doCompare)(child_right->data, toAdd) < 0){
+        if((*meta->doCompare)(avl->right->data, toAdd) < 0){
             return rotate_AVL(meta, avl, LEFT);
         }
         // right left case
-        if((*meta->doCompare)(child_right->data, toAdd) > 0){
-            child_right = rotate_AVL(meta, child_right, RIGHT);
+        if((*meta->doCompare)(avl->right->data, toAdd) > 0){
+            avl->right = rotate_AVL(meta, avl->right, RIGHT);
             return rotate_AVL(meta, avl, LEFT);
         }
     }
     if(balance > 1){
         // left left case
-        if((*meta->doCompare)(child_left->data, toAdd) > 0){
+        if((*meta->doCompare)(avl->left->data, toAdd) > 0){
             return rotate_AVL(meta, avl, RIGHT);
         }
         //left right case
-        if((*meta->doCompare)(child_left->data, toAdd) < 0){
-            child_left = rotate_AVL(meta, child_left, LEFT);
+        if((*meta->doCompare)(avl->left->data, toAdd) < 0){
+            avl->left = rotate_AVL(meta, avl->left, LEFT);
             return rotate_AVL(meta, avl, RIGHT);
         }
     }
@@ -683,11 +678,11 @@ void display_AVL_tree(meta_t* meta, dyndata_t* avl, char dir, char* (*toString)(
     if(avl){
         display_AVL_tree(meta, child_left, 'L', toString);
 
-        nbc_pad = LG_MAX - (3 * offset) - strlen((*toString)(avl));
+        nbc_pad = LG_MAX - (3 * offset) - strlen((*toString)(avl->data));
         for (int i=0;i<nbc_pad;i++)
             strcat(tmp,".");
-        strcat(tmp,(*toString)(avl));
-        printf("%*c%c %s T-%p R-%p L-%p H-%d\n", 3*offset, '-', dir, tmp, avl, child_right, child_left, height);
+        strcat(tmp,(*toString)(avl->data));
+        printf("%*c%c %s T-%16p R-%16p L-%16p H-%d\n", 3*offset, '-', dir, tmp, (void*)avl, (void*)child_right, (void*)child_left, height);
 
         display_AVL_tree(meta, child_right, 'R', toString);
     }
@@ -702,52 +697,38 @@ void display_AVL_tree(meta_t* meta, dyndata_t* avl, char dir, char* (*toString)(
 /*  O : Rotated AVL                                         */
 /************************************************************/
 dyndata_t* rotate_AVL(meta_t* meta, dyndata_t* avl, e_rotation side){
-    dyndata_t *child_left = NULL, *child_right=NULL;
-    dyndata_t *newTree=NULL, *rightLeaf=NULL;
+    dyndata_t *newTree=NULL, *child=NULL;
     int height_l=0, height_r=0;
 
     if(side == RIGHT)
     {
         //prepare pointers for the new tree
-        child_left = avl->left;
-        newTree = child_left;
-        child_right = newTree->right;
-        rightLeaf = child_right;
+        newTree = avl->left;
+        child = newTree->right;
 
         //perform rotation
-        child_right = newTree->right;
-        child_right = avl;
-        child_left = avl->left;
-        child_left = rightLeaf;
+        newTree->right = avl;
+        avl->left = child;
     }
     else
     {
         //prepare pointers for the new tree
-        child_left = avl->right;
-        newTree = child_left;
-        child_right = newTree->left;
-        rightLeaf = child_right;
+        newTree = avl->right;
+        child = newTree->left;
 
         //perform rotation
-        child_right = newTree->left;
-        child_right = avl;
-        child_left = avl->right;
-        child_left = rightLeaf;
+        newTree->left = avl;
+        avl->right = child;
     }
 
-
     //set new height of the previous root
-    child_left = avl->left;
-    child_right = avl->right;
-    height_l = child_left->height;
-    height_r = child_right->height;
+    height_l = (avl->left ? avl->left->height : 0);
+    height_r = (avl->right ? avl->right->height : 0);
     avl->height = (height_l > height_r ? height_l : height_r) + 1;
 
     //set new height of the new root
-    child_left = newTree->left;
-    child_right = newTree->right;
-    height_l = child_left->height;
-    height_r = child_right->height;
+    height_l = (newTree->left ? newTree->left->height : 0);
+    height_r = (newTree->right ? newTree->right->height : 0);
     newTree->height = (height_l > height_r ? height_l : height_r) + 1;
 
     return newTree;
