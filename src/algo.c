@@ -3,7 +3,7 @@
 ** Library regrouping algorithmic-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 19/11/2019
+** Last modified : 20/11/2019
 */
 #include "algo.h"
 
@@ -396,59 +396,59 @@ int popListTop(meta_t* meta){
     return 0;
 }
 
-///************************************************************/
-///*  I : Metadata necessary to the algorithm                 */
-///*      Element to insert in the list                       */
-///*  P : Inserts an element at the right place in a sorted   */
-///*          linked list                                     */
-///*  O : 0 -> Element added                                  */
-///*     -1 -> Error                                          */
-///************************************************************/
-//int insertListSorted(t_algo_meta *meta, void* toAdd){
-//    void *newElement = NULL, *previous=NULL, *next=meta->structure, **tmp = NULL;
-//
-//    //non-existing list or element is supposed to become the first element
-//    if(!meta->structure || (*meta->doCompare)(toAdd, meta->structure) <= 0)
-//        return insertListTop(meta, toAdd);
-//
-//    //allocation and filling of the new element
-//    newElement = calloc(1, meta->elementsize);
-//    if(newElement)
-//        (*meta->doCopy)(newElement, toAdd);
-//    else
-//        return -1;
-//
-//    //walk through the list until the right place is found
-//    while(next!=NULL && (*meta->doCompare)(newElement,next)>0){
-//        previous = next;
-//        next = *(*meta->next)(next);
-//    }
-//    //previous->next = new
-//    tmp = (*meta->next)(previous);
-//    if(tmp)
-//        *tmp = newElement;
-//    //new->next = next
-//    tmp = (*meta->next)(newElement);
-//    *tmp = next;
-//    //new->previous = previous
-//    tmp = (*meta->previous)(newElement);
-//    *tmp = previous;
-//    //next->previous = new
-//    if(*(*meta->next)(newElement) != NULL){
-//        tmp = (*meta->previous)(next);
-//        *tmp = newElement;
-//    }
-//
-//    meta->nbelements++;
-//
-//    return 0;
-//}
+/************************************************************/
+/*  I : Metadata necessary to the algorithm                 */
+/*      Element to insert in the list                       */
+/*  P : Inserts an element at the right place in a sorted   */
+/*          linked list                                     */
+/*  O : 0 -> Element added                                  */
+/*     -1 -> Error                                          */
+/************************************************************/
+int insertListSorted(meta_t *meta, void* toAdd){
+    dyndata_t *newElement = NULL, *previous=NULL, *current=meta->structure;
 
+    //non-existing list or element is supposed to become the first element
+    if(!meta->structure || (*meta->doCompare)(toAdd, current->data) <= 0)
+        return insertListTop(meta, toAdd);
+
+    //memory allocation for the new element
+    newElement = calloc(1, sizeof(dyndata_t));
+    if(!newElement)
+        return -1;
+
+    newElement->data = calloc(1, meta->elementsize);
+    if(!newElement->data)
+    {
+        free(newElement);
+        return -1;
+    }
+
+    //copy new element data
+    memcpy(newElement->data, toAdd, meta->elementsize);
+    newElement->height = 1;
+
+    //walk through the list until the right place is found
+    while(current!=NULL && (*meta->doCompare)(newElement->data,current->data)>0){
+        previous = current;
+        current = current->right;
+    }
+
+    previous->right = newElement;
+    newElement->right = current;
+
+    newElement->left = previous;
+    if(current != NULL)
+        current->left = newElement;
+
+    meta->nbelements++;
+
+    return 0;
+}
 
 /************************************************************/
-/*  I : Dynamic element to free                             */
+/*  I : Dynamic list to free                                */
 /*      nullable variable (necessary for compatibility)     */
-/*  P : Frees the memory of an element and its data         */
+/*  P : Frees the memory of a list and its data             */
 /*  O : /                                                   */
 /************************************************************/
 int freeDynList(meta_t* meta)

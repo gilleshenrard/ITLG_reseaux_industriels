@@ -3,7 +3,7 @@
 ** Contains all the tests concerning algorithmic features in libalgo.so
 ** -------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 19/11/2019
+** Last modified : 20/11/2019
 */
 #include <time.h>
 #include <stdlib.h>
@@ -15,6 +15,7 @@ int tst_bubblesortarray(void);
 int tst_quicksortarray(void);
 int tst_binarysearcharray(void);
 int tst_inserttoplist(void);
+int tst_insertlistsorted(void);
 
 int main(int argc, char *argv[])
 {
@@ -23,7 +24,8 @@ int main(int argc, char *argv[])
     //tst_bubblesortarray();
     //tst_quicksortarray();
     //tst_binarysearcharray();
-    tst_inserttoplist();
+    //tst_inserttoplist();
+    tst_insertlistsorted();
 
 	exit(EXIT_SUCCESS);
 }
@@ -245,6 +247,53 @@ int tst_inserttoplist()
         printf("----------------------------------------------------------\n");
 
     }
+
+    return 0;
+}
+
+/************************************************************/
+/*  I : /                                                   */
+/*  P : Tests out the insertion in a sorted list            */
+/*  O :  0 -> Success                                       */
+/*      -1 -> Error                                         */
+/************************************************************/
+int tst_insertlistsorted()
+{
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
+    meta_t lis = {NULL, 0, sizeof(dataset_t), compare_dataset_id};
+
+    printf("/*********************************************************************/\n");
+    printf("/********************* tst_insertlistsorted **************************/\n");
+    printf("/*********************************************************************/\n");
+
+    //generate 20 random datasets
+    if(setup_data((dataset_t**)&arr.structure, 20) == -1)
+    {
+        fprintf(stderr, "insertListSorted : error while allocating the data\n");
+        return -1;
+    }
+
+    //display the sorted data
+    foreachArray(&arr, NULL, Print_dataset);
+    printf("----------------------------------------------------------\n");
+
+    for(int i=0 ; i<20 ; i++)
+    {
+        if(insertListSorted(&lis, arr.structure + i*sizeof(dataset_t)) == -1)
+        {
+            fprintf(stderr, "insertListSorted : error while inserting the data\n");
+            free(arr.structure);
+            freeDynList(&lis);
+            return -1;
+        }
+    }
+
+    //free memory used by the array
+    free(arr.structure);
+
+    //display the content of the list, and delete it
+    foreachList(&lis, NULL, Print_dataset);
+    freeDynList(&lis);
 
     return 0;
 }

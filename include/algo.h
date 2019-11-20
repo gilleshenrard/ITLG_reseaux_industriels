@@ -48,7 +48,7 @@ int binarySearchArrayFirst(meta_t*, void*);
 //Dynamic lists
 int insertListTop(meta_t*, void*);
 int popListTop(meta_t*);
-//int insertListSorted(t_algo_meta*,  void*);
+int insertListSorted(meta_t*,  void*);
 int freeDynList(meta_t* meta);
 int foreachList(meta_t*, void*, int (*doAction)(void*, void*));
 
