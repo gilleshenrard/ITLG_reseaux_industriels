@@ -28,10 +28,10 @@ int main(int argc, char *argv[])
     //tst_quicksortarray();
     //tst_binarysearcharray();
     //tst_inserttoplist();
-    //tst_insertlistsorted();
+    tst_insertlistsorted();
     //tst_bubblesortlist();
     //tst_structuresconversion();
-    tst_insertavl();
+    //tst_insertavl();
 
 	exit(EXIT_SUCCESS);
 }
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 /************************************************************/
 int setup_data(dataset_t** data, long nb)
 {
-    int r = 0;
+    int r = 0, r2 = 0;
 
     //allocate a space of nb times the size of dataset_t
     *data = calloc(nb, sizeof(dataset_t));
@@ -54,12 +54,14 @@ int setup_data(dataset_t** data, long nb)
 
     for(int i=0 ; i<nb ; i++)
     {
-        //generate a radom number between 1 and nb (inclusive)
+        //generate a radom number between 1 and nb (inclusive),
+        //  and a second between 1 and 5
         r = rand() % nb + 1;
+        r2 = rand() % 5 + 1;
 
         //fill in information relative to the random number
         (*data)[i].id = r;
-        sprintf((*data)[i].type, "value : %d", r);
+        sprintf((*data)[i].type, "value : %02d", r*r2);
         (*data)[i].price = (float)r * 3.141593;
     }
 
@@ -74,7 +76,7 @@ int setup_data(dataset_t** data, long nb)
 /************************************************************/
 int tst_bubblesortarray()
 {
-    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
 
     printf("/******************************************************************/\n");
     printf("/********************* tst_bubblesortarray ************************/\n");
@@ -116,7 +118,7 @@ int tst_bubblesortarray()
 /************************************************************/
 int tst_quicksortarray()
 {
-    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
 
     printf("/******************************************************************/\n");
     printf("/********************* tst_quicksortarray *************************/\n");
@@ -158,7 +160,7 @@ int tst_quicksortarray()
 /************************************************************/
 int tst_binarysearcharray()
 {
-    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
     int x = 2, found=0;
 
     printf("/*********************************************************************/\n");
@@ -214,8 +216,8 @@ int tst_binarysearcharray()
 /************************************************************/
 int tst_inserttoplist()
 {
-    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
-    meta_t lis = {NULL, 0, sizeof(dataset_t), compare_dataset_id};
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
+    meta_t lis = {NULL, 0, sizeof(dataset_t), compare_dataset};
 
     printf("/*********************************************************************/\n");
     printf("/********************* tst_inserttoplist *****************************/\n");
@@ -268,8 +270,8 @@ int tst_inserttoplist()
 /************************************************************/
 int tst_insertlistsorted()
 {
-    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
-    meta_t lis = {NULL, 0, sizeof(dataset_t), compare_dataset_id};
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
+    meta_t lis = {NULL, 0, sizeof(dataset_t), compare_dataset};
 
     printf("/*********************************************************************/\n");
     printf("/********************* tst_insertlistsorted **************************/\n");
@@ -310,8 +312,8 @@ int tst_insertlistsorted()
 /************************************************************/
 int tst_bubblesortlist()
 {
-    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
-    meta_t lis = {NULL, 0, sizeof(dataset_t), compare_dataset_id};
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
+    meta_t lis = {NULL, 0, sizeof(dataset_t), compare_dataset};
 
     printf("/*********************************************************************/\n");
     printf("/********************* tst_bubblesortlist ****************************/\n");
@@ -360,8 +362,8 @@ int tst_bubblesortlist()
 /************************************************************/
 int tst_structuresconversion()
 {
-    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
-    meta_t lis = {NULL, 0, sizeof(dataset_t), compare_dataset_id};
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
+    meta_t lis = {NULL, 0, sizeof(dataset_t), compare_dataset};
 
     printf("/*********************************************************************/\n");
     printf("/********************* tst_structuresconversion **********************/\n");
@@ -416,8 +418,8 @@ int tst_structuresconversion()
 /************************************************************/
 int tst_insertavl()
 {
-    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
-    meta_t avl = {NULL, 0, sizeof(dataset_t), compare_dataset_id};
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
+    meta_t avl = {NULL, 0, sizeof(dataset_t), compare_dataset};
 
     printf("/*********************************************************************/\n");
     printf("/*************************** tst_insertavl ***************************/\n");

@@ -3,7 +3,7 @@
 ** Library regrouping dataset-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 19/11/2019
+** Last modified : 20/11/2019
 */
 #include "dataset.h"
 
@@ -48,7 +48,7 @@ char* toString_dataset(void* current){
 /*       0 if A = B                                                                     */
 /*      -1 if A < B                                                                     */
 /****************************************************************************************/
-int compare_dataset_id(void* a, void* b){
+int compare_dataset(void* a, void* b){
     dataset_t* tmp_a = (dataset_t*)a;
     dataset_t* tmp_b = (dataset_t*)b;
 
@@ -57,7 +57,7 @@ int compare_dataset_id(void* a, void* b){
     else if(tmp_a->id < tmp_b->id)
         return -1;
     else
-        return 0;
+        return strcmp(tmp_a->type, tmp_b->type);
 }
 
 /****************************************************************************************/
