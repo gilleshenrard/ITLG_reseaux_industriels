@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     //tst_bubblesortarray();
     //tst_quicksortarray();
     //tst_binarysearcharray();
-    //tst_inserttoplist();
+    tst_inserttoplist();
     tst_insertlistsorted();
 
 	exit(EXIT_SUCCESS);
@@ -127,7 +127,7 @@ int tst_quicksortarray()
     printf("----------------------------------------------------------\n");
 
     //sort it
-    if(quickSort(&arr, 0, arr.nbelements-1) == -1)
+    if(quickSortArray(&arr, 0, arr.nbelements-1) == -1)
     {
         fprintf(stderr, "quickSortArray : error while sorting the data\n");
         free(arr.structure);
@@ -165,7 +165,7 @@ int tst_binarysearcharray()
     }
 
     //sort it
-    if(quickSort(&arr, 0, arr.nbelements-1) == -1)
+    if(quickSortArray(&arr, 0, arr.nbelements-1) == -1)
     {
         fprintf(stderr, "binarysearchArray : error while sorting the data\n");
         free(arr.structure);

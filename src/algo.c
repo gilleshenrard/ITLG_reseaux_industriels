@@ -281,7 +281,7 @@ int quickSortPartitioning(meta_t* meta, long low, long high){
 /*  O :  0 -> Sorted                                        */
 /*      -1 -> Error                                         */
 /************************************************************/
-int quickSort(meta_t* meta, long low, long high){
+int quickSortArray(meta_t* meta, long low, long high){
     int pivot=0;
 
     //no meta data available
@@ -295,9 +295,9 @@ int quickSort(meta_t* meta, long low, long high){
     if(low < high){
         pivot = quickSortPartitioning(meta, low, high);
 
-        if(quickSort(meta, low, pivot-1) < 0)
+        if(quickSortArray(meta, low, pivot-1) < 0)
             return -1;
-        if(quickSort(meta, pivot+1, high) <0)
+        if(quickSortArray(meta, pivot+1, high) <0)
             return -1;
     }
 

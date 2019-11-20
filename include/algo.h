@@ -43,7 +43,7 @@ int free_dyn(dyndata_t* elem);
 int bubbleSortArray(meta_t*);
 //int bubbleSortList(t_algo_meta*);
 int quickSortPartitioning(meta_t*, long, long);
-int quickSort(meta_t*, long, long);
+int quickSortArray(meta_t*, long, long);
 
 //Research algorithms
 int binarySearchArray(meta_t*, void*);
