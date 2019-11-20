@@ -58,8 +58,8 @@ int setup_data(dataset_t** data, long nb)
     {
         //generate a radom number between 1 and nb (inclusive),
         //  and a second between 1 and 5
-        r = rand() % nb + 1;
-        r2 = rand() % 5 + 1;
+        r = rand() % (2*nb) + 1;
+        r2 = rand() % 10 + 1;
 
         //fill in information relative to the random number
         (*data)[i].id = r;
