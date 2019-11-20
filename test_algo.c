@@ -16,6 +16,7 @@ int tst_quicksortarray(void);
 int tst_binarysearcharray(void);
 int tst_inserttoplist(void);
 int tst_insertlistsorted(void);
+int tst_bubblesortlist(void);
 
 int main(int argc, char *argv[])
 {
@@ -25,7 +26,8 @@ int main(int argc, char *argv[])
     //tst_quicksortarray();
     //tst_binarysearcharray();
     tst_inserttoplist();
-    tst_insertlistsorted();
+    //tst_insertlistsorted();
+    tst_bubblesortlist();
 
 	exit(EXIT_SUCCESS);
 }
@@ -93,6 +95,7 @@ int tst_bubblesortarray()
         return -1;
     }
 
+    printf("Data sorted:\n");
     //display all the datasets
     foreachArray(&arr, NULL, Print_dataset);
 
@@ -134,6 +137,7 @@ int tst_quicksortarray()
         return -1;
     }
 
+    printf("Data sorted:\n");
     //display all the datasets
     foreachArray(&arr, NULL, Print_dataset);
 
@@ -241,6 +245,7 @@ int tst_inserttoplist()
     //list the content of the list, each time popping one element at its head
     while(lis.structure)
     {
+        printf("Data with list head purged:\n");
         popListTop(&lis);
         foreachList(&lis, NULL, Print_dataset);
         printf("Nb of elements: %ld\n", lis.nbelements);
@@ -291,9 +296,60 @@ int tst_insertlistsorted()
     //free memory used by the array
     free(arr.structure);
 
+    printf("Data sorted:\n");
     //display the content of the list, and delete it
     foreachList(&lis, NULL, Print_dataset);
     freeDynList(&lis);
 
+    return 0;
+}
+
+/************************************************************/
+/*  I : /                                                   */
+/*  P : Tests out the bubble sort algo on a list            */
+/*  O :  0 -> Success                                       */
+/*      -1 -> Error                                         */
+/************************************************************/
+int tst_bubblesortlist()
+{
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset_id};
+    meta_t lis = {NULL, 0, sizeof(dataset_t), compare_dataset_id};
+
+    printf("/*********************************************************************/\n");
+    printf("/********************* tst_bubblesortlist ****************************/\n");
+    printf("/*********************************************************************/\n");
+
+    //generate 20 random datasets
+    if(setup_data((dataset_t**)&arr.structure, 20) == -1)
+    {
+        fprintf(stderr, "insertTopList : error while allocating the data\n");
+        return -1;
+    }
+
+    //display the sorted data
+    foreachArray(&arr, NULL, Print_dataset);
+    printf("----------------------------------------------------------\n");
+
+    for(int i=0 ; i<20 ; i++)
+    {
+        if(insertListTop(&lis, arr.structure + i*sizeof(dataset_t)) == -1)
+        {
+            fprintf(stderr, "insertTopList : error while inserting the data\n");
+            free(arr.structure);
+            freeDynList(&lis);
+            return -1;
+        }
+    }
+
+    //free memory used by the array
+    free(arr.structure);
+
+    //sort the list using the bubble sort and display it
+    bubbleSortList(&lis);
+    printf("Data sorted:\n");
+    foreachList(&lis, NULL, Print_dataset);
+
+    //free the memory used by the list
+    freeDynList(&lis);
     return 0;
 }

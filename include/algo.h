@@ -33,6 +33,7 @@ typedef enum {RIGHT, LEFT} e_rotation;
 //dynamic data allocation and deallocation
 dyndata_t* allocate_dyn(meta_t* meta, void* elem);
 int free_dyn(dyndata_t* elem);
+int swap_dyn(dyndata_t* a, dyndata_t* b);
 
 //miscellaneous
 //int listToArray(t_algo_meta* dList, t_algo_meta* dArray, e_listtoarray action);
@@ -41,7 +42,7 @@ int free_dyn(dyndata_t* elem);
 //
 //Sorting algorithms
 int bubbleSortArray(meta_t*);
-//int bubbleSortList(t_algo_meta*);
+int bubbleSortList(meta_t*);
 int quickSortPartitioning(meta_t*, long, long);
 int quickSortArray(meta_t*, long, long);
 

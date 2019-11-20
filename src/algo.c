@@ -53,6 +53,28 @@ int free_dyn(dyndata_t* elem)
 }
 
 /************************************************************/
+/*  I : Elements to swap                                    */
+/*  P : Swaps the pointers of the elements                  */
+/*  O : /                                                   */
+/************************************************************/
+int swap_dyn(dyndata_t* a, dyndata_t* b)
+{
+    dyndata_t *prev=a->left, *next=b->right;
+
+    a->right = b->right;
+    b->left = a->left;
+    a->left = b;
+    b->right = a;
+
+    if(prev)
+        prev->right = b;
+    if(next)
+        next->left = a;
+
+    return 0;
+}
+
+/************************************************************/
 /*  I : List to copy                                        */
 /*      Array to create (MUST BE EMPTY)                     */
 /*      Action to perform on the list members (free or not) */
@@ -190,44 +212,53 @@ int bubbleSortArray(meta_t *meta){
     return 0;
 }
 
-///************************************************************/
-///*  I : Array of meta data necessary to the algorithm       */
-///*  P : Sorts the provided linked list using                */
-///*          the Bubble Sort algorithm                       */
-///*  O :  0 -> Sorted                                        */
-///*      -1 -> Error                                         */
-///************************************************************/
-//int bubbleSortList(t_algo_meta* meta){
-//    void *current=NULL, *next=NULL, *right_ptr=NULL;
-//    int swapped;
-//
-//    //no meta data available
-//    if(!meta || !meta->doCompare || !meta->doSwap || !meta->next)
-//        return -1;
-//
-//    //list is empty
-//    if(!meta->structure)
-//        return 0;
-//
-//    do{
-//        swapped = 0;
-//        current = meta->structure;
-//        next = *(*meta->next)(current);
-//
-//        while(next != right_ptr){
-//            if((*meta->doCompare)(current, next) > 0){
-//                if((*meta->doSwap)(current, next) < 0)
-//                    return -1;
-//                swapped = 1;
-//            }
-//            current = next;
-//            next = *(*meta->next)(current);
-//        }
-//        right_ptr = current;
-//    }while(swapped);
-//
-//    return 0;
-//}
+/************************************************************/
+/*  I : Meta data necessary to the algorithm                */
+/*  P : Sorts the provided linked list using                */
+/*          the Bubble Sort algorithm                       */
+/*  O :  0 -> Sorted                                        */
+/*      -1 -> Error                                         */
+/************************************************************/
+int bubbleSortList(meta_t* meta){
+    dyndata_t *current=NULL, *next=NULL, *right_ptr=NULL;
+    int swapped;
+
+    //no meta data available
+    if(!meta || !meta->doCompare)
+        return -1;
+
+    //list is empty
+    if(!meta->structure)
+        return 0;
+
+    do{
+        swapped = 0;
+        current = meta->structure;
+        next = current->right;
+
+        while(next != right_ptr){
+            //if current element higher
+            if((*meta->doCompare)(current->data, next->data) > 0)
+            {
+                //update the data structure address
+                if(meta->structure == current)
+                    meta->structure = next;
+
+                //swap addresses of the elements
+                if(swap_dyn(current, next) < 0)
+                    return -1;
+                swapped = 1;
+            }
+            //get to the next element
+            current = next;
+            next = current->right;
+        }
+        //set the sentry to the current element
+        right_ptr = current;
+    }while(swapped);
+
+    return 0;
+}
 
 /************************************************************/
 /*  I : Array of meta data necessary to the algorithm       */
