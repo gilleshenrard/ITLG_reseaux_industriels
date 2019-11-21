@@ -48,6 +48,7 @@ int free_dyn(dyndata_t* elem)
 {
     free(elem->data);
     free(elem);
+    elem = NULL;
 
     return 0;
 }
@@ -676,15 +677,15 @@ void display_AVL_tree(meta_t* meta, dyndata_t* avl, char dir, char* (*toString)(
     offset_max = ++offset > offset_max ? offset : offset_max;
 
     if(avl){
-        display_AVL_tree(meta, child_left, 'L', toString);
+        display_AVL_tree(meta, child_right, 'R', toString);
 
         nbc_pad = LG_MAX - (3 * offset) - strlen((*toString)(avl->data));
         for (int i=0;i<nbc_pad;i++)
             strcat(tmp,".");
         strcat(tmp,(*toString)(avl->data));
-        printf("%*c%c %s T-%16p R-%16p L-%16p H-%d\n", 3*offset, '-', dir, tmp, (void*)avl, (void*)child_right, (void*)child_left, height);
+        printf("%*c%c %s  (H-%d)  L-%14p  T-%14p  R-%14p\n", 3*offset, '-', dir, tmp, height, (void*)child_left, (void*)avl, (void*)child_right);
 
-        display_AVL_tree(meta, child_right, 'R', toString);
+        display_AVL_tree(meta, child_left, 'L', toString);
     }
     offset--;
 }
@@ -820,9 +821,8 @@ void* search_AVL(meta_t* meta, dyndata_t* avl, void* key){
 /*      NULL otherwise                                      */
 /************************************************************/
 dyndata_t* delete_AVL(meta_t* meta, dyndata_t* root, void* key){
-//    dyndata_t *child_left=NULL, *child_right=NULL;
     int height_right=0, height_left=0, balance=0;
-    dyndata_t *tmp=NULL;
+    dyndata_t *tmp=NULL, *databuf=NULL;
 
     //if no AVL, skip
     if(!root)
@@ -839,7 +839,8 @@ dyndata_t* delete_AVL(meta_t* meta, dyndata_t* root, void* key){
     //key is found
     else{
         //node with less than 2 children nodes
-        if(root->left==NULL || root->right==NULL){
+        if(root->left==NULL || root->right==NULL)
+        {
             //get at least one existing child
             tmp = (root->left ? root->left : root->right);
 
@@ -849,12 +850,13 @@ dyndata_t* delete_AVL(meta_t* meta, dyndata_t* root, void* key){
                 root = NULL;
             }
             //one child node
-            else{
+            else
+            {
                 //copy the child node in the father node (with addresses of the grand-children)
+                databuf = root->data;
                 memcpy(root, tmp, sizeof(dyndata_t));
+                root->data = databuf;
                 memcpy(root->data, tmp->data, meta->elementsize);
-                //memcpy(root->right->data, tmp->right->data, meta->elementsize);
-                //memcpy(root->left->data, tmp->left->data, meta->elementsize);
             }
 
             //free the memory of the father
