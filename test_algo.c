@@ -493,11 +493,12 @@ int tst_removeavl()
     display_AVL_tree(&avl, avl.structure, 'T', toString_dataset);
     printf("----------------------------------------------------------\n");
 
-    for(int i=0 ; i<avl.nbelements ; i++)
+    while(avl.structure)
     {
         delete_AVL_root(&avl);
         display_AVL_tree(&avl, avl.structure, 'T', toString_dataset);
-        getchar();
+        printf("nb of elements remaining: %ld\n", avl.nbelements);
+        printf("----------------------------------------------------------\n");
     }
 /*
     foreachAVL(&avl, avl.structure, NULL, Print_dataset);
