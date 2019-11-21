@@ -20,6 +20,7 @@ int tst_bubblesortlist(void);
 int tst_structuresconversion(void);
 int tst_insertavl(void);
 int tst_removeavl(void);
+int tst_searchavl(void);
 
 int main(int argc, char *argv[])
 {
@@ -33,7 +34,8 @@ int main(int argc, char *argv[])
     //tst_bubblesortlist();
     //tst_structuresconversion();
     //tst_insertavl();
-    tst_removeavl();
+    //tst_removeavl();
+    tst_searchavl();
 
 	exit(EXIT_SUCCESS);
 }
@@ -450,6 +452,8 @@ int tst_insertavl()
     display_AVL_tree(&avl, avl.structure, 'T', toString_dataset);
 
     free(arr.structure);
+    while(avl.structure)
+        delete_AVL_root(&avl);
 
     return 0;
 }
@@ -464,7 +468,6 @@ int tst_removeavl()
 {
     meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
     meta_t avl = {NULL, 0, sizeof(dataset_t), compare_dataset};
-//    dataset_t* tmp = NULL;
 
     printf("/*********************************************************************/\n");
     printf("/*************************** tst_removeavl ***************************/\n");
@@ -476,10 +479,6 @@ int tst_removeavl()
         fprintf(stderr, "removeAVL : error while allocating the data\n");
         return -1;
     }
-
-    //display the sorted data
-    foreachArray(&arr, NULL, Print_dataset);
-    printf("----------------------------------------------------------\n");
 
     for(int i=0 ; i<arr.nbelements ; i++)
     {
@@ -500,7 +499,46 @@ int tst_removeavl()
         printf("nb of elements remaining: %ld\n", avl.nbelements);
         printf("----------------------------------------------------------\n");
     }
-/*
+
+    free(arr.structure);
+
+    return 0;
+}
+
+/************************************************************/
+/*  I : /                                                   */
+/*  P : Tests out the research in an AVL tree               */
+/*  O :  0 -> Success                                       */
+/*      -1 -> Error                                         */
+/************************************************************/
+int tst_searchavl()
+{
+    meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
+    meta_t avl = {NULL, 0, sizeof(dataset_t), compare_dataset};
+    dataset_t *tmp = NULL;
+
+    printf("/*********************************************************************/\n");
+    printf("/*************************** tst_searchavl ***************************/\n");
+    printf("/*********************************************************************/\n");
+
+    //generate 20 random datasets
+    if(setup_data((dataset_t**)&arr.structure, 20) == -1)
+    {
+        fprintf(stderr, "searchAVL : error while allocating the data\n");
+        return -1;
+    }
+
+    for(int i=0 ; i<arr.nbelements ; i++)
+    {
+        if((avl.structure = insertAVL(&avl, avl.structure, get_arrayelem(&arr, i))) == NULL)
+        {
+            fprintf(stderr, "searchAVL : error while creating the AVL\n");
+            free(arr.structure);
+            return -1;
+        }
+    }
+    printf("----------------------------------------------------------\n");
+
     foreachAVL(&avl, avl.structure, NULL, Print_dataset);
     printf("Nb of elements: %ld\n", avl.nbelements);
     tmp = search_AVL(&avl, avl.structure, get_arrayelem(&arr, 5));
@@ -508,8 +546,10 @@ int tst_removeavl()
         printf("Element %s not found\n", toString_dataset(get_arrayelem(&arr, 5)));
     else
         printf("Element %s found\n", toString_dataset(tmp));
-*/
+
     free(arr.structure);
+    while(avl.structure)
+        delete_AVL_root(&avl);
 
     return 0;
 }
