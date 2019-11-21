@@ -439,16 +439,7 @@ int tst_insertavl()
     //display the sorted data
     foreachArray(&arr, NULL, Print_dataset);
     printf("----------------------------------------------------------\n");
-
-    for(int i=0 ; i<arr.nbelements ; i++)
-    {
-        if((avl.structure = insertAVL(&avl, avl.structure, get_arrayelem(&arr, i))) == NULL)
-        {
-            fprintf(stderr, "insertAVL : error while creating the AVL\n");
-            free(arr.structure);
-            return -1;
-        }
-    }
+    arrayToAVL(&arr, &avl, REPLACE);
     display_AVL_tree(&avl, avl.structure, 'T', toString_dataset);
 
     free(arr.structure);
@@ -480,15 +471,7 @@ int tst_removeavl()
         return -1;
     }
 
-    for(int i=0 ; i<arr.nbelements ; i++)
-    {
-        if((avl.structure = insertAVL(&avl, avl.structure, get_arrayelem(&arr, i))) == NULL)
-        {
-            fprintf(stderr, "removeAVL : error while creating the AVL\n");
-            free(arr.structure);
-            return -1;
-        }
-    }
+    arrayToAVL(&arr, &avl, REPLACE);
     display_AVL_tree(&avl, avl.structure, 'T', toString_dataset);
     printf("----------------------------------------------------------\n");
 
@@ -528,15 +511,7 @@ int tst_searchavl()
         return -1;
     }
 
-    for(int i=0 ; i<arr.nbelements ; i++)
-    {
-        if((avl.structure = insertAVL(&avl, avl.structure, get_arrayelem(&arr, i))) == NULL)
-        {
-            fprintf(stderr, "searchAVL : error while creating the AVL\n");
-            free(arr.structure);
-            return -1;
-        }
-    }
+    arrayToAVL(&arr, &avl, COPY);
     printf("----------------------------------------------------------\n");
 
     foreachAVL(&avl, avl.structure, NULL, Print_dataset);

@@ -164,28 +164,34 @@ int arrayToList(meta_t* dArray, meta_t* dList, e_listtoarray action){
     return 0;
 }
 
-///************************************************************/
-///*  I : Array to copy                                       */
-///*      AVL to create                                       */
-///*      Action to perform on the list members (free or not) */
-///*  P : Allocates memory for the AVL and copies the array   */
-///*          into it                                         */
-///*  O :  0 -> AVL created                                   */
-///*      -1 -> Error                                         */
-///************************************************************/
-//int arrayToAVL(t_algo_meta* dArray, t_algo_meta* dAVL, e_listtoarray action){
-//    void *tmp_array = dArray->structure;
-//
-//    //copy elements one by one in the list
-//    for(int i=0 ; i<dArray->nbelements ; i++){
-//        //position the pointer properly
-//        tmp_array = dArray->structure+(dArray->elementsize*i);
-//        //insert in the AVL
-//        dAVL->structure = insertAVL(dAVL, dAVL->structure, tmp_array);
-//    }
-//
-//    return 0;
-//}
+/************************************************************/
+/*  I : Array to copy                                       */
+/*      AVL to create                                       */
+/*      Action to perform on the list members (free or not) */
+/*  P : Allocates memory for the AVL and copies the array   */
+/*          into it                                         */
+/*  O :  0 -> AVL created                                   */
+/*      -1 -> Error                                         */
+/************************************************************/
+int arrayToAVL(meta_t* dArray, meta_t* dAVL, e_listtoarray action){
+    dyndata_t* tmp_array = dArray->structure;
+
+    //copy elements one by one in the list
+    for(int i=0 ; i<dArray->nbelements ; i++){
+        tmp_array = get_arrayelem(dArray, i);
+        //insert in the AVL
+        dAVL->structure = insertAVL(dAVL, dAVL->structure, tmp_array);
+    }
+
+    if(action == REPLACE)
+    {
+        free(dArray->structure);
+        dArray->structure = NULL;
+        dArray->nbelements = 0;
+    }
+
+    return 0;
+}
 
 /************************************************************/
 /*  I : Array of meta data necessary to the algorithm       */
