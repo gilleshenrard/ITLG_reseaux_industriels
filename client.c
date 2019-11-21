@@ -85,7 +85,7 @@ void sigalrm_handler(int s)
 /************************************************************************/
 int protCli(int sockfd)
 {
-    t_algo_meta ds_list = {NULL, 0, sizeof(dataset_t), compare_dataset_id, swap_dataset, copy_dataset, NULL, NULL, NULL, dataset_right, dataset_left};
+    meta_t ds_list = {NULL, 0, sizeof(dataset_t), compare_dataset};
     unsigned char serialised[MAXDATASIZE] = {0};
 	dataset_t tmp = {0};
 	head_t header = {0};
