@@ -3,7 +3,7 @@
 ** Contains all the tests concerning algorithmic features in libalgo.so
 ** -------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 20/11/2019
+** Last modified : 21/11/2019
 */
 #include <time.h>
 #include <stdlib.h>
