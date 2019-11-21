@@ -27,12 +27,13 @@ void print_error(char* msg, ...);
 void print_neutral(char* msg, ...);
 ```
 
-* Algorithmic-related functions :
+* Linked lists functions :
 ```C
-int insertListTop(t_algo_meta*, void*);
-int popListTop(t_algo_meta*);
-int insertListSorted(t_algo_meta*,  void*);
-int foreachList(t_algo_meta*, void*, int (*doAction)(void*, void*));
+int insertListTop(meta_t*, void*);
+int popListTop(meta_t*);
+int insertListSorted(meta_t*,  void*);
+int freeDynList(meta_t* meta);
+int foreachList(meta_t*, void*, int (*doAction)(void*, void*));
 ```
 
 A bash script [tests.sh](https://github.com/gilleshenrard/ITLG_reseaux_industriels/blob/master/tests.sh) has been made to execute and test possible errors
@@ -68,7 +69,6 @@ For now, the packages consist of
 
 ### 5. To Do
 * improve signals handling
-* optimise algorithmics usage
 
 ### 6. Known issues
 n/a
