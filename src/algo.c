@@ -441,6 +441,8 @@ int insertListTop(meta_t* meta, void *toAdd){
         tmp = meta->structure;
         tmp->left = newElement;
     }
+    else
+        meta->nbelements = 0;
 
     //make the new element head of the list
     meta->structure = newElement;
@@ -608,6 +610,9 @@ dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
 
     //if tree is empty
     if(!avl){
+        if(!meta->structure)
+            meta->nbelements = 0;
+
         //memory allocation for the new element
         avl = allocate_dyn(meta, toAdd);
         meta->nbelements++;
