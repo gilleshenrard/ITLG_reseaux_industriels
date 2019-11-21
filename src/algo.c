@@ -3,7 +3,7 @@
 ** Library regrouping algorithmic-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 20/11/2019
+** Last modified : 21/11/2019
 */
 #include "algo.h"
 
@@ -154,6 +154,7 @@ int arrayToList(meta_t* dArray, meta_t* dList, e_listtoarray action){
             return -1;
     }
 
+    //if desired, free the freshly copied element
     if(action == REPLACE)
     {
         free(dArray->structure);
@@ -183,6 +184,7 @@ int arrayToAVL(meta_t* dArray, meta_t* dAVL, e_listtoarray action){
         dAVL->structure = insertAVL(dAVL, dAVL->structure, tmp_array);
     }
 
+    //if desired, free the freshly copied element
     if(action == REPLACE)
     {
         free(dArray->structure);
@@ -224,6 +226,7 @@ int bubbleSortArray(meta_t *meta){
 
             if((*meta->doCompare)(current, next) > 0)
             {
+                //swap the elements
                 memcpy(tmp, current, meta->elementsize);
                 memcpy(current, next, meta->elementsize);
                 memcpy(next, tmp, meta->elementsize);
@@ -506,6 +509,7 @@ int insertListSorted(meta_t *meta, void* toAdd){
         current = current->right;
     }
 
+    //chain new element
     previous->right = newElement;
     newElement->right = current;
 
@@ -513,6 +517,7 @@ int insertListSorted(meta_t *meta, void* toAdd){
     if(current != NULL)
         current->left = newElement;
 
+    //update the element count
     meta->nbelements++;
 
     return 0;
@@ -529,15 +534,15 @@ int freeDynList(meta_t* meta)
     dyndata_t *next = NULL, *current=NULL;
 
     if(!meta)
-        return -1;
+        return 0;
 
     next = meta->structure;
 
-    while(next){
+    while(next)
+    {
         current = next;
         next = next->right;
         free_dyn(current);
-            return -1;
     }
 
     return 0;
@@ -613,8 +618,10 @@ dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
     //  + build a new AVL with the child as root
     if((*meta->doCompare)(avl->data, toAdd) != 0){
         if((*meta->doCompare)(avl->data, toAdd) < 0)
+            //to the right
             avl->right = insertAVL(meta, avl->right, toAdd);
         else
+            //to the left
             avl->left = insertAVL(meta, avl->left, toAdd);
     }
     else{
@@ -629,9 +636,11 @@ dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
     //update the current node's height
     avl->height = 1+(height_left > height_right ? height_left : height_right);
 
+    //compute the balance (height difference between left and right)
     if(avl)
         balance = height_left - height_right;
 
+    //re-balance the tree if necessary
     if(balance < -1){
         // right right case
         if((*meta->doCompare)(avl->right->data, toAdd) < 0){
@@ -670,28 +679,25 @@ dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
 void display_AVL_tree(meta_t* meta, dyndata_t* avl, char dir, char* (*toString)(void*)){
     char tmp[80]={0};
     int height = 0;
-    dyndata_t *child_left=NULL, *child_right=NULL;
     int nbc_pad = 0;
 
     if(!avl)
         return;
 
     height = avl->height;
-    child_left = avl->left;
-    child_right = avl->right;
 
     offset_max = ++offset > offset_max ? offset : offset_max;
 
     if(avl){
-        display_AVL_tree(meta, child_right, 'R', toString);
+        display_AVL_tree(meta, avl->right, 'R', toString);
 
         nbc_pad = LG_MAX - (3 * offset) - strlen((*toString)(avl->data));
         for (int i=0;i<nbc_pad;i++)
             strcat(tmp,".");
         strcat(tmp,(*toString)(avl->data));
-        printf("%*c%c %s  (H-%d)  L-%14p  T-%14p  R-%14p\n", 3*offset, '-', dir, tmp, height, (void*)child_left, (void*)avl, (void*)child_right);
+        printf("%*c%c %s  (H-%d)  L-%14p  T-%14p  R-%14p\n", 3*offset, '-', dir, tmp, height, (void*)avl->left, (void*)avl, (void*)avl->right);
 
-        display_AVL_tree(meta, child_left, 'L', toString);
+        display_AVL_tree(meta, avl->left, 'L', toString);
     }
     offset--;
 }
@@ -713,7 +719,7 @@ dyndata_t* rotate_AVL(meta_t* meta, dyndata_t* avl, e_rotation side){
         newTree = avl->left;
         child = newTree->right;
 
-        //perform rotation
+        //perform right rotation
         newTree->right = avl;
         avl->left = child;
     }
@@ -723,7 +729,7 @@ dyndata_t* rotate_AVL(meta_t* meta, dyndata_t* avl, e_rotation side){
         newTree = avl->right;
         child = newTree->left;
 
-        //perform rotation
+        //perform left rotation
         newTree->left = avl;
         avl->right = child;
     }
@@ -749,15 +755,12 @@ dyndata_t* rotate_AVL(meta_t* meta, dyndata_t* avl, e_rotation side){
 /************************************************************/
 int get_AVL_balance(meta_t* meta, dyndata_t* avl){
     int height_left=0, height_right=0;
-    dyndata_t* childitem = NULL;
 
     if(!avl)
         return 0;
 
-    childitem = avl->right;
-    height_right = (childitem ? childitem->height : 0);
-    childitem = avl->left;
-    height_left = (childitem ? childitem->height : 0);
+    height_right = (avl->right ? avl->right->height : 0);
+    height_left = (avl->left ? avl->left->height : 0);
 
     return height_left - height_right;
 }
@@ -772,22 +775,18 @@ int get_AVL_balance(meta_t* meta, dyndata_t* avl){
 /*     -1 -> Error                                          */
 /************************************************************/
 int foreachAVL(meta_t* meta, dyndata_t* avl, void* parameter, int (*doAction)(void*, void*)){
-    void *child_left=NULL, *child_right=NULL;
     int ret = 0;
 
-    if(avl){
-        //get the left and right children of the current root
-        child_left = avl->left;
-        child_right = avl->right;
-
+    if(avl)
+    {
         //perform action on left child
-        foreachAVL(meta, child_left, parameter, doAction);
+        foreachAVL(meta, avl->left, parameter, doAction);
 
         //perform action on root
         ret = (*doAction)(avl->data, parameter);
 
         //perform action on right child
-        foreachAVL(meta, child_right, parameter, doAction);
+        foreachAVL(meta, avl->right, parameter, doAction);
     }
 
     return ret;
@@ -850,28 +849,32 @@ dyndata_t* delete_AVL(meta_t* meta, dyndata_t* root, void* key){
             //get at least one existing child
             tmp = (root->left ? root->left : root->right);
 
-            //no children nodes
             if(!tmp){
+                //no children nodes
+                //directly delete the avl
                 tmp = root;
                 root = NULL;
             }
-            //one child node
             else
             {
+                //one child node
                 //copy the child node in the father node (with addresses of the grand-children)
+                //save the data address of the avl, then copy everything from the child to the avl
                 databuf = root->data;
                 memcpy(root, tmp, sizeof(dyndata_t));
+                //recover the data pointer of the father, then copy the data (child -> avl)
                 root->data = databuf;
                 memcpy(root->data, tmp->data, meta->elementsize);
             }
 
-            //free the memory of the father
+            //free the memory of the child and update the elements counter
             free_dyn(tmp);
             meta->nbelements--;
         }
         else{
-            //2 children nodes : copy the child with the smallest value in the root,
-            //                      then delete it
+            //2 children nodes
+            //copy the data from the child directly at the right of the avl,
+            //      then delete said child
             tmp = min_AVL_value(meta, root->right);
             memcpy(root->data, tmp->data, meta->elementsize);
             root->right = delete_AVL(meta, root->right, tmp->data);
@@ -890,7 +893,6 @@ dyndata_t* delete_AVL(meta_t* meta, dyndata_t* root, void* key){
 
     //if still a root, re-balance accordingly
     balance = get_AVL_balance(meta, root);
-
     if(balance < -1){
         // right right case
         if(get_AVL_balance(meta, root->right) <= 0){
