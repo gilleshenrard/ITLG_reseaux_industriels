@@ -4,6 +4,13 @@
 #include <string.h>
 #include <stdio.h>
 
+/*
+* NOTE :
+* when dealing with arrays, <meta_t>.structure can direcly be set with a previously generated array.
+* when dealing with AVL trees or dynamic lists, dyndata_t elements will be automatically generated,
+*       and are not to be handled by the user
+*/
+
 typedef struct dyndata_t dyndata_t;
 
 struct dyndata_t
@@ -22,11 +29,11 @@ typedef struct
     int     (*doCompare)(void*, void*);     //comparison method
 } meta_t;
 
-
+// variables to use in display_AVL_tree()
 int offset, offset_max;
-
 #define LG_MAX 36
 
+//enums
 typedef enum {COPY, REPLACE} e_listtoarray;
 typedef enum {RIGHT, LEFT} e_rotation;
 
