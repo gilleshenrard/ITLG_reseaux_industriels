@@ -5,13 +5,8 @@
 #include <stdint.h>
 #include <string.h>
 
-#define DATA_F  "l31sd"
-
-typedef struct{
-    uint32_t    id;
-    char        type[32];
-    float       price;
-}dataset_t;
+#define FILENAMESZ  128
+#define DATA_F  "128s"
 
 // display methods
 int Print_dataset(void* rec, void* nullable);
@@ -19,6 +14,5 @@ char* toString_dataset(void* current);
 
 // dynamic structures methods
 int compare_dataset(void* a, void* b);
-int compare_dataset_int(void* a, void* b);
 
 #endif // DATASET_H_INCLUDED
