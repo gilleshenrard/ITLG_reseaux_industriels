@@ -36,6 +36,7 @@ int offset, offset_max;
 //enums
 typedef enum {COPY, REPLACE} e_listtoarray;
 typedef enum {RIGHT, LEFT} e_rotation;
+typedef enum {FIRST, ANY} e_search;
 
 //miscellaneous
 dyndata_t* allocate_dyn(meta_t* meta, void* elem);
@@ -55,8 +56,7 @@ int quickSortPartitioning(meta_t*, long, long);
 int quickSortArray(meta_t*, long, long);
 
 //Research algorithms
-int binarySearchArray(meta_t*, void*);
-int binarySearchArrayFirst(meta_t*, void*);
+int binarySearchArray(meta_t*, void*, e_search scope);
 
 //Dynamic lists
 int insertListTop(meta_t*, void*);

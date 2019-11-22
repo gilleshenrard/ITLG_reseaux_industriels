@@ -3,7 +3,7 @@
 ** Library regrouping algorithmic-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 21/11/2019
+** Last modified : 22/11/2019
 */
 #include "algo.h"
 
@@ -372,11 +372,12 @@ int quickSortArray(meta_t* meta, long low, long high){
 /*  O : -1  -> Not found                                    */
 /*     >= 0 -> Index of the first occurence in the array    */
 /************************************************************/
-int binarySearchArray(meta_t *meta, void* toSearch){
-    int i=0, j=meta->nbelements-1, m=0;
+int binarySearchArray(meta_t *meta, void* toSearch, e_search scope){
+    int i=0, j=meta->nbelements-1, m=0, index=-1;
     void *current = NULL;
 
-    while(i<=j){
+    while(i<=j)
+    {
         m = (i+j)/2;
         //position the cursor
         current = get_arrayelem(meta, m);
@@ -384,38 +385,21 @@ int binarySearchArray(meta_t *meta, void* toSearch){
         if((*meta->doCompare)(current, toSearch) < 0)
             i = m+1;
         else
+        {
             if((*meta->doCompare)(current, toSearch) > 0)
                 j = m-1;
             else
-                return m;
+            {
+                index = m;
+                if(scope == FIRST)
+                    j = m-1;
+                else
+                    i = j+1;
+            }
+        }
     }
 
-    return -1;
-}
-
-/************************************************************/
-/*  I : Metadata necessary to the algorithm                 */
-/*      Element to search                                   */
-/*  P : Finds the first occurence of the key using          */
-/*          the Binary search algorithm                     */
-/*  O : -1  -> Not found                                    */
-/*      >=0 -> Index of the first occurence in the array    */
-/************************************************************/
-int binarySearchArrayFirst(meta_t *meta, void* toSearch){
-    void* current = NULL;
-
-    //use the binary search to find an occurence of the element
-    int i = binarySearchArray(meta, toSearch);
-    if(i<0)
-        return -1;
-
-    //walk through all the occurences of the key until the first one
-    do{
-        i--;
-        current = get_arrayelem(meta, i);
-    }while(i>=0 && (*meta->doCompare)(current, toSearch) >= 0);
-
-    return i+1;
+    return index;
 }
 
 /************************************************************/

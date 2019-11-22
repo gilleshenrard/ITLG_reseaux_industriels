@@ -3,7 +3,7 @@
 ** Contains all the tests concerning algorithmic features in libalgo.so
 ** -------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 21/11/2019
+** Last modified : 22/11/2019
 */
 #include <time.h>
 #include <stdlib.h>
@@ -26,12 +26,12 @@ int main(int argc, char *argv[])
 {
     srand(time(NULL));
 
-    tst_bubblesortarray();
+    //tst_bubblesortarray();
     //tst_quicksortarray();
-    //tst_binarysearcharray();
+    tst_binarysearcharray();
     //tst_inserttoplist();
     //tst_insertlistsorted();
-    tst_bubblesortlist();
+    //tst_bubblesortlist();
     //tst_structuresconversion();
     //tst_insertavl();
     //tst_removeavl();
@@ -177,7 +177,8 @@ int tst_quicksortarray()
 int tst_binarysearcharray()
 {
     meta_t arr = {NULL, 20, sizeof(dataset_t), compare_dataset};
-    int x = 2, found=0;
+    dataset_t* tmp = NULL;
+    int found=0;
 
     printf("/*********************************************************************/\n");
     printf("/********************* tst_binarysearcharray *************************/\n");
@@ -202,22 +203,22 @@ int tst_binarysearcharray()
     foreachArray(&arr, NULL, Print_dataset);
     printf("----------------------------------------------------------\n");
 
-    //change comparison method
+    tmp = get_arrayelem(&arr, 3);
     arr.doCompare = compare_dataset_int;
 
-    //search for 2
-    found = binarySearchArray(&arr, &x);
+    //search for element with ID same as at index 3
+    found = binarySearchArray(&arr, &tmp->id, ANY);
     if(found == -1)
-        printf("%d was not found\n", x);
+        printf("%d was not found\n", tmp->id);
     else
-        printf("%d was found at index %d\n", x, found);
+        printf("%d was found at index %d\n", tmp->id, found);
 
-    //search for first occurence of 2
-    found = binarySearchArrayFirst(&arr, &x);
+    //search for first occurence of elemnt with ID same as at index 3
+    found = binarySearchArray(&arr, &tmp->id, FIRST);
     if(found == -1)
-        printf("First occurence of %d was not found\n", x);
+        printf("First occurence of %d was not found\n", tmp->id);
     else
-        printf("First occurence of %d was found at index %d\n", x, found);
+        printf("First occurence of %d was found at index %d\n", tmp->id, found);
 
     //free memory
     free(arr.structure);
