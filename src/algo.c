@@ -197,11 +197,12 @@ int arrayToAVL(meta_t* dArray, meta_t* dAVL, e_listtoarray action){
 
 /************************************************************/
 /*  I : Array of meta data necessary to the algorithm       */
+/*      Number of elements to sort at the end of the array  */
 /*  P : Sorts the provided array using the Bubble Sort algo */
 /*  O :  0 -> Sorted                                        */
 /*      -1 -> Error                                         */
 /************************************************************/
-int bubbleSortArray(meta_t *meta){
+int bubbleSortArray(meta_t *meta, int nb){
     void *current=NULL, *next=NULL;
     void* tmp = NULL;
 
@@ -218,7 +219,7 @@ int bubbleSortArray(meta_t *meta){
     if(!tmp)
         return -1;
 
-    for(int i=0 ; i<meta->nbelements-1 ; i++){
+    for(int i=0 ; i<nb ; i++){
         for(int j=0 ; j<meta->nbelements-i-1 ; j++){
             //properly place the cursors
             current = get_arrayelem(meta, j);
