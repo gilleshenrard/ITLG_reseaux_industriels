@@ -242,14 +242,15 @@ int bubbleSortArray(meta_t *meta, int nb){
 
 /************************************************************/
 /*  I : Meta data necessary to the algorithm                */
+/*      Number of elements to sort at the end of the list   */
 /*  P : Sorts the provided linked list using                */
 /*          the Bubble Sort algorithm                       */
 /*  O :  0 -> Sorted                                        */
 /*      -1 -> Error                                         */
 /************************************************************/
-int bubbleSortList(meta_t* meta){
+int bubbleSortList(meta_t* meta, int nb){
     dyndata_t *current=NULL, *next=NULL, *right_ptr=NULL;
-    int swapped;
+    int swapped, count = 0;
 
     //no meta data available
     if(!meta || !meta->doCompare)
@@ -283,7 +284,8 @@ int bubbleSortList(meta_t* meta){
         }
         //set the sentry to the current element
         right_ptr = current;
-    }while(swapped);
+        count ++;
+    }while(swapped && count < nb);
 
     return 0;
 }

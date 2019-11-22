@@ -50,7 +50,7 @@ int arrayToAVL(meta_t* dArray, meta_t* dAVL, e_listtoarray action);
 
 //Sorting algorithms
 int bubbleSortArray(meta_t*, int);
-int bubbleSortList(meta_t*);
+int bubbleSortList(meta_t*, int);
 int quickSortPartitioning(meta_t*, long, long);
 int quickSortArray(meta_t*, long, long);
 
