@@ -162,5 +162,17 @@ int protSer(int rem_sock){
         }
     }
 
-    return 0;
+    memset(serialised, 0, sizeof(serialised));
+    receiveData(rem_sock, serialised, sizeof(head_t), NULL, 1);
+    unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
+    if(header.nbelem == 5 && header.szelem == sizeof(tmp.id) + sizeof(tmp.type) + sizeof(tmp.price))
+    {
+        print_success("client's acknowledge checks up");
+        return 0;
+    }
+    else
+    {
+        print_error("server: client received the wrong information");
+        return -1;
+    }
 }

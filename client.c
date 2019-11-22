@@ -121,6 +121,13 @@ int protCli(int sockfd)
         memset(&tmp, 0, sizeof(dataset_t));
     }
 
+    header.nbelem = ds_list.nbelements;
+    header.szelem = ds_list.elementsize;
+
+    memset(serialised, 0, sizeof(serialised));
+    pack(serialised, HEAD_F, header.nbelem, header.szelem);
+    sendData(sockfd, serialised, sizeof(head_t), NULL, 1);
+
     //display all elements in the list, then free it
     foreachList(&ds_list, NULL, Print_dataset);
     while(ds_list.structure)
