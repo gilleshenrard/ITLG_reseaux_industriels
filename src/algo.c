@@ -404,6 +404,32 @@ int binarySearchArray(meta_t *meta, void* toSearch, e_search scope){
 
 /************************************************************/
 /*  I : Metadata necessary to the algorithm                 */
+/*      Index of the element to get                         */
+/*  P : Gets the nth element of a list                      */
+/*  O : Element if found                                    */
+/*      NULL otherwise                                      */
+/************************************************************/
+void* get_listelem(meta_t* meta, int i)
+{
+    dyndata_t *tmp = meta->structure, *next = NULL;
+    int index = 0;
+
+    if(i<0 || i>=meta->nbelements)
+        return NULL;
+
+    next = tmp->right;
+    while(index<i)
+    {
+        tmp = next;
+        next = tmp->right;
+        index++;
+    }
+
+    return tmp->data;
+}
+
+/************************************************************/
+/*  I : Metadata necessary to the algorithm                 */
 /*      Element to append in the list                       */
 /*  P : Inserts an element at the top of a linked list      */
 /*  O : 0 -> Element added                                  */
@@ -433,6 +459,51 @@ int insertListTop(meta_t* meta, void *toAdd){
 
     //make the new element head of the list
     meta->structure = newElement;
+
+    //increment the elements counter
+    meta->nbelements++;
+
+    return 0;
+}
+
+/************************************************************/
+/*  I : Metadata necessary to the algorithm                 */
+/*      Element to append in the list                       */
+/*  P : Inserts an element at the bottom of a linked list   */
+/*  O : 0 -> Element added                                  */
+/*     -1 -> Error                                          */
+/************************************************************/
+int insertListBottom(meta_t* meta, void *toAdd){
+    dyndata_t *newElement = NULL, *tmp=NULL, *next=NULL;
+
+    //check if meta data available
+    if(!meta || !toAdd)
+        return -1;
+
+    if((newElement = allocate_dyn(meta, toAdd)) == NULL)
+        return -1;
+
+    if(!meta->structure)
+    {
+        //list empty, element becomes the head
+        meta->structure = newElement;
+        meta->nbelements = 1;
+    }
+    else
+    {
+        tmp=meta->structure;
+        next = tmp->right;
+        //find the end of the list
+        while(next)
+        {
+            tmp = next;
+            next = tmp->right;
+        }
+
+        //chain up the new element at the end
+        tmp->right = newElement;
+        newElement->left = tmp;
+    }
 
     //increment the elements counter
     meta->nbelements++;

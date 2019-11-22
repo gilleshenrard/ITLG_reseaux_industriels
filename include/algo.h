@@ -59,7 +59,9 @@ int quickSortArray(meta_t*, long, long);
 int binarySearchArray(meta_t*, void*, e_search scope);
 
 //Dynamic lists
+void* get_listelem(meta_t* meta, int i);
 int insertListTop(meta_t*, void*);
+int insertListBottom(meta_t* meta, void *toAdd);
 int popListTop(meta_t*);
 int insertListSorted(meta_t*,  void*);
 int freeDynList(meta_t* meta);
