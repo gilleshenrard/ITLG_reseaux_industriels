@@ -7,6 +7,7 @@
 ** Last modified : 14/11/2019
 */
 
+#include <dirent.h>
 #include "global.h"
 #include "network.h"
 #include "screen.h"
@@ -15,20 +16,22 @@
 #include "serialisation.h"
 
 void sigchld_handler(int s);
-int protSer(int rem_sock);
+int protSer(int rem_sock, char* dirname);
 
 int main(int argc, char *argv[])
 {
 	int loc_socket=0, rem_socket=0;
 	struct sigaction sa;
-	char s[INET6_ADDRSTRLEN];
+	char s[INET6_ADDRSTRLEN]="0", dir[128]="0";
 
 	//checks if the port number has been provided
-	if (argc != 2)
+	if (argc!=3)
 	{
-		print_error("usage: server port");
+		print_error("usage: server port <directory name>");
 		exit(EXIT_FAILURE);
 	}
+
+	strcpy(dir, argv[2]);
 
 	//prepare main process for SIGCHLD signals
 	sa.sa_handler = sigchld_handler;
@@ -74,7 +77,7 @@ int main(int argc, char *argv[])
                 print_neutral("server: %s -> processing request", s);
 
                 //process the request (remote socket if TCP, local socket if UDP)
-                if(protSer(rem_socket) == -1)
+                if(protSer(rem_socket, dir) == -1)
                 {
                     print_error("server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
@@ -118,19 +121,30 @@ void sigchld_handler(int s)
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int protSer(int rem_sock){
-    dataset_t tmp = {0};
+int protSer(int rem_sock, char* dirname){
+    meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset};
+    DIR *d = NULL;
+    struct dirent *dir = NULL;
     unsigned char serialised[MAXDATASIZE] = {0};
     head_t header = {0};
-    char msg[5][64] = { "test1",
-                        "seriously this works well",
-                        "I can't believe it",
-                        "I mean look at this s**t!",
-                        "This is amazing and yet this final message is waaaaay too long"};
+    char filename[64] = "0", *tmp = NULL;
+
+    //create a list with all the files in the directory
+    if((d = opendir(dirname)) != NULL)
+    {
+        while ((dir = readdir(d)) != NULL)
+        {
+            strcpy(filename, dir->d_name);
+            insertListBottom(&lis, filename);
+        }
+        closedir(d);
+    }
+
+    foreachList(&lis, NULL, Print_dataset);
 
     //prepare the header with the data information
-    header.nbelem = 5;
-    header.szelem = sizeof(tmp.id) + sizeof(tmp.type) + sizeof(tmp.price);
+    header.nbelem = lis.nbelements;
+    header.szelem = FILENAMESZ;
     pack(serialised, HEAD_F, header.nbelem, header.szelem);
     if (sendData(rem_sock, serialised, sizeof(head_t), NULL, 1) == -1)
     {
@@ -138,24 +152,14 @@ int protSer(int rem_sock){
         return -1;
     }
 
-    //fill in 5 dummy elements and add them in a list
     for(int i=1 ; i<header.nbelem+1 ; i++)
     {
-        //clear up the buffers
-        memset(&tmp, 0, sizeof(dataset_t));
-        memset(&serialised, 0, sizeof(serialised));
-
-        //prepare dummy values
-        tmp.id = (header.nbelem+1)-i;
-        strncpy(tmp.type, msg[i-1], sizeof(tmp.type)-1);
-        tmp.price = 3.141593*(float)i;
-
-        //test data serialisation
-        pack(serialised, DATA_F, tmp.id, tmp.type, tmp.price);
-        print_neutral("sent : %x", serialised);
+        //recover the element to send
+        tmp = get_listelem(&lis, i);
+        Print_dataset(tmp, NULL);
 
         //send the reply
-        if (sendData(rem_sock, serialised, header.szelem, NULL, 1) == -1)
+        if (sendData(rem_sock, tmp, header.szelem, NULL, 1) == -1)
         {
             print_error("server: sendData: %s", strerror(errno));
             return -1;
@@ -165,7 +169,7 @@ int protSer(int rem_sock){
     memset(serialised, 0, sizeof(serialised));
     receiveData(rem_sock, serialised, sizeof(head_t), NULL, 1);
     unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
-    if(header.nbelem == 5 && header.szelem == sizeof(tmp.id) + sizeof(tmp.type) + sizeof(tmp.price))
+    if(header.nbelem == lis.nbelements && header.szelem == FILENAMESZ)
     {
         print_success("client's acknowledge checks up");
         return 0;
@@ -175,4 +179,6 @@ int protSer(int rem_sock){
         print_error("server: client received the wrong information");
         return -1;
     }
+
+    freeDynList(&lis);
 }

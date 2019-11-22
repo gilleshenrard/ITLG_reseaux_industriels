@@ -85,9 +85,9 @@ void sigalrm_handler(int s)
 /************************************************************************/
 int protCli(int sockfd)
 {
-    meta_t ds_list = {NULL, 0, sizeof(dataset_t), compare_dataset};
+    meta_t ds_list = {NULL, 0, FILENAMESZ, compare_dataset};
+    char buffer[FILENAME_MAX] = {0};
     unsigned char serialised[MAXDATASIZE] = {0};
-	dataset_t tmp = {0};
 	head_t header = {0};
 
 	//wait for the header containing the data info
@@ -104,21 +104,17 @@ int protCli(int sockfd)
     for(int i=0 ; i<header.nbelem ; i++)
     {
         //receive message from the server
-        if (receiveData(sockfd, serialised, header.szelem, NULL, 1) == -1)
+        if (receiveData(sockfd, buffer, header.szelem, NULL, 1) == -1)
         {
             print_error("client: receiveData: %s", strerror(errno));
             return -1;
         }
 
-        print_neutral("received : %x", serialised);
-
         //unpack the data and store it
-        unpack(serialised, DATA_F, &tmp.id, tmp.type, &tmp.price);
-        insertListSorted(&ds_list, (void*)&tmp);
+        insertListSorted(&ds_list, buffer);
 
         //clear the memory buffers
-        memset(&serialised, 0, sizeof(serialised));
-        memset(&tmp, 0, sizeof(dataset_t));
+        memset(&buffer, 0, sizeof(serialised));
     }
 
     header.nbelem = ds_list.nbelements;
@@ -130,10 +126,7 @@ int protCli(int sockfd)
 
     //display all elements in the list, then free it
     foreachList(&ds_list, NULL, Print_dataset);
-    while(ds_list.structure)
-        popListTop(&ds_list);
-
-    //print_success("client: received '%s' (size: %ld) from the server\n", serialised, strlen(serialised));
+    freeDynList(&ds_list);
 
     return 0;
 }
