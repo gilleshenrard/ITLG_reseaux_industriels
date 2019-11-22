@@ -26,16 +26,16 @@ int main(int argc, char *argv[])
 {
     srand(time(NULL));
 
-    //tst_bubblesortarray();
+    tst_bubblesortarray();
     //tst_quicksortarray();
     //tst_binarysearcharray();
     //tst_inserttoplist();
     //tst_insertlistsorted();
-    //tst_bubblesortlist();
+    tst_bubblesortlist();
     //tst_structuresconversion();
     //tst_insertavl();
     //tst_removeavl();
-    tst_searchavl();
+    //st_searchavl();
 
 	exit(EXIT_SUCCESS);
 }
@@ -92,20 +92,32 @@ int tst_bubblesortarray()
         fprintf(stderr, "bubbleSortArray : error while allocating the data\n");
         return -1;
     }
-
     //display the unsorted data
     foreachArray(&arr, NULL, Print_dataset);
-    printf("----------------------------------------------------------\n");
 
+    printf("----------------------------------------------------------\n");
     //sort it
-    if(bubbleSortArray(&arr) == -1)
+    if(bubbleSortArray(&arr, 3) == -1)
     {
         fprintf(stderr, "bubbleSortArray : error while sorting the data\n");
         free(arr.structure);
         return -1;
     }
 
-    printf("Data sorted:\n");
+    printf("Data with the %d highest elements sorted:\n", 3);
+    //display all the datasets
+    foreachArray(&arr, NULL, Print_dataset);
+
+    printf("----------------------------------------------------------\n");
+    //sort it
+    if(bubbleSortArray(&arr, arr.nbelements) == -1)
+    {
+        fprintf(stderr, "bubbleSortArray : error while sorting the data\n");
+        free(arr.structure);
+        return -1;
+    }
+
+    printf("Data fully sorted:\n");
     //display all the datasets
     foreachArray(&arr, NULL, Print_dataset);
 
@@ -349,8 +361,12 @@ int tst_bubblesortlist()
     free(arr.structure);
 
     //sort the list using the bubble sort and display it
-    bubbleSortList(&lis);
-    printf("Data sorted:\n");
+    bubbleSortList(&lis, 3);
+    printf("Data with the %d highest elements sorted:\n", 3);
+    foreachList(&lis, NULL, Print_dataset);
+    printf("----------------------------------------------------------\n");
+    bubbleSortList(&lis, lis.nbelements);
+    printf("Data fully sorted:\n");
     foreachList(&lis, NULL, Print_dataset);
 
     //free the memory used by the list
