@@ -646,7 +646,7 @@ dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
 
     //compute the balance (height difference between left and right)
     if(avl)
-        balance = height_left - height_right;
+        balance = get_AVL_balance(meta, avl);
 
     //re-balance the tree if necessary
     if(balance < -1){
