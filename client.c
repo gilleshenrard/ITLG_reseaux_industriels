@@ -14,11 +14,9 @@
 #include "algo.h"
 #include "serialisation.h"
 
-int menu_i;
-
 void sigalrm_handler(int s);
 int protCli(int sockfd);
-int printasmenu(void* lign, void* nullable);
+int printnumbered(void* lign, void* index);
 
 int main(int argc, char *argv[])
 {
@@ -92,6 +90,7 @@ int protCli(int sockfd)
     char buffer[FILENAME_MAX] = {0};
     unsigned char serialised[MAXDATASIZE] = {0};
 	head_t header = {0};
+	int index = 1;
 
 	//wait for the header containing the data info
     if (receiveData(sockfd, serialised, sizeof(head_t), NULL, 1) == -1)
@@ -128,8 +127,7 @@ int protCli(int sockfd)
     sendData(sockfd, serialised, sizeof(head_t), NULL, 1);
 
     //display all elements in the list, then free it
-    menu_i = 1;
-    foreachList(&ds_list, NULL, printasmenu);
+    foreachList(&ds_list, &index, printnumbered);
     freeDynList(&ds_list);
 
     return 0;
@@ -137,15 +135,16 @@ int protCli(int sockfd)
 
 /************************************************************************/
 /*  I : menu lign to print                                              */
-/*      nullable parameter (necessary for compatibility)                */
-/*  P : Prints a string as a menu lign (using global variable menu_i)   */
+/*      index number to print                                           */
+/*  P : Prints a string numbered and increments the index               */
 /*  O : /                                                               */
 /************************************************************************/
-int printasmenu(void* lign, void* nullable)
+int printnumbered(void* lign, void* index)
 {
     char* tmp = (char*)lign;
+    int* i = (int*)index;
 
-    printf("%2d- %s\n", menu_i, tmp);
-    menu_i++;
+    printf("%2d- %s\n", *i, tmp);
+    *i += 1;
     return 0;
 }
