@@ -128,7 +128,6 @@ int protSer(int rem_sock, char* dirname, char* rem_ip){
     struct dirent *dir = NULL;
     unsigned char serialised[MAXDATASIZE] = {0};
     head_t header = {0, FILENAMESZ};
-    char filename[64] = "0";
     int ret= 0 ;
 
     //create a list with all the files in the directory
@@ -136,17 +135,14 @@ int protSer(int rem_sock, char* dirname, char* rem_ip){
     {
         while ((dir = readdir(d)) != NULL)
         {
-            if(strcmp(dir->d_name, ".") && strcmp(dir->d_name, ".."))
-            {
-                strcpy(filename, dir->d_name);
-                insertListBottom(&lis, filename);
-            }
+            if(strcmp(dir->d_name, "") && strcmp(dir->d_name, ".") && strcmp(dir->d_name, ".."))
+                insertListBottom(&lis, dir->d_name);
         }
         closedir(d);
     }
     else
     {
-        print_error("server: %s -> opendir: %s", rem_ip, strerror(errno));
+        print_error("server: %s -> opendir %s: %s", rem_ip, dirname, strerror(errno));
         return -1;
     }
 
