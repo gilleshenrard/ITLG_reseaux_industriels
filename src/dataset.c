@@ -3,7 +3,7 @@
 ** Library regrouping dataset-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 22/11/2019
+** Last modified : 23/11/2019
 */
 #include "dataset.h"
 
@@ -17,6 +17,22 @@ int Print_dataset(void* rec, void* nullable){
 
     printf("%s\n", ds);
 
+    return 0;
+}
+
+/************************************************************************/
+/*  I : menu lign to print                                              */
+/*      index number to print                                           */
+/*  P : Prints a string numbered and increments the index               */
+/*  O : /                                                               */
+/************************************************************************/
+int printdatasetnum(void* lign, void* index)
+{
+    char* tmp = (char*)lign;
+    int* i = (int*)index;
+
+    printf("%2d- %s\n", *i, tmp);
+    *i += 1;
     return 0;
 }
 

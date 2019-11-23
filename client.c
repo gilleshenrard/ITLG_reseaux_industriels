@@ -16,7 +16,6 @@
 
 void sigalrm_handler(int s);
 int protCli(int sockfd);
-int printnumbered(void* lign, void* index);
 
 int main(int argc, char *argv[])
 {
@@ -127,24 +126,8 @@ int protCli(int sockfd)
     sendData(sockfd, serialised, sizeof(head_t), NULL, 1);
 
     //display all elements in the list, then free it
-    foreachList(&ds_list, &index, printnumbered);
+    foreachList(&ds_list, &index, printdatasetnum);
     freeDynList(&ds_list);
 
-    return 0;
-}
-
-/************************************************************************/
-/*  I : menu lign to print                                              */
-/*      index number to print                                           */
-/*  P : Prints a string numbered and increments the index               */
-/*  O : /                                                               */
-/************************************************************************/
-int printnumbered(void* lign, void* index)
-{
-    char* tmp = (char*)lign;
-    int* i = (int*)index;
-
-    printf("%2d- %s\n", *i, tmp);
-    *i += 1;
     return 0;
 }

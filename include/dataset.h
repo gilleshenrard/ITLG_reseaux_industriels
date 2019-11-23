@@ -10,6 +10,7 @@
 
 // display methods
 int Print_dataset(void* rec, void* nullable);
+int printdatasetnum(void* lign, void* index);
 char* toString_dataset(void* current);
 
 // dynamic structures methods
