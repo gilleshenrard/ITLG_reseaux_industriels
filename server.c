@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 14/11/2019
+** Last modified : 23/11/2019
 */
 
 #include <dirent.h>
@@ -16,7 +16,8 @@
 #include "serialisation.h"
 
 void sigchld_handler(int s);
-int protSer(int rem_sock, char* dirname);
+int protSer(int rem_sock, char* dirname, char* rem_ip);
+int sendstring(void* pkg, void* sockfd);
 
 int main(int argc, char *argv[])
 {
@@ -77,7 +78,7 @@ int main(int argc, char *argv[])
                 print_neutral("server: %s -> processing request", s);
 
                 //process the request (remote socket if TCP, local socket if UDP)
-                if(protSer(rem_socket, dir) == -1)
+                if(protSer(rem_socket, dir, s) == -1)
                 {
                     print_error("server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
@@ -121,64 +122,86 @@ void sigchld_handler(int s)
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int protSer(int rem_sock, char* dirname){
+int protSer(int rem_sock, char* dirname, char* rem_ip){
     meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset};
     DIR *d = NULL;
     struct dirent *dir = NULL;
     unsigned char serialised[MAXDATASIZE] = {0};
-    head_t header = {0};
-    char filename[64] = "0", *tmp = NULL;
+    head_t header = {0, FILENAMESZ};
+    char filename[64] = "0";
+    int ret= 0 ;
 
     //create a list with all the files in the directory
     if((d = opendir(dirname)) != NULL)
     {
         while ((dir = readdir(d)) != NULL)
         {
-            strcpy(filename, dir->d_name);
-            insertListBottom(&lis, filename);
+            if(strcmp(dir->d_name, ".") && strcmp(dir->d_name, ".."))
+            {
+                strcpy(filename, dir->d_name);
+                insertListBottom(&lis, filename);
+            }
         }
         closedir(d);
     }
-
-    foreachList(&lis, NULL, Print_dataset);
-
-    //prepare the header with the data information
-    header.nbelem = lis.nbelements;
-    header.szelem = FILENAMESZ;
-    pack(serialised, HEAD_F, header.nbelem, header.szelem);
-    if (sendData(rem_sock, serialised, sizeof(head_t), NULL, 1) == -1)
+    else
     {
-        print_error("server: sendData: %s", strerror(errno));
+        print_error("server: %s -> opendir: %s", rem_ip, strerror(errno));
         return -1;
     }
 
-    for(int i=1 ; i<header.nbelem+1 ; i++)
+    //prepare and send the header with the data information
+    header.nbelem = lis.nbelements;
+    pack(serialised, HEAD_F, header.nbelem, header.szelem);
+    ret = sendData(rem_sock, serialised, sizeof(head_t), NULL, 1);
+    if (ret == -1)
     {
-        //recover the element to send
-        tmp = get_listelem(&lis, i);
-        Print_dataset(tmp, NULL);
-
-        //send the reply
-        if (sendData(rem_sock, tmp, header.szelem, NULL, 1) == -1)
-        {
-            print_error("server: sendData: %s", strerror(errno));
-            return -1;
-        }
+        print_error("server: %s -> sendData: %s", rem_ip, strerror(errno));
+        freeDynList(&lis);
+        return -1;
     }
 
+    //send the whole list to the client
+    ret = foreachList(&lis, &rem_sock, sendstring);
+    freeDynList(&lis);
+    if(ret == -1)
+    {
+        print_error("server: %s -> error while sending the directory list", rem_ip);
+        freeDynList(&lis);
+        return -1;
+    }
+
+    //reset the header and check if it matches the one sent by the client
     memset(serialised, 0, sizeof(serialised));
     receiveData(rem_sock, serialised, sizeof(head_t), NULL, 1);
     unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
     if(header.nbelem == lis.nbelements && header.szelem == FILENAMESZ)
     {
-        print_success("client's acknowledge checks up");
+        print_neutral("server: %s -> acknowledge checks up", rem_ip);
         return 0;
     }
     else
     {
-        print_error("server: client received the wrong information");
+        print_error("server: %s -> client received the wrong information", rem_ip);
         return -1;
     }
+}
 
-    freeDynList(&lis);
+/************************************************************************/
+/*  I : socket file descriptor to which send the string                 */
+/*      string to send                                                  */
+/*  P : Sends the string to the socket                                  */
+/*  O : -1 on error                                                     */
+/*       0 otherwise                                                    */
+/************************************************************************/
+int sendstring(void* pkg, void* sockfd)
+{
+    int* sock = (int*)sockfd;
+
+    if (sendData(*sock, pkg, FILENAMESZ, NULL, 1) == -1)
+    {
+        print_error("server: sendData: %s", strerror(errno));
+        return -1;
+    }
+    return 0;
 }
