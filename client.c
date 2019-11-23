@@ -4,7 +4,7 @@
 ** -------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 14/11/2019
+** Last modified : 23/11/2019
 */
 
 #include "global.h"
@@ -14,8 +14,11 @@
 #include "algo.h"
 #include "serialisation.h"
 
+int menu_i;
+
 void sigalrm_handler(int s);
 int protCli(int sockfd);
+int printasmenu(void* lign, void* nullable);
 
 int main(int argc, char *argv[])
 {
@@ -125,8 +128,24 @@ int protCli(int sockfd)
     sendData(sockfd, serialised, sizeof(head_t), NULL, 1);
 
     //display all elements in the list, then free it
-    foreachList(&ds_list, NULL, Print_dataset);
+    menu_i = 1;
+    foreachList(&ds_list, NULL, printasmenu);
     freeDynList(&ds_list);
 
+    return 0;
+}
+
+/************************************************************************/
+/*  I : menu lign to print                                              */
+/*      nullable parameter (necessary for compatibility)                */
+/*  P : Prints a string as a menu lign (using global variable menu_i)   */
+/*  O : /                                                               */
+/************************************************************************/
+int printasmenu(void* lign, void* nullable)
+{
+    char* tmp = (char*)lign;
+
+    printf("%2d- %s\n", menu_i, tmp);
+    menu_i++;
     return 0;
 }
