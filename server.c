@@ -128,6 +128,7 @@ int protSer(int rem_sock, char* dirname, char* rem_ip){
     unsigned char serialised[MAXDATASIZE] = {0};
     head_t header = {0, FILENAMESZ};
     int ret= 0, bufsz = 0, fd = 0;
+    uint64_t sent = 0;
 /*
     //create a list with all the files in the directory
     if((d = opendir(dirname)) != NULL)
@@ -183,7 +184,7 @@ int protSer(int rem_sock, char* dirname, char* rem_ip){
     }
 */
 
-    if((fd = open("makefile", O_RDONLY)) == -1)
+    if((fd = open("data/music.mp3", O_RDONLY)) == -1)
     {
         print_error("server: %s -> open: %s", strerror(errno));
         return -1;
@@ -202,18 +203,39 @@ int protSer(int rem_sock, char* dirname, char* rem_ip){
         return -1;
     }
 
-    ret = read(fd, serialised, sizeof(serialised));
-    if (ret == -1)
+    while(sent < header.szelem)
     {
-        print_error("server: %s -> read: %s", rem_ip, strerror(errno));
-        close(fd);
-        return -1;
+        ret = read(fd, serialised, sizeof(serialised));
+        if (ret == -1)
+        {
+            print_error("server: %s -> read: %s", rem_ip, strerror(errno));
+            close(fd);
+            return -1;
+        }
+
+        if(sendData(rem_sock, serialised, &ret, NULL, 1) == -1)
+        {
+            print_error("server: %s -> read: %s", rem_ip, strerror(errno));
+            close(fd);
+            return -1;
+        }
+
+        memset(serialised, 0, sizeof(serialised));
+        sent += ret;
     }
 
-    if(sendData(rem_sock, serialised, &ret, NULL, 1) == -1)
+    //reset the header and check if it matches the one sent by the client
+    memset(serialised, 0, sizeof(serialised));
+    receiveData(rem_sock, serialised, sizeof(head_t), NULL, 1);
+    unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
+    if(header.nbelem == 1 && header.szelem == sent)
     {
-        print_error("server: %s -> read: %s", rem_ip, strerror(errno));
-        close(fd);
+        print_neutral("server: %s -> acknowledge checks up", rem_ip);
+        return 0;
+    }
+    else
+    {
+        print_error("server: %s -> client received the wrong information", rem_ip);
         return -1;
     }
 
