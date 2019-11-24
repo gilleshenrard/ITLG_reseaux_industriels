@@ -4,7 +4,7 @@
 ** -------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 23/11/2019
+** Last modified : 24/11/2019
 */
 
 #include "global.h"
@@ -15,7 +15,8 @@
 #include "serialisation.h"
 
 void sigalrm_handler(int s);
-int protCli(int sockfd);
+int cli_phase1(int sockfd);
+int cli_phase2(int sockfd);
 
 int main(int argc, char *argv[])
 {
@@ -58,7 +59,13 @@ int main(int argc, char *argv[])
     print_neutral("client: connecting to %s", s);
 
     //handle the protocol on the client side
-    if(protCli(sockfd) == -1){
+    if(cli_phase1(sockfd) == -1){
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
+    //handle the protocol on the client side
+    if(cli_phase2(sockfd) == -1){
         close(sockfd);
         exit(EXIT_FAILURE);
     }
@@ -79,18 +86,17 @@ void sigalrm_handler(int s)
 
 /************************************************************************/
 /*  I : client socket file descriptor                                   */
-/*  P : Handle the protocol on the client side                          */
+/*  P : Handle the phase 1 of a request to the server                   */
 /*  O : 0 if ok                                                         */
 /*      -1 otherwise                                                    */
 /************************************************************************/
-int protCli(int sockfd)
+int cli_phase1(int sockfd)
 {
     meta_t ds_list = {NULL, 0, FILENAMESZ, compare_dataset};
     char buffer[FILENAME_MAX] = {0};
     unsigned char serialised[MAXDATASIZE] = {0};
 	head_t header = {0};
-	int index = 1, bufsz = 0, fd = 0, ret = 0;
-	uint64_t received = 0;
+	int index = 1, bufsz = 0;
 
 	//wait for the header containing the data info
     if (receiveData(sockfd, serialised, sizeof(head_t), NULL, 1) == -1)
@@ -130,6 +136,22 @@ int protCli(int sockfd)
     //display all elements in the list, then free it
     foreachList(&ds_list, &index, printdatasetnum);
     freeDynList(&ds_list);
+
+    return 0;
+}
+
+/************************************************************************/
+/*  I : client socket file descriptor                                   */
+/*  P : Handle the phase 2 of a request to the server                   */
+/*  O : 0 if ok                                                         */
+/*      -1 otherwise                                                    */
+/************************************************************************/
+int cli_phase2(int sockfd)
+{
+    unsigned char serialised[MAXDATASIZE] = {0};
+	head_t header = {0};
+	int bufsz = 0, fd = 0, ret = 0;
+	uint64_t received = 0;
 
     if((fd = open("data/output.mp3", O_WRONLY|O_CREAT)) == -1)
     {
