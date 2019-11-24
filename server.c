@@ -122,21 +122,24 @@ void sigchld_handler(int s)
 /*       0 otherwise                                                    */
 /************************************************************************/
 int protSer(int rem_sock, char* dirname, char* rem_ip){
-//    meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset};
-//    DIR *d = NULL;
-//    struct dirent *dir = NULL;
+    meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset};
+    DIR *d = NULL;
+    struct dirent *dir = NULL;
     unsigned char serialised[MAXDATASIZE] = {0};
     head_t header = {0, FILENAMESZ};
     int ret= 0, bufsz = 0, fd = 0;
     uint64_t sent = 0;
-/*
+
     //create a list with all the files in the directory
     if((d = opendir(dirname)) != NULL)
     {
         while ((dir = readdir(d)) != NULL)
         {
-            if(strcmp(dir->d_name, "") && strcmp(dir->d_name, ".") && strcmp(dir->d_name, ".."))
-                insertListBottom(&lis, dir->d_name);
+            if(insertListBottom(&lis, dir->d_name) == -1)
+            {
+                print_error("server: %s -> insertlistbottom: error", rem_ip);
+                return -1;
+            }
         }
         closedir(d);
     }
@@ -148,8 +151,10 @@ int protSer(int rem_sock, char* dirname, char* rem_ip){
 
     //prepare and send the header with the data information
     header.nbelem = lis.nbelements;
+    print_neutral("server: %s -> sending %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
     pack(serialised, HEAD_F, header.nbelem, header.szelem);
     bufsz = sizeof(head_t);
+
     ret = sendData(rem_sock, serialised, &bufsz, NULL, 1);
     if (ret == -1)
     {
@@ -160,11 +165,9 @@ int protSer(int rem_sock, char* dirname, char* rem_ip){
 
     //send the whole list to the client
     ret = foreachList(&lis, &rem_sock, sendstring);
-    freeDynList(&lis);
     if(ret == -1)
     {
         print_error("server: %s -> error while sending the directory list", rem_ip);
-        freeDynList(&lis);
         return -1;
     }
 
@@ -172,17 +175,12 @@ int protSer(int rem_sock, char* dirname, char* rem_ip){
     memset(serialised, 0, sizeof(serialised));
     receiveData(rem_sock, serialised, sizeof(head_t), NULL, 1);
     unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
-    if(header.nbelem == lis.nbelements && header.szelem == FILENAMESZ)
+    if(header.nbelem != lis.nbelements || header.szelem != FILENAMESZ)
     {
-        print_neutral("server: %s -> acknowledge checks up", rem_ip);
-        return 0;
-    }
-    else
-    {
-        print_error("server: %s -> client received the wrong information", rem_ip);
+        print_error("server: %s -> client received %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
         return -1;
     }
-*/
+    freeDynList(&lis);
 
     if((fd = open("data/music.mp3", O_RDONLY)) == -1)
     {
