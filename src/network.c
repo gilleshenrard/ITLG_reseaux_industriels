@@ -226,23 +226,32 @@ int receiveData(int sockfd, void* buf, int bufsz, struct sockaddr_storage* clien
 /*  O : on success : number of bytes sent                               */
 /*      on error : -1, and errno is set                                 */
 /************************************************************************/
-int sendData(int sockfd, void* buf, int bufsz, struct sockaddr_storage* client, int connected)
+int sendData(int sockfd, void* buf, int* length, struct sockaddr_storage* client, int connected)
 {
-    int numbytes = 0;
+    int numbytes = 0, total = 0, bytesleft = *length;
     socklen_t size = sizeof(struct sockaddr_storage);
 
-    if(connected)
+    while(total < *length && numbytes >= 0)
     {
-        //wait data on a connected socket
-        if ((numbytes = send(sockfd, buf, bufsz, 0)) == -1)
-            return -1;
-    }
-    else
-    {
-        //wait data on a non-connected socket
-        if ((numbytes = sendto(sockfd, buf, bufsz, 0, (struct sockaddr *)client, size)) == -1)
-            return -1;
+        if(connected)
+            //send as much data as possible to the socket
+            numbytes = send(sockfd, buf+total, bytesleft, 0);
+        else
+            //send as much data as possible to the socket
+            numbytes = sendto(sockfd, buf+total, bytesleft, 0, (struct sockaddr *)client, size);
+
+        //if ok, update the amount of data send and the amount still to be sent
+        if(numbytes != -1)
+        {
+            total += numbytes;
+            bytesleft -= numbytes;
+        }
+        else
+            numbytes = 0;
     }
 
-    return 0;
+    //update the total of bytes sent
+    *length = total;
+
+    return numbytes;
 }

@@ -20,5 +20,5 @@ int negociate_socket(char* host, char* service, int socktype, char ACTION, void 
 int socket_to_ip(int* fd, char* address, int address_len);
 int acceptServ(int sockfd, char* client, int ip_size);
 int receiveData(int sockfd, void* buf, int bufsz, struct sockaddr_storage* client, int connected);
-int sendData(int sockfd, void* buf, int bufsz, struct sockaddr_storage* client, int connected);
+int sendData(int sockfd, void* buf, int* length, struct sockaddr_storage* client, int connected);
 #endif

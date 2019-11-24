@@ -25,9 +25,9 @@ libscreen.so : ../src/screen.o
 
 libnetwork.so : ../src/network.o
 	echo "Building $@"
-	$(CC) -shared -Wl,-soname,$@.1 -o $@.1.0 $<
-	ldconfig -l libnetwork.so.1.0
-	ln -sf $@.1 $@
+	$(CC) -shared -Wl,-soname,$@.2 -o $@.2.0 $<
+	ldconfig -l libnetwork.so.2.0
+	ln -sf $@.2 $@
 
 libalgo.so : ../src/algo.o
 	echo "Building $@"
