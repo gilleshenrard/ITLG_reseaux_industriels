@@ -4,7 +4,7 @@
 ** ------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 11/11/2019
+** Last modified : 24/11/2019
 */
 
 #include "network.h"
