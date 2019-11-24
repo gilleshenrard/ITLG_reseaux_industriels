@@ -59,3 +59,6 @@ bin
 *.cbp
 *.depend
 *.layout
+
+# test files
+data/
