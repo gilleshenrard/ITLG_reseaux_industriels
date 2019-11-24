@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 23/11/2019
+** Last modified : 24/11/2019
 */
 #include <dirent.h>
 #include "global.h"
@@ -15,7 +15,8 @@
 #include "serialisation.h"
 
 void sigchld_handler(int s);
-int protSer(int rem_sock, char* dirname, char* rem_ip);
+int ser_phase1(int rem_sock, char* dirname, char* rem_ip);
+int ser_phase2(int rem_sock, char* filename, char* rem_ip);
 int sendstring(void* pkg, void* sockfd);
 
 int main(int argc, char *argv[])
@@ -77,7 +78,14 @@ int main(int argc, char *argv[])
                 print_neutral("server: %s -> processing request", s);
 
                 //process the request (remote socket if TCP, local socket if UDP)
-                if(protSer(rem_socket, dir, s) == -1)
+                if(ser_phase1(rem_socket, dir, s) == -1)
+                {
+                    print_error("server: unable to process the request from %s", s);
+                    exit(EXIT_FAILURE);
+                }
+
+                //process the request (remote socket if TCP, local socket if UDP)
+                if(ser_phase2(rem_socket, "data/music.mp3", s) == -1)
                 {
                     print_error("server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
@@ -117,18 +125,19 @@ void sigchld_handler(int s)
 
 /************************************************************************/
 /*  I : socket file descriptor to which send the reply                  */
-/*  P : Handles the request received from a child                       */
+/*      name of the directory to list                                   */
+/*      IP address of the client                                        */
+/*  P : Handles the phase 1 of a request received from a client         */
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int protSer(int rem_sock, char* dirname, char* rem_ip){
+int ser_phase1(int rem_sock, char* dirname, char* rem_ip){
     meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset};
     DIR *d = NULL;
     struct dirent *dir = NULL;
     unsigned char serialised[MAXDATASIZE] = {0};
     head_t header = {0, FILENAMESZ};
-    int ret= 0, bufsz = 0, fd = 0;
-    uint64_t sent = 0;
+    int ret= 0, bufsz = 0;
 
     //create a list with all the files in the directory
     if((d = opendir(dirname)) != NULL)
@@ -180,9 +189,27 @@ int protSer(int rem_sock, char* dirname, char* rem_ip){
         print_error("server: %s -> client received %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
         return -1;
     }
-    freeDynList(&lis);
 
-    if((fd = open("data/music.mp3", O_RDONLY)) == -1)
+    freeDynList(&lis);
+    return 0;
+}
+
+/************************************************************************/
+/*  I : socket file descriptor to which send the reply                  */
+/*      name of the file to transmit                                    */
+/*      IP address of the client                                        */
+/*  P : Handles the phase 2 of a request received from a client         */
+/*  O : -1 on error                                                     */
+/*       0 otherwise                                                    */
+/************************************************************************/
+int ser_phase2(int rem_sock, char* filename, char* rem_ip)
+{
+    unsigned char serialised[MAXDATASIZE] = {0};
+    head_t header = {0, FILENAMESZ};
+    int ret= 0, bufsz = 0, fd = 0;
+    uint64_t sent = 0;
+
+    if((fd = open(filename, O_RDONLY)) == -1)
     {
         print_error("server: %s -> open: %s", strerror(errno));
         return -1;
