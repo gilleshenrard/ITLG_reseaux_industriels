@@ -4,8 +4,10 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <stdint.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-#define MAXDATASIZE 100 // max number of bytes we can get at once
+#define MAXDATASIZE 4096 // max number of bytes we can get at once
 #define TIMEOUT     5
 #define HEAD_F      "ll"
 

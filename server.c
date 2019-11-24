@@ -6,7 +6,6 @@
 ** Made by Gilles Henrard
 ** Last modified : 23/11/2019
 */
-
 #include <dirent.h>
 #include "global.h"
 #include "network.h"
@@ -123,13 +122,13 @@ void sigchld_handler(int s)
 /*       0 otherwise                                                    */
 /************************************************************************/
 int protSer(int rem_sock, char* dirname, char* rem_ip){
-    meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset};
-    DIR *d = NULL;
-    struct dirent *dir = NULL;
+//    meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset};
+//    DIR *d = NULL;
+//    struct dirent *dir = NULL;
     unsigned char serialised[MAXDATASIZE] = {0};
     head_t header = {0, FILENAMESZ};
-    int ret= 0 ;
-
+    int ret= 0, bufsz = 0, fd = 0;
+/*
     //create a list with all the files in the directory
     if((d = opendir(dirname)) != NULL)
     {
@@ -149,7 +148,8 @@ int protSer(int rem_sock, char* dirname, char* rem_ip){
     //prepare and send the header with the data information
     header.nbelem = lis.nbelements;
     pack(serialised, HEAD_F, header.nbelem, header.szelem);
-    ret = sendData(rem_sock, serialised, sizeof(head_t), NULL, 1);
+    bufsz = sizeof(head_t);
+    ret = sendData(rem_sock, serialised, &bufsz, NULL, 1);
     if (ret == -1)
     {
         print_error("server: %s -> sendData: %s", rem_ip, strerror(errno));
@@ -181,6 +181,44 @@ int protSer(int rem_sock, char* dirname, char* rem_ip){
         print_error("server: %s -> client received the wrong information", rem_ip);
         return -1;
     }
+*/
+
+    if((fd = open("makefile", O_RDONLY)) == -1)
+    {
+        print_error("server: %s -> open: %s", strerror(errno));
+        return -1;
+    }
+    header.szelem = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
+
+    //prepare and send the header with the data information
+    header.nbelem = 1;
+    pack(serialised, HEAD_F, header.nbelem, header.szelem);
+    bufsz = sizeof(head_t);
+    ret = sendData(rem_sock, serialised, &bufsz, NULL, 1);
+    if (ret == -1)
+    {
+        print_error("server: %s -> sendData: %s", rem_ip, strerror(errno));
+        return -1;
+    }
+
+    ret = read(fd, serialised, sizeof(serialised));
+    if (ret == -1)
+    {
+        print_error("server: %s -> read: %s", rem_ip, strerror(errno));
+        close(fd);
+        return -1;
+    }
+
+    if(sendData(rem_sock, serialised, &ret, NULL, 1) == -1)
+    {
+        print_error("server: %s -> read: %s", rem_ip, strerror(errno));
+        close(fd);
+        return -1;
+    }
+
+    close(fd);
+    return 0;
 }
 
 /************************************************************************/
@@ -192,9 +230,9 @@ int protSer(int rem_sock, char* dirname, char* rem_ip){
 /************************************************************************/
 int sendstring(void* pkg, void* sockfd)
 {
-    int* sock = (int*)sockfd;
+    int* sock = (int*)sockfd, bufsz = FILENAMESZ;
 
-    if (sendData(*sock, pkg, FILENAMESZ, NULL, 1) == -1)
+    if (sendData(*sock, pkg, &bufsz, NULL, 1) == -1)
     {
         print_error("server: sendData: %s", strerror(errno));
         return -1;
