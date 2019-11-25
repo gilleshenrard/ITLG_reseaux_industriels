@@ -138,11 +138,14 @@ int cli_phase1(int sockfd, char* filename)
     foreachList(&ds_list, &index, printdatasetnum);
     freeDynList(&ds_list);
 
+    printf("Choose which file to download: ");
     if(fgets(buffer, FILENAMESZ, stdin) == NULL)
     {
         print_error("client: fgets: error while reading the user's choice");
         return -1;
     }
+    printf("\n");
+    fflush(stdin);
     buffer[strlen(buffer)]='\0';
     choice = atoi(buffer);
     bufsz = sizeof(choice);

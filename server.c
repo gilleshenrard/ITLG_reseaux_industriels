@@ -189,22 +189,23 @@ int ser_phase1(int rem_sock, char* dirname, char* rem_ip){
         print_error("server: %s -> client received %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
         return -1;
     }
-    freeDynList(&lis);
 
     if (receiveData(rem_sock, &ret, sizeof(int), NULL, 1) == -1)
     {
-        print_error("server: receiveData: %s", strerror(errno));
+        print_error("server: %s -> receiveData: %s", strerror(errno));
         return -1;
     }
+    print_neutral("server: %s -> client chose %d", rem_ip, ret);
 
     bufsz = FILENAMESZ;
     printf("to send: %s\n", (char*)get_listelem(&lis, ret));
     if(sendData(rem_sock, get_listelem(&lis, ret), &bufsz, NULL, 1) == -1)
     {
-        print_error("server: sendData: %s", strerror(errno));
+        print_error("server: %s -> sendData: %s", strerror(errno));
         return -1;
     }
 
+    freeDynList(&lis);
     return 0;
 }
 
