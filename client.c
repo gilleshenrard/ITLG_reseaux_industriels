@@ -66,11 +66,11 @@ int main(int argc, char *argv[])
     }
 
     //handle the protocol on the client side
-/*    if(cli_phase2(sockfd, filename) == -1){
+    if(cli_phase2(sockfd, filename) == -1){
         close(sockfd);
         exit(EXIT_FAILURE);
     }
-*/
+
 	close(sockfd);
 	exit(EXIT_SUCCESS);
 }
@@ -175,15 +175,19 @@ int cli_phase1(int sockfd, char* filename)
 int cli_phase2(int sockfd, char* filename)
 {
     unsigned char serialised[MAXDATASIZE] = {0};
+    char buffer[FILENAMESZ] = "0";
 	head_t header = {0};
 	int bufsz = 0, fd = 0, ret = 0;
 	uint64_t received = 0;
 
-    if((fd = open("data/output.mp3", O_WRONLY|O_CREAT)) == -1)
+	strcpy(buffer, "data/output.mp3");
+	//sprintf(buffer, "data/%s", filename);
+    if((fd = open(buffer, O_WRONLY|O_CREAT)) == -1)
     {
         print_error("client: open: %s", strerror(errno));
         return -1;
     }
+    memset(buffer, 0, MAXDATASIZE);
 
     	//wait for the header containing the data info
     if (receiveData(sockfd, serialised, sizeof(head_t), NULL, 1) == -1)

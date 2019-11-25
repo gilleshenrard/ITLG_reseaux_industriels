@@ -85,12 +85,12 @@ int main(int argc, char *argv[])
                 }
 
                 //process the request (remote socket if TCP, local socket if UDP)
-/*                if(ser_phase2(rem_socket, "data/music.mp3", s) == -1)
+                if(ser_phase2(rem_socket, "data/music.mp3", s) == -1)
                 {
                     print_error("server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
                 }
-*/
+
                 print_success("server: %s -> request processed", s);
 
                 //close connection socket and exit child process
@@ -144,7 +144,7 @@ int ser_phase1(int rem_sock, char* dirname, char* rem_ip){
     {
         while ((dir = readdir(d)) != NULL)
         {
-            if(insertListBottom(&lis, dir->d_name) == -1)
+            if(insertListSorted(&lis, dir->d_name) == -1)
             {
                 print_error("server: %s -> insertlistbottom: error", rem_ip);
                 return -1;
@@ -198,8 +198,8 @@ int ser_phase1(int rem_sock, char* dirname, char* rem_ip){
     print_neutral("server: %s -> client chose %d", rem_ip, ret);
 
     bufsz = FILENAMESZ;
-    printf("to send: %s\n", (char*)get_listelem(&lis, ret));
-    if(sendData(rem_sock, get_listelem(&lis, ret), &bufsz, NULL, 1) == -1)
+    printf("to send: %s\n", (char*)get_listelem(&lis, ret-1));
+    if(sendData(rem_sock, get_listelem(&lis, ret-1), &bufsz, NULL, 1) == -1)
     {
         print_error("server: %s -> sendData: %s", strerror(errno));
         return -1;
@@ -224,6 +224,7 @@ int ser_phase2(int rem_sock, char* filename, char* rem_ip)
     int ret= 0, bufsz = 0, fd = 0;
     uint64_t sent = 0;
 
+    strcpy(filename, "data/music.mp3");
     if((fd = open(filename, O_RDONLY)) == -1)
     {
         print_error("server: %s -> open: %s", strerror(errno));
