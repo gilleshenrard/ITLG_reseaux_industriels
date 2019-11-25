@@ -85,12 +85,12 @@ int main(int argc, char *argv[])
                 }
 
                 //process the request (remote socket if TCP, local socket if UDP)
-                if(ser_phase2(rem_socket, "data/music.mp3", s) == -1)
+/*                if(ser_phase2(rem_socket, "data/music.mp3", s) == -1)
                 {
                     print_error("server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
                 }
-
+*/
                 print_success("server: %s -> request processed", s);
 
                 //close connection socket and exit child process
@@ -189,8 +189,22 @@ int ser_phase1(int rem_sock, char* dirname, char* rem_ip){
         print_error("server: %s -> client received %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
         return -1;
     }
-
     freeDynList(&lis);
+
+    if (receiveData(rem_sock, &ret, sizeof(int), NULL, 1) == -1)
+    {
+        print_error("server: receiveData: %s", strerror(errno));
+        return -1;
+    }
+
+    bufsz = FILENAMESZ;
+    printf("to send: %s\n", (char*)get_listelem(&lis, ret));
+    if(sendData(rem_sock, get_listelem(&lis, ret), &bufsz, NULL, 1) == -1)
+    {
+        print_error("server: sendData: %s", strerror(errno));
+        return -1;
+    }
+
     return 0;
 }
 

@@ -15,14 +15,15 @@
 #include "serialisation.h"
 
 void sigalrm_handler(int s);
-int cli_phase1(int sockfd);
-int cli_phase2(int sockfd);
+int cli_phase1(int sockfd, char* filename);
+int cli_phase2(int sockfd, char* filename);
 
 int main(int argc, char *argv[])
 {
 	int sockfd=0;
 	struct sigaction sa = {0};
 	char s[INET6_ADDRSTRLEN] = {0};
+	char filename[FILENAMESZ] = "0";
 
 	//checks if the hostname and the port number have been provided
 	if (argc!=3)
@@ -59,17 +60,17 @@ int main(int argc, char *argv[])
     print_neutral("client: connecting to %s", s);
 
     //handle the protocol on the client side
-    if(cli_phase1(sockfd) == -1){
+    if(cli_phase1(sockfd, filename) == -1){
         close(sockfd);
         exit(EXIT_FAILURE);
     }
 
     //handle the protocol on the client side
-    if(cli_phase2(sockfd) == -1){
+/*    if(cli_phase2(sockfd, filename) == -1){
         close(sockfd);
         exit(EXIT_FAILURE);
     }
-
+*/
 	close(sockfd);
 	exit(EXIT_SUCCESS);
 }
@@ -90,13 +91,13 @@ void sigalrm_handler(int s)
 /*  O : 0 if ok                                                         */
 /*      -1 otherwise                                                    */
 /************************************************************************/
-int cli_phase1(int sockfd)
+int cli_phase1(int sockfd, char* filename)
 {
     meta_t ds_list = {NULL, 0, FILENAMESZ, compare_dataset};
     char buffer[FILENAME_MAX] = {0};
     unsigned char serialised[MAXDATASIZE] = {0};
 	head_t header = {0};
-	int index = 1, bufsz = 0;
+	int index = 1, bufsz = 0, choice = 0;
 
 	//wait for the header containing the data info
     if (receiveData(sockfd, serialised, sizeof(head_t), NULL, 1) == -1)
@@ -137,6 +138,28 @@ int cli_phase1(int sockfd)
     foreachList(&ds_list, &index, printdatasetnum);
     freeDynList(&ds_list);
 
+    if(fgets(buffer, FILENAMESZ, stdin) == NULL)
+    {
+        print_error("client: fgets: error while reading the user's choice");
+        return -1;
+    }
+    buffer[strlen(buffer)]='\0';
+    choice = atoi(buffer);
+    bufsz = sizeof(choice);
+    if(sendData(sockfd, &choice, &bufsz, NULL, 1) == -1)
+    {
+        print_error("client: sendData: %s", strerror(errno));
+        return -1;
+    }
+
+    if (receiveData(sockfd, filename, FILENAMESZ, NULL, 1) == -1)
+    {
+        print_error("client: receiveData: %s", strerror(errno));
+        return -1;
+    }
+
+    printf("filename: %s\n", filename);
+
     return 0;
 }
 
@@ -146,7 +169,7 @@ int cli_phase1(int sockfd)
 /*  O : 0 if ok                                                         */
 /*      -1 otherwise                                                    */
 /************************************************************************/
-int cli_phase2(int sockfd)
+int cli_phase2(int sockfd, char* filename)
 {
     unsigned char serialised[MAXDATASIZE] = {0};
 	head_t header = {0};
