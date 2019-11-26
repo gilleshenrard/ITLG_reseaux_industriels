@@ -4,7 +4,7 @@
 ** -------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 24/11/2019
+** Last modified : 26/11/2019
 */
 
 #include "global.h"
@@ -15,8 +15,9 @@
 #include "serialisation.h"
 
 void sigalrm_handler(int s);
-int cli_phase1(int sockfd, char* filename);
+int cli_phase1(int sockfd);
 int cli_phase2(int sockfd, char* filename);
+int cli_phase3(int sockfd, char* filename);
 
 int main(int argc, char *argv[])
 {
@@ -60,13 +61,19 @@ int main(int argc, char *argv[])
     print_neutral("client: connecting to %s", s);
 
     //handle the protocol on the client side
-    if(cli_phase1(sockfd, filename) == -1){
+    if(cli_phase1(sockfd) == -1){
         close(sockfd);
         exit(EXIT_FAILURE);
     }
 
     //handle the protocol on the client side
     if(cli_phase2(sockfd, filename) == -1){
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
+    //handle the protocol on the client side
+    if(cli_phase3(sockfd, filename) == -1){
         close(sockfd);
         exit(EXIT_FAILURE);
     }
@@ -91,13 +98,13 @@ void sigalrm_handler(int s)
 /*  O : 0 if ok                                                         */
 /*      -1 otherwise                                                    */
 /************************************************************************/
-int cli_phase1(int sockfd, char* filename)
+int cli_phase1(int sockfd)
 {
     meta_t ds_list = {NULL, 0, FILENAMESZ, compare_dataset};
     char buffer[FILENAME_MAX] = {0};
     unsigned char serialised[MAXDATASIZE] = {0};
 	head_t header = {0};
-	int index = 1, bufsz = 0, choice = 0;
+	int index = 1, bufsz = 0;
 
 	//wait for the header containing the data info
     if (receiveData(sockfd, serialised, sizeof(head_t), NULL, 1) == -1)
@@ -126,18 +133,35 @@ int cli_phase1(int sockfd, char* filename)
         memset(&buffer, 0, sizeof(serialised));
     }
 
+    //prepare the reply header to be sent
     header.nbelem = ds_list.nbelements;
     header.szelem = ds_list.elementsize;
-
     memset(serialised, 0, sizeof(serialised));
     pack(serialised, HEAD_F, header.nbelem, header.szelem);
     bufsz = sizeof(head_t);
+
+    //send it to the server
     sendData(sockfd, serialised, &bufsz, NULL, 1);
 
     //display all elements in the list, then free it
     foreachList(&ds_list, &index, printdatasetnum);
     freeDynList(&ds_list);
 
+    return 0;
+}
+
+/************************************************************************/
+/*  I : client socket file descriptor                                   */
+/*  P : Handle the phase 1 of a request to the server                   */
+/*  O : 0 if ok                                                         */
+/*      -1 otherwise                                                    */
+/************************************************************************/
+int cli_phase2(int sockfd, char* filename)
+{
+    char buffer[FILENAMESZ] = {0};
+	int bufsz = 0, choice = 0;
+
+	//collect the user's choice
     printf("Choose which file to download: ");
     if(fgets(buffer, FILENAMESZ, stdin) == NULL)
     {
@@ -147,14 +171,19 @@ int cli_phase1(int sockfd, char* filename)
     printf("\n");
     fflush(stdin);
     buffer[strlen(buffer)]='\0';
+
+    //prepare the reply
     choice = atoi(buffer);
     bufsz = sizeof(choice);
+
+    //send it to the server
     if(sendData(sockfd, &choice, &bufsz, NULL, 1) == -1)
     {
         print_error("client: sendData: %s", strerror(errno));
         return -1;
     }
 
+    //receive the file name
     if (receiveData(sockfd, filename, FILENAMESZ, NULL, 1) == -1)
     {
         print_error("client: receiveData: %s", strerror(errno));
@@ -172,7 +201,7 @@ int cli_phase1(int sockfd, char* filename)
 /*  O : 0 if ok                                                         */
 /*      -1 otherwise                                                    */
 /************************************************************************/
-int cli_phase2(int sockfd, char* filename)
+int cli_phase3(int sockfd, char* filename)
 {
     unsigned char serialised[MAXDATASIZE] = {0};
     char buffer[FILENAMESZ] = "0";
@@ -180,8 +209,9 @@ int cli_phase2(int sockfd, char* filename)
 	int bufsz = 0, fd = 0, ret = 0;
 	uint64_t received = 0;
 
-	strcpy(buffer, "data/output.mp3");
-	//sprintf(buffer, "data/%s", filename);
+	//open the soon to be file
+	//strcpy(buffer, "data/output.mp3");
+	sprintf(buffer, "data/%s", filename);
     if((fd = open(buffer, O_WRONLY|O_CREAT)) == -1)
     {
         print_error("client: open: %s", strerror(errno));
@@ -189,7 +219,7 @@ int cli_phase2(int sockfd, char* filename)
     }
     memset(buffer, 0, MAXDATASIZE);
 
-    	//wait for the header containing the data info
+    //wait for the header of the file and deserialise it
     if (receiveData(sockfd, serialised, sizeof(head_t), NULL, 1) == -1)
     {
         print_error("client: receiveData: %s", strerror(errno));
@@ -198,19 +228,20 @@ int cli_phase2(int sockfd, char* filename)
     unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
     print_neutral("client: will receive %d elements of %d bytes", header.nbelem, header.szelem);
 
-    //unpack all the data sent by the server and store it in a linked list
+    //deserialise the packages and concatenate it in the file
     while(received < header.szelem)
     {
+        //clear the buffer
         memset(&serialised, 0, sizeof(serialised));
 
-        //receive message from the server
+        //receive a package from the server
         if ((ret = receiveData(sockfd, serialised, MAXDATASIZE, NULL, 1)) == -1)
         {
             print_error("client: receiveData: %s", strerror(errno));
             return -1;
         }
 
-        //unpack the data and store it
+        //write it in the file
         if((ret = write(fd, serialised, ret)) == -1)
         {
             print_error("client: write: %s", strerror(errno));
@@ -218,17 +249,18 @@ int cli_phase2(int sockfd, char* filename)
             return -1;
         }
 
-        //clear the memory buffers
         received += ret;
     }
     close(fd);
 
+    //set the reply header values
     header.nbelem = 1;
     header.szelem = received;
-
     memset(serialised, 0, sizeof(serialised));
     pack(serialised, HEAD_F, header.nbelem, header.szelem);
     bufsz = sizeof(head_t);
+
+    //send the reply header to the server
     sendData(sockfd, serialised, &bufsz, NULL, 1);
 
     return 0;

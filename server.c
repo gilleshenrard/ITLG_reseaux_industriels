@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 24/11/2019
+** Last modified : 26/11/2019
 */
 #include <dirent.h>
 #include "global.h"
@@ -16,7 +16,7 @@
 
 void sigchld_handler(int s);
 int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip);
-int ser_phase2(int rem_sock, char* dirname, char* rem_ip);
+int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip);
 int ser_phase3(int rem_sock, char* filename, char* rem_ip);
 int sendstring(void* pkg, void* sockfd);
 
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset};
 	int loc_socket=0, rem_socket=0;
 	struct sigaction sa;
-	char s[INET6_ADDRSTRLEN]="0", dir[128]="0";
+	char s[INET6_ADDRSTRLEN]="0", dir[FILENAMESZ]="0";
 
 	//checks if the port number has been provided
 	if (argc!=3)
@@ -82,21 +82,27 @@ int main(int argc, char *argv[])
                 //process the request (remote socket if TCP, local socket if UDP)
                 if(ser_phase1(rem_socket, dir, &lis, s) == -1)
                 {
-                    print_error("server: unable to process the request from %s", s);
+                    print_error("server: phase1: unable to process the request from %s", s);
+                    close(rem_socket);
                     exit(EXIT_FAILURE);
                 }
 
                 //process the request (remote socket if TCP, local socket if UDP)
-                if(ser_phase2(rem_socket, "data/music.mp3", s) == -1)
+                if(ser_phase2(rem_socket, dir, &lis, s) == -1)
                 {
-                    print_error("server: unable to process the request from %s", s);
+                    print_error("server: phase2: unable to process the request from %s", s);
+                    close(rem_socket);
                     exit(EXIT_FAILURE);
                 }
 
+                //the list is not needed anymore
+                freeDynList(&lis);
+
                 //process the request (remote socket if TCP, local socket if UDP)
-                if(ser_phase2(rem_socket, "data/music.mp3", s) == -1)
+                if(ser_phase3(rem_socket, dir, s) == -1)
                 {
-                    print_error("server: unable to process the request from %s", s);
+                    print_error("server: phase3: unable to process the request from %s", s);
+                    close(rem_socket);
                     exit(EXIT_FAILURE);
                 }
 
@@ -145,7 +151,7 @@ int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip){
     struct dirent *dir = NULL;
     unsigned char serialised[MAXDATASIZE] = {0};
     head_t header = {0, FILENAMESZ};
-    int ret= 0, bufsz = 0;
+    int bufsz = 0;
 
     //create a list with all the files in the directory
     if((d = opendir(dirname)) != NULL)
@@ -172,8 +178,8 @@ int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip){
     pack(serialised, HEAD_F, header.nbelem, header.szelem);
     bufsz = sizeof(head_t);
 
-    ret = sendData(rem_sock, serialised, &bufsz, NULL, 1);
-    if (ret == -1)
+    //send the header to the client
+    if(sendData(rem_sock, serialised, &bufsz, NULL, 1) == -1)
     {
         print_error("server: %s -> sendData: %s", rem_ip, strerror(errno));
         freeDynList(lis);
@@ -181,18 +187,19 @@ int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip){
     }
 
     //send the whole list to the client
-    ret = foreachList(lis, &rem_sock, sendstring);
-    if(ret == -1)
+    if(foreachList(lis, &rem_sock, sendstring) == -1)
     {
         print_error("server: %s -> error while sending the directory list", rem_ip);
         freeDynList(lis);
         return -1;
     }
 
-    //reset the header and check if it matches the one sent by the client
+    //reset the header and receive the client's reply
     memset(serialised, 0, sizeof(serialised));
     receiveData(rem_sock, serialised, sizeof(head_t), NULL, 1);
     unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
+
+    //check if it matches the one sent by the client
     if(header.nbelem != lis->nbelements || header.szelem != FILENAMESZ)
     {
         print_error("server: %s -> client received %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
@@ -211,39 +218,32 @@ int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip){
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int ser_phase2(int rem_sock, char* dirname, char* rem_ip)
+int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip)
 {
-    meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset};
-    unsigned char serialised[MAXDATASIZE] = {0};
-    head_t header = {0, FILENAMESZ};
-    int ret= 0, bufsz = 0;
+    char filename[FILENAMESZ]={0}, fullpath[FILENAMESZ]={0};
+    int choice=0, bufsz=0;
 
-    //reset the header and check if it matches the one sent by the client
-    memset(serialised, 0, sizeof(serialised));
-    receiveData(rem_sock, serialised, sizeof(head_t), NULL, 1);
-    unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
-    if(header.nbelem != lis.nbelements || header.szelem != FILENAMESZ)
-    {
-        print_error("server: %s -> client received %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
-        return -1;
-    }
-
-    if (receiveData(rem_sock, &ret, sizeof(int), NULL, 1) == -1)
+    //receive the client's reply
+    if (receiveData(rem_sock, &choice, sizeof(int), NULL, 1) == -1)
     {
         print_error("server: %s -> receiveData: %s", strerror(errno));
         return -1;
     }
-    print_neutral("server: %s -> client chose %d", rem_ip, ret);
+    print_neutral("server: %s -> client chose %d", rem_ip, choice);
 
+    strcpy(filename, (char*)get_listelem(lis, choice-1));
+
+    //translate the choice into a filename and send it back
     bufsz = FILENAMESZ;
-    printf("to send: %s\n", (char*)get_listelem(&lis, ret-1));
-    if(sendData(rem_sock, get_listelem(&lis, ret-1), &bufsz, NULL, 1) == -1)
+    if(sendData(rem_sock, filename, &bufsz, NULL, 1) == -1)
     {
         print_error("server: %s -> sendData: %s", strerror(errno));
         return -1;
     }
 
-    freeDynList(&lis);
+    sprintf(fullpath, "%s/%s", dirname, filename);
+    memcpy(dirname, fullpath, FILENAMESZ);
+
     return 0;
 }
 
@@ -262,7 +262,7 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
     int ret= 0, bufsz = 0, fd = 0;
     uint64_t sent = 0;
 
-    strcpy(filename, "data/music.mp3");
+    //open the requested file
     if((fd = open(filename, O_RDONLY)) == -1)
     {
         print_error("server: %s -> open: %s", strerror(errno));
@@ -271,10 +271,12 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
     header.szelem = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
 
-    //prepare and send the header with the data information
+    //prepare the header with the data information
     header.nbelem = 1;
     pack(serialised, HEAD_F, header.nbelem, header.szelem);
     bufsz = sizeof(head_t);
+
+    //send the header
     ret = sendData(rem_sock, serialised, &bufsz, NULL, 1);
     if (ret == -1)
     {
@@ -282,8 +284,10 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
         return -1;
     }
 
+    //send the whole requested file
     while(sent < header.szelem)
     {
+        //read the data needed
         ret = read(fd, serialised, sizeof(serialised));
         if (ret == -1)
         {
@@ -292,6 +296,7 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
             return -1;
         }
 
+        //send the data to the client
         if(sendData(rem_sock, serialised, &ret, NULL, 1) == -1)
         {
             print_error("server: %s -> read: %s", rem_ip, strerror(errno));
@@ -299,27 +304,29 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
             return -1;
         }
 
+        //wipe the buffer
         memset(serialised, 0, sizeof(serialised));
         sent += ret;
     }
 
-    //reset the header and check if it matches the one sent by the client
+    //receive the client's reply
     memset(serialised, 0, sizeof(serialised));
     receiveData(rem_sock, serialised, sizeof(head_t), NULL, 1);
     unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
+
+    //check if it matches what was supposed to be received
     if(header.nbelem == 1 && header.szelem == sent)
     {
         print_neutral("server: %s -> acknowledge checks up", rem_ip);
+        close(fd);
         return 0;
     }
     else
     {
         print_error("server: %s -> client received the wrong information", rem_ip);
+        close(fd);
         return -1;
     }
-
-    close(fd);
-    return 0;
 }
 
 /************************************************************************/
