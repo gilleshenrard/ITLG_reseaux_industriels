@@ -47,9 +47,9 @@ libserialisation.so : ../src/serialisation.o
 	ldconfig -l libserialisation.so.1.1
 	ln -sf $@.1 $@
 
-libprotocol.so : ../src/protocol.o libalgo.so libnetwork.so
+libprotocol.so : ../src/protocol.o libalgo.so libnetwork.so libserialisation.so
 	echo "Building $@"
-	$(CC) -shared -L. -Wl,-soname,$@.1 -o $@.1.0 $< -lalgo -lnetwork
+	$(CC) -shared -L. -Wl,-soname,$@.1 -o $@.1.0 $< -lalgo -lnetwork -lserialisation
 	ldconfig -l libprotocol.so.1.0
 	ln -sf $@.1 $@
 
