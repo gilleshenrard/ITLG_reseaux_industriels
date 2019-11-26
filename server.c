@@ -15,13 +15,14 @@
 #include "serialisation.h"
 
 void sigchld_handler(int s);
-int ser_phase1(int rem_sock, char* dirname, char* rem_ip);
+int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip);
 int ser_phase2(int rem_sock, char* dirname, char* rem_ip);
 int ser_phase3(int rem_sock, char* filename, char* rem_ip);
 int sendstring(void* pkg, void* sockfd);
 
 int main(int argc, char *argv[])
 {
+    meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset};
 	int loc_socket=0, rem_socket=0;
 	struct sigaction sa;
 	char s[INET6_ADDRSTRLEN]="0", dir[128]="0";
@@ -79,7 +80,7 @@ int main(int argc, char *argv[])
                 print_neutral("server: %s -> processing request", s);
 
                 //process the request (remote socket if TCP, local socket if UDP)
-                if(ser_phase1(rem_socket, dir, s) == -1)
+                if(ser_phase1(rem_socket, dir, &lis, s) == -1)
                 {
                     print_error("server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
@@ -139,8 +140,7 @@ void sigchld_handler(int s)
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int ser_phase1(int rem_sock, char* dirname, char* rem_ip){
-    meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset};
+int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip){
     DIR *d = NULL;
     struct dirent *dir = NULL;
     unsigned char serialised[MAXDATASIZE] = {0};
@@ -152,7 +152,7 @@ int ser_phase1(int rem_sock, char* dirname, char* rem_ip){
     {
         while ((dir = readdir(d)) != NULL)
         {
-            if(insertListSorted(&lis, dir->d_name) == -1)
+            if(insertListSorted(lis, dir->d_name) == -1)
             {
                 print_error("server: %s -> insertlistbottom: error", rem_ip);
                 return -1;
@@ -167,7 +167,7 @@ int ser_phase1(int rem_sock, char* dirname, char* rem_ip){
     }
 
     //prepare and send the header with the data information
-    header.nbelem = lis.nbelements;
+    header.nbelem = lis->nbelements;
     print_neutral("server: %s -> sending %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
     pack(serialised, HEAD_F, header.nbelem, header.szelem);
     bufsz = sizeof(head_t);
@@ -176,15 +176,16 @@ int ser_phase1(int rem_sock, char* dirname, char* rem_ip){
     if (ret == -1)
     {
         print_error("server: %s -> sendData: %s", rem_ip, strerror(errno));
-        freeDynList(&lis);
+        freeDynList(lis);
         return -1;
     }
 
     //send the whole list to the client
-    ret = foreachList(&lis, &rem_sock, sendstring);
+    ret = foreachList(lis, &rem_sock, sendstring);
     if(ret == -1)
     {
         print_error("server: %s -> error while sending the directory list", rem_ip);
+        freeDynList(lis);
         return -1;
     }
 
@@ -192,28 +193,13 @@ int ser_phase1(int rem_sock, char* dirname, char* rem_ip){
     memset(serialised, 0, sizeof(serialised));
     receiveData(rem_sock, serialised, sizeof(head_t), NULL, 1);
     unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
-    if(header.nbelem != lis.nbelements || header.szelem != FILENAMESZ)
+    if(header.nbelem != lis->nbelements || header.szelem != FILENAMESZ)
     {
         print_error("server: %s -> client received %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
+        freeDynList(lis);
         return -1;
     }
 
-    if (receiveData(rem_sock, &ret, sizeof(int), NULL, 1) == -1)
-    {
-        print_error("server: %s -> receiveData: %s", strerror(errno));
-        return -1;
-    }
-    print_neutral("server: %s -> client chose %d", rem_ip, ret);
-
-    bufsz = FILENAMESZ;
-    printf("to send: %s\n", (char*)get_listelem(&lis, ret-1));
-    if(sendData(rem_sock, get_listelem(&lis, ret-1), &bufsz, NULL, 1) == -1)
-    {
-        print_error("server: %s -> sendData: %s", strerror(errno));
-        return -1;
-    }
-
-    freeDynList(&lis);
     return 0;
 }
 
