@@ -100,7 +100,7 @@ void sigalrm_handler(int s)
 /************************************************************************/
 int cli_phase1(int sockfd)
 {
-    meta_t ds_list = {NULL, 0, FILENAMESZ, compare_dataset};
+    meta_t ds_list = {NULL, 0, FILENAMESZ, compare_dataset, print_error};
     char buffer[FILENAME_MAX] = {0};
     unsigned char serialised[MAXDATASIZE] = {0};
 	head_t header = {0};
