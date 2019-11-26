@@ -8,7 +8,7 @@ chead:= ../include
 #flags necessary to the compilation
 CC := gcc
 CFLAGS:= -fPIC -Wall -Werror -g -I$(chead)
-lib_b:= libscreen.so libnetwork.so libdataset.so libalgo.so libserialisation.so
+lib_b:= libscreen.so libnetwork.so libdataset.so libalgo.so libserialisation.so libprotocol.so
 
 #objects compilation from the source files
 %.o: %.c
@@ -45,6 +45,12 @@ libserialisation.so : ../src/serialisation.o
 	echo "Building $@"
 	$(CC) -shared -Wl,-soname,$@.1 -o $@.1.1 $<
 	ldconfig -l libserialisation.so.1.1
+	ln -sf $@.1 $@
+
+libprotocol.so : ../src/protocol.o libalgo.so libnetwork.so
+	echo "Building $@"
+	$(CC) -shared -L. -Wl,-soname,$@.1 -o $@.1.0 $< -lalgo -lnetwork
+	ldconfig -l libprotocol.so.1.0
 	ln -sf $@.1 $@
 
 

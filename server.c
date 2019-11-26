@@ -13,6 +13,7 @@
 #include "dataset.h"
 #include "algo.h"
 #include "serialisation.h"
+#include "protocol.h"
 
 void sigchld_handler(int s);
 int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip);

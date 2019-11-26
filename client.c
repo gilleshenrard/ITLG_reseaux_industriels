@@ -13,6 +13,7 @@
 #include "dataset.h"
 #include "algo.h"
 #include "serialisation.h"
+#include "protocol.h"
 
 void sigalrm_handler(int s);
 int cli_phase1(int sockfd);

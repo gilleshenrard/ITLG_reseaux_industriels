@@ -6,8 +6,8 @@ cbin := bin
 #flags necessary to the compilation
 CC := gcc
 CFLAGS:= -fPIC -Wall -Werror -g -I$(chead)
-lib_f:= -lscreen -lnetwork -ldataset -lalgo -lserialisation
-lib_b:= $(clib)/libscreen.so $(clib)/libnetwork.so $(clib)/libdataset.so $(clib)/libalgo.so $(clib)/libserialisation.so
+lib_f:= -lscreen -lnetwork -ldataset -lalgo -lserialisation -lprotocol
+lib_b:= $(clib)/libscreen.so $(clib)/libnetwork.so $(clib)/libdataset.so $(clib)/libalgo.so $(clib)/libserialisation.so $(clib)/libserialisation.so
 
 
 #executables compilation
