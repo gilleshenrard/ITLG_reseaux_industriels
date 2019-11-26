@@ -16,7 +16,8 @@
 
 void sigchld_handler(int s);
 int ser_phase1(int rem_sock, char* dirname, char* rem_ip);
-int ser_phase2(int rem_sock, char* filename, char* rem_ip);
+int ser_phase2(int rem_sock, char* dirname, char* rem_ip);
+int ser_phase3(int rem_sock, char* filename, char* rem_ip);
 int sendstring(void* pkg, void* sockfd);
 
 int main(int argc, char *argv[])
@@ -79,6 +80,13 @@ int main(int argc, char *argv[])
 
                 //process the request (remote socket if TCP, local socket if UDP)
                 if(ser_phase1(rem_socket, dir, s) == -1)
+                {
+                    print_error("server: unable to process the request from %s", s);
+                    exit(EXIT_FAILURE);
+                }
+
+                //process the request (remote socket if TCP, local socket if UDP)
+                if(ser_phase2(rem_socket, "data/music.mp3", s) == -1)
                 {
                     print_error("server: unable to process the request from %s", s);
                     exit(EXIT_FAILURE);
@@ -211,13 +219,57 @@ int ser_phase1(int rem_sock, char* dirname, char* rem_ip){
 
 /************************************************************************/
 /*  I : socket file descriptor to which send the reply                  */
+/*      name of the directory to list                                   */
+/*      IP address of the client                                        */
+/*  P : Handles the phase 1 of a request received from a client         */
+/*  O : -1 on error                                                     */
+/*       0 otherwise                                                    */
+/************************************************************************/
+int ser_phase2(int rem_sock, char* dirname, char* rem_ip)
+{
+    meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset};
+    unsigned char serialised[MAXDATASIZE] = {0};
+    head_t header = {0, FILENAMESZ};
+    int ret= 0, bufsz = 0;
+
+    //reset the header and check if it matches the one sent by the client
+    memset(serialised, 0, sizeof(serialised));
+    receiveData(rem_sock, serialised, sizeof(head_t), NULL, 1);
+    unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
+    if(header.nbelem != lis.nbelements || header.szelem != FILENAMESZ)
+    {
+        print_error("server: %s -> client received %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
+        return -1;
+    }
+
+    if (receiveData(rem_sock, &ret, sizeof(int), NULL, 1) == -1)
+    {
+        print_error("server: %s -> receiveData: %s", strerror(errno));
+        return -1;
+    }
+    print_neutral("server: %s -> client chose %d", rem_ip, ret);
+
+    bufsz = FILENAMESZ;
+    printf("to send: %s\n", (char*)get_listelem(&lis, ret-1));
+    if(sendData(rem_sock, get_listelem(&lis, ret-1), &bufsz, NULL, 1) == -1)
+    {
+        print_error("server: %s -> sendData: %s", strerror(errno));
+        return -1;
+    }
+
+    freeDynList(&lis);
+    return 0;
+}
+
+/************************************************************************/
+/*  I : socket file descriptor to which send the reply                  */
 /*      name of the file to transmit                                    */
 /*      IP address of the client                                        */
 /*  P : Handles the phase 2 of a request received from a client         */
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int ser_phase2(int rem_sock, char* filename, char* rem_ip)
+int ser_phase3(int rem_sock, char* filename, char* rem_ip)
 {
     unsigned char serialised[MAXDATASIZE] = {0};
     head_t header = {0, FILENAMESZ};
