@@ -3,7 +3,7 @@
 ** Library regrouping algorithmic-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 22/11/2019
+** Last modified : 26/11/2019
 */
 #include "algo.h"
 
@@ -22,12 +22,20 @@ dyndata_t* allocate_dyn(meta_t* meta, void* elem)
     //memory allocation for the dynamic element
     tmp = calloc(1, sizeof(dyndata_t));
     if(!tmp)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("allocate_dyn: element could not be allocated");
+
         return NULL;
+    }
 
     //memory allocation for the actual data
     tmp->data = calloc(1, meta->elementsize);
     if(!tmp->data)
     {
+        if(meta->doPError)
+            (*meta->doPError)("allocate_dyn: element data could not be allocated");
+
         free(tmp);
         return NULL;
     }
@@ -84,7 +92,12 @@ int swap_dyn(dyndata_t* a, dyndata_t* b)
 void* get_arrayelem(meta_t* meta, int i)
 {
     if(i >= meta->nbelements || i < 0)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("get_arrayelem: no element at the index %d", i);
+
         return NULL;
+    }
     else
         return meta->structure+(meta->elementsize * i);
 }
@@ -104,12 +117,22 @@ int listToArray(meta_t* dList, meta_t* dArray, e_listtoarray action){
 
     //check if the array doesn't exist
     if(dArray->structure)
+    {
+        if(dArray->doPError)
+            (*dArray->doPError)("listToArray: array is not NULL");
+
         return -1;
+    }
 
     //allocate the memory
     dArray->structure = calloc(dList->nbelements, dList->elementsize);
     if(!dArray)
+    {
+        if(dArray->doPError)
+            (*dArray->doPError)("listToArray: array could not be allocated");
+
         return -1;
+    }
 
     dArray->nbelements = dList->nbelements;
 
@@ -122,7 +145,11 @@ int listToArray(meta_t* dList, meta_t* dArray, e_listtoarray action){
 
         //if desired, free the freshly copied element
         if(action == REPLACE){
-            if(popListTop(dList) <0){
+            if(popListTop(dList) <0)
+            {
+                if(dList->doPError)
+                    (*dList->doPError)("listToArray: error while deleting list's head");
+
                 return -1;
             }
             tmp_list = dList->structure;
@@ -131,7 +158,6 @@ int listToArray(meta_t* dList, meta_t* dArray, e_listtoarray action){
             //increment the list pointer
             tmp_list = tmp_list->right;
         }
-
     }
 
     return 0;
@@ -148,10 +174,16 @@ int listToArray(meta_t* dList, meta_t* dArray, e_listtoarray action){
 /************************************************************/
 int arrayToList(meta_t* dArray, meta_t* dList, e_listtoarray action){
     //copy elements one by one in the list
-    for(int i=0 ; i<dArray->nbelements ; i++){
+    for(int i=0 ; i<dArray->nbelements ; i++)
+    {
         //insert in the list
         if(insertListSorted(dList,  get_arrayelem(dArray, i)) < 0)
+        {
+            if(dList->doPError)
+                (*dList->doPError)("arrayToList: error while inserting in the list");
+
             return -1;
+        }
     }
 
     //if desired, free the freshly copied element
@@ -208,7 +240,12 @@ int bubbleSortArray(meta_t *meta, int nb){
 
     //no meta data available
     if(!meta || !meta->doCompare)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("bubbleSortArray: array metadata or mandatory function not defined");
+
         return -1;
+    }
 
     //array is empty
     if(!meta->structure)
@@ -217,7 +254,12 @@ int bubbleSortArray(meta_t *meta, int nb){
     //allocate the size of a temporary element in order to allow swapping
     tmp = calloc(1, meta->elementsize);
     if(!tmp)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("bubbleSortArray: temporary buffer could not be allocated");
+
         return -1;
+    }
 
     for(int i=0 ; i<nb ; i++){
         for(int j=0 ; j<meta->nbelements-i-1 ; j++){
@@ -236,7 +278,6 @@ int bubbleSortArray(meta_t *meta, int nb){
     }
 
     free(tmp);
-
     return 0;
 }
 
@@ -254,7 +295,12 @@ int bubbleSortList(meta_t* meta, int nb){
 
     //no meta data available
     if(!meta || !meta->doCompare)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("bubbleSortList: list metadata or mandatory function not defined");
+
         return -1;
+    }
 
     //list is empty
     if(!meta->structure)
@@ -275,7 +321,12 @@ int bubbleSortList(meta_t* meta, int nb){
 
                 //swap addresses of the elements
                 if(swap_dyn(current, next) < 0)
+                {
+                    if(meta->doPError)
+                        (*meta->doPError)("bubbleSortList: error while swapping elements");
+
                     return -1;
+                }
                 swapped = 1;
             }
             //get to the next element
@@ -306,7 +357,12 @@ int quickSortPartitioning(meta_t* meta, long low, long high){
     //allocate the size of a temporary element in order to allow swapping
     tmp = calloc(1, meta->elementsize);
     if(!tmp)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("quickSortPartitioning: temporary buffer could not be allocated");
+
         return -1;
+    }
 
     //swap the elements until the pivot is at the right place
     //      with lower elements before, and higher ones after
@@ -330,7 +386,6 @@ int quickSortPartitioning(meta_t* meta, long low, long high){
     memcpy(elem_j, tmp, meta->elementsize);
 
     free(tmp);
-
     return(i+1);
 }
 
@@ -347,7 +402,12 @@ int quickSortArray(meta_t* meta, long low, long high){
 
     //no meta data available
     if(!meta || !meta->doCompare)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("quickSortArray: list metadata or mandatory function not defined");
+
         return -1;
+    }
 
     //list is empty
     if(!meta->structure)
@@ -357,9 +417,19 @@ int quickSortArray(meta_t* meta, long low, long high){
         pivot = quickSortPartitioning(meta, low, high);
 
         if(quickSortArray(meta, low, pivot-1) < 0)
+        {
+            if(meta->doPError)
+                (*meta->doPError)("quickSortArray: error while sorting the array below index %d", pivot-1);
+
             return -1;
+        }
         if(quickSortArray(meta, pivot+1, high) <0)
+        {
+            if(meta->doPError)
+                (*meta->doPError)("quickSortArray: error while sorting the array above index %d", pivot+1);
+
             return -1;
+        }
     }
 
     return 0;
@@ -415,7 +485,12 @@ void* get_listelem(meta_t* meta, int i)
     int index = 0;
 
     if(i<0 || i>=meta->nbelements)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("get_listelem: no element at index %d", i);
+
         return NULL;
+    }
 
     next = tmp->right;
     while(index<i)
@@ -440,10 +515,19 @@ int insertListTop(meta_t* meta, void *toAdd){
 
     //check if meta data available
     if(!meta || !toAdd)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("insertListTop: list metadata or mandatory function not defined");
+
         return -1;
+    }
 
     if((newElement = allocate_dyn(meta, toAdd)) == NULL)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("insertListTop: new element could not be allocated");
         return -1;
+    }
 
     //chain new element's previous pointer to list, if existing
     if(meta->structure){
@@ -478,10 +562,19 @@ int insertListBottom(meta_t* meta, void *toAdd){
 
     //check if meta data available
     if(!meta || !toAdd)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("insertListBottom: list metadata or mandatory function not defined");
+
         return -1;
+    }
 
     if((newElement = allocate_dyn(meta, toAdd)) == NULL)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("insertListBottom: new element could not be allocated");
         return -1;
+    }
 
     if(!meta->structure)
     {
@@ -522,7 +615,11 @@ int popListTop(meta_t* meta){
 
     //check if meta data available
     if(!meta)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("popListTop: list metadata not defined");
         return -1;
+    }
 
     //Structure is empty
     if(!meta->structure)
@@ -561,7 +658,12 @@ int insertListSorted(meta_t *meta, void* toAdd){
         return insertListTop(meta, toAdd);
 
     if((newElement = allocate_dyn(meta, toAdd)) == NULL)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("insertListSorted: new element could not be allocated");
+
         return -1;
+    }
 
     //walk through the list until the right place is found
     while(current!=NULL && (*meta->doCompare)(newElement->data,current->data)>0){
@@ -587,14 +689,20 @@ int insertListSorted(meta_t *meta, void* toAdd){
 /*  I : Dynamic list to free                                */
 /*      nullable variable (necessary for compatibility)     */
 /*  P : Frees the memory of a list and its data             */
-/*  O : /                                                   */
+/*  O :  0 if OK                                            */
+/*      -1 if error                                         */
 /************************************************************/
 int freeDynList(meta_t* meta)
 {
     dyndata_t *next = NULL, *current=NULL;
 
     if(!meta)
-        return 0;
+    {
+        if(meta->doPError)
+            (*meta->doPError)("freeDynList: list metadata not defined");
+
+        return -1;
+    }
 
     next = meta->structure;
 
@@ -620,7 +728,12 @@ int foreachList(meta_t* meta, void* parameter, int (*doAction)(void*, void*)){
     dyndata_t *next = NULL, *current=NULL;
 
     if(!meta || !doAction)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("foreachList: list metadata or mandatory function not defined");
+
         return -1;
+    }
 
     next = meta->structure;
 
@@ -628,7 +741,12 @@ int foreachList(meta_t* meta, void* parameter, int (*doAction)(void*, void*)){
         current = next;
         next = next->right;
         if((*doAction)(current->data, parameter) < 0)
+        {
+            if(meta->doPError)
+                (*meta->doPError)("foreachList: action specified returned with an error");
+
             return -1;
+        }
     }
 
     return 0;
@@ -650,7 +768,12 @@ int foreachArray(meta_t* meta, void* parameter, int (*doAction)(void*, void*)){
         tmp = get_arrayelem(meta, i);
         //execute action
         if((*doAction)(tmp, parameter) < 0)
+        {
+            if(meta->doPError)
+                (*meta->doPError)("foreachArray: action specified returned with an error");
+
             return -1;
+        }
     }
 
     return 0;
@@ -847,6 +970,11 @@ int foreachAVL(meta_t* meta, dyndata_t* avl, void* parameter, int (*doAction)(vo
 
         //perform action on root
         ret = (*doAction)(avl->data, parameter);
+        if(ret == -1)
+        {
+            if(meta->doPError)
+                (*meta->doPError)("foreachAVL: action specified returned with an error");
+        }
 
         //perform action on right child
         foreachAVL(meta, avl->right, parameter, doAction);

@@ -3,12 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 
 /*
-* NOTE :
+* NOTE about data structures:
 * when dealing with arrays, <meta_t>.structure can direcly be set with a previously generated array.
 * when dealing with AVL trees or dynamic lists, dyndata_t elements will be automatically generated,
 *       and are not to be handled by the user
+*
+* NOTE about error printing:
+* if doPError is set as NULL, error printing will be ignored
 */
 
 typedef struct dyndata_t dyndata_t;
@@ -27,6 +31,7 @@ typedef struct
     long    nbelements;                     //number of elements in the structure
     int     elementsize;                    //size of a core element (actual data without algorithmic overlay)
     int     (*doCompare)(void*, void*);     //comparison method
+    void    (*doPError)(char* msg, ...);    //error printing method (can be ignored if set as NULL)
 } meta_t;
 
 // variables to use in display_AVL_tree()
