@@ -4,7 +4,7 @@
 ** ------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 24/11/2019
+** Last modified : 29/11/2019
 */
 
 #include "network.h"
@@ -246,8 +246,6 @@ int sendData(int sockfd, void* buf, int* length, struct sockaddr_storage* client
             total += numbytes;
             bytesleft -= numbytes;
         }
-        else
-            numbytes = 0;
     }
 
     //update the total of bytes sent
