@@ -106,6 +106,7 @@ int cli_phase1(int sockfd)
     unsigned char serialised[MAXDATASIZE] = {0};
 	head_t header = {0};
 	int index = 1, bufsz = 0;
+	uint64_t size = 0, received = 0;
 
 	//wait for the header containing the data info
     if (receiveData(sockfd, serialised, sizeof(head_t), NULL, 1) == -1)
@@ -118,10 +119,11 @@ int cli_phase1(int sockfd)
     memset(&serialised, 0, sizeof(serialised));
 
     //unpack all the data sent by the server and store it in a linked list
-    for(int i=0 ; i<header.nbelem ; i++)
+    size = header.nbelem * header.szelem;
+    while(received < size)
     {
         //receive message from the server
-        if (receiveData(sockfd, buffer, header.szelem, NULL, 1) == -1)
+        if ((bufsz = receiveData(sockfd, buffer, header.szelem, NULL, 1)) == -1)
         {
             print_error("client: receiveData: %s", strerror(errno));
             return -1;
@@ -132,6 +134,7 @@ int cli_phase1(int sockfd)
 
         //clear the memory buffers
         memset(&buffer, 0, sizeof(serialised));
+        received += bufsz;
     }
 
     //prepare the reply header to be sent
@@ -161,6 +164,7 @@ int cli_phase2(int sockfd, char* filename)
 {
     char buffer[FILENAMESZ] = {0};
 	int bufsz = 0, choice = 0;
+	uint64_t received = 0, size = 0;
 
 	//collect the user's choice
     printf("Choose which file to download: ");
@@ -185,10 +189,15 @@ int cli_phase2(int sockfd, char* filename)
     }
 
     //receive the file name
-    if (receiveData(sockfd, filename, FILENAMESZ, NULL, 1) == -1)
+    size = FILENAMESZ;
+    while(received < size)
     {
-        print_error("client: receiveData: %s", strerror(errno));
-        return -1;
+        if ((bufsz = receiveData(sockfd, filename, FILENAMESZ, NULL, 1)) == -1)
+        {
+            print_error("client: receiveData: %s", strerror(errno));
+            return -1;
+        }
+        received += (uint64_t)bufsz;
     }
 
     printf("filename: %s\n", filename);
@@ -208,7 +217,7 @@ int cli_phase3(int sockfd, char* filename)
     char buffer[FILENAMESZ] = "0";
 	head_t header = {0};
 	int bufsz = 0, fd = 0, ret = 0;
-	uint64_t received = 0;
+	uint64_t received = 0, size = 0;
 
 	//open the soon to be file
 	//strcpy(buffer, "data/output.mp3");
@@ -230,7 +239,8 @@ int cli_phase3(int sockfd, char* filename)
     print_neutral("client: will receive %d elements of %d bytes", header.nbelem, header.szelem);
 
     //deserialise the packages and concatenate it in the file
-    while(received < header.szelem)
+    size = header.nbelem * header.szelem;
+    while(received < size)
     {
         //clear the buffer
         memset(&serialised, 0, sizeof(serialised));
