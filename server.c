@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 26/11/2019
+** Last modified : 06/12/2019
 */
 #include <dirent.h>
 #include "global.h"
@@ -151,7 +151,7 @@ int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip){
     DIR *d = NULL;
     struct dirent *dir = NULL;
     unsigned char serialised[MAXDATASIZE] = {0};
-    head_t header = {0, FILENAMESZ};
+    head_t header = {0, 0, FILENAMESZ};
     int bufsz = 0;
 
     //create a list with all the files in the directory
@@ -174,9 +174,10 @@ int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip){
     }
 
     //prepare and send the header with the data information
+    header.stype = SLIST;
     header.nbelem = lis->nbelements;
     print_neutral("server: %s -> sending %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
-    pack(serialised, HEAD_F, header.nbelem, header.szelem);
+    pack(serialised, HEAD_F, header.nbelem, header.stype, header.szelem);
     bufsz = sizeof(head_t);
 
     //send the header to the client
@@ -198,15 +199,17 @@ int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip){
     //reset the header and receive the client's reply
     memset(serialised, 0, sizeof(serialised));
     receiveData(rem_sock, serialised, sizeof(head_t), NULL, 1);
-    unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
+    unpack(serialised, HEAD_F, &header.nbelem, &header.stype, &header.szelem);
 
     //check if it matches the one sent by the client
-    if(header.nbelem != lis->nbelements || header.szelem != FILENAMESZ)
+    if(header.szelem != lis->nbelements*lis->elementsize)
     {
         print_error("server: %s -> client received %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
         freeDynList(lis);
         return -1;
     }
+    else
+        print_neutral("server: %s -> reply header matches up", rem_ip);
 
     return 0;
 }
@@ -222,7 +225,9 @@ int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip){
 int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip)
 {
     char filename[FILENAMESZ]={0}, fullpath[FILENAMESZ]={0};
+    unsigned char serialised[MAXDATASIZE] = {0};
     int choice=0, bufsz=0;
+    head_t header = {0};
 
     //receive the client's reply
     if (receiveData(rem_sock, &choice, sizeof(int), NULL, 1) == -1)
@@ -233,6 +238,22 @@ int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip)
     print_neutral("server: %s -> client chose %d", rem_ip, choice);
 
     strcpy(filename, (char*)get_listelem(lis, choice-1));
+
+    //prepare and send the header with the data information
+    header.stype = SSTRING;
+    header.nbelem = 1;
+    header.szelem = strlen(filename);
+    print_neutral("server: %s -> sending %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
+    pack(serialised, HEAD_F, header.nbelem, header.stype, header.szelem);
+    bufsz = sizeof(head_t);
+
+    //send the header to the client
+    if(sendData(rem_sock, serialised, &bufsz, NULL, 1) == -1)
+    {
+        print_error("server: %s -> sendData: %s", rem_ip, strerror(errno));
+        freeDynList(lis);
+        return -1;
+    }
 
     //translate the choice into a filename and send it back
     bufsz = FILENAMESZ;
@@ -261,7 +282,7 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
     unsigned char serialised[MAXDATASIZE] = {0};
     head_t header = {0, FILENAMESZ};
     int ret= 0, bufsz = 0, fd = 0;
-    uint64_t sent = 0;
+    uint64_t sent = 0, fsize = 0;
 
     //open the requested file
     if((fd = open(filename, O_RDONLY)) == -1)
@@ -269,12 +290,14 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
         print_error("server: %s -> open: %s", strerror(errno));
         return -1;
     }
-    header.szelem = lseek(fd, 0, SEEK_END);
+    fsize = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
 
     //prepare the header with the data information
+    header.szelem = fsize;
     header.nbelem = 1;
-    pack(serialised, HEAD_F, header.nbelem, header.szelem);
+    header.stype = SFILE;
+    pack(serialised, HEAD_F, header.nbelem, header.stype, header.szelem);
     bufsz = sizeof(head_t);
 
     //send the header
@@ -313,10 +336,10 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
     //receive the client's reply
     memset(serialised, 0, sizeof(serialised));
     receiveData(rem_sock, serialised, sizeof(head_t), NULL, 1);
-    unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
+    unpack(serialised, HEAD_F, &header.nbelem, &header.stype, &header.szelem);
 
     //check if it matches what was supposed to be received
-    if(header.nbelem == 1 && header.szelem == sent)
+    if(fsize == header.szelem)
     {
         print_neutral("server: %s -> acknowledge checks up", rem_ip);
         close(fd);

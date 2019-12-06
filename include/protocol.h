@@ -4,5 +4,19 @@
 #include "network.h"
 #include "serialisation.h"
 
+#define MAXDATASIZE 4096 // max number of bytes we can get at once
+#define HEAD_F      "LLQ"
+
+#define SLIST       0
+#define SFILE       1
+#define SSTRING     2
+
+typedef struct{
+    uint32_t nbelem;
+    uint32_t stype;
+    uint64_t szelem;
+}head_t;
+
+int prcv(int sockfd, void* structure);
 
 #endif // PROTOCOL_H_INCLUDED

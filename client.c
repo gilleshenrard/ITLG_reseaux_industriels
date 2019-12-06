@@ -4,7 +4,7 @@
 ** -------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 26/11/2019
+** Last modified : 06/12/2019
 */
 
 #include "global.h"
@@ -102,50 +102,10 @@ void sigalrm_handler(int s)
 int cli_phase1(int sockfd)
 {
     meta_t ds_list = {NULL, 0, FILENAMESZ, compare_dataset, print_error};
-    char buffer[FILENAME_MAX] = {0};
-    unsigned char serialised[MAXDATASIZE] = {0};
-	head_t header = {0};
-	int index = 1, bufsz = 0;
-	uint64_t size = 0, received = 0;
+	int index = 1;
 
-	//wait for the header containing the data info
-    if (receiveData(sockfd, serialised, sizeof(head_t), NULL, 1) == -1)
-    {
-        print_error("client: receiveData: %s", strerror(errno));
+	if(prcv(sockfd, &ds_list) == -1)
         return -1;
-    }
-    unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
-    print_neutral("client: will receive %d elements of %ld bytes", header.nbelem, header.szelem);
-    memset(&serialised, 0, sizeof(serialised));
-
-    //unpack all the data sent by the server and store it in a linked list
-    size = header.nbelem * header.szelem;
-    while(received < size)
-    {
-        //receive message from the server
-        if ((bufsz = receiveData(sockfd, buffer, header.szelem, NULL, 1)) == -1)
-        {
-            print_error("client: receiveData: %s", strerror(errno));
-            return -1;
-        }
-
-        //unpack the data and store it
-        insertListSorted(&ds_list, buffer);
-
-        //clear the memory buffers
-        memset(&buffer, 0, sizeof(serialised));
-        received += bufsz;
-    }
-
-    //prepare the reply header to be sent
-    header.nbelem = ds_list.nbelements;
-    header.szelem = ds_list.elementsize;
-    memset(serialised, 0, sizeof(serialised));
-    pack(serialised, HEAD_F, header.nbelem, header.szelem);
-    bufsz = sizeof(head_t);
-
-    //send it to the server
-    sendData(sockfd, serialised, &bufsz, NULL, 1);
 
     //display all elements in the list, then free it
     foreachList(&ds_list, &index, printdatasetnum);
@@ -164,7 +124,6 @@ int cli_phase2(int sockfd, char* filename)
 {
     char buffer[FILENAMESZ] = {0};
 	int bufsz = 0, choice = 0;
-	uint64_t received = 0, size = 0;
 
 	//collect the user's choice
     printf("Choose which file to download: ");
@@ -189,17 +148,7 @@ int cli_phase2(int sockfd, char* filename)
     }
 
     //receive the file name
-    size = FILENAMESZ;
-    while(received < size)
-    {
-        if ((bufsz = receiveData(sockfd, filename, FILENAMESZ, NULL, 1)) == -1)
-        {
-            print_error("client: receiveData: %s", strerror(errno));
-            return -1;
-        }
-        received += (uint64_t)bufsz;
-    }
-
+    prcv(sockfd, filename);
     printf("filename: %s\n", filename);
 
     return 0;
@@ -213,11 +162,8 @@ int cli_phase2(int sockfd, char* filename)
 /************************************************************************/
 int cli_phase3(int sockfd, char* filename)
 {
-    unsigned char serialised[MAXDATASIZE] = {0};
     char buffer[FILENAMESZ] = "0";
-	head_t header = {0};
-	int bufsz = 0, fd = 0, ret = 0;
-	uint64_t received = 0, size = 0;
+	int fd = 0;
 
 	//open the soon to be file
 	//strcpy(buffer, "data/output.mp3");
@@ -229,50 +175,7 @@ int cli_phase3(int sockfd, char* filename)
     }
     memset(buffer, 0, MAXDATASIZE);
 
-    //wait for the header of the file and deserialise it
-    if (receiveData(sockfd, serialised, sizeof(head_t), NULL, 1) == -1)
-    {
-        print_error("client: receiveData: %s", strerror(errno));
-        return -1;
-    }
-    unpack(serialised, HEAD_F, &header.nbelem, &header.szelem);
-    print_neutral("client: will receive %d elements of %d bytes", header.nbelem, header.szelem);
-
-    //deserialise the packages and concatenate it in the file
-    size = header.nbelem * header.szelem;
-    while(received < size)
-    {
-        //clear the buffer
-        memset(&serialised, 0, sizeof(serialised));
-
-        //receive a package from the server
-        if ((ret = receiveData(sockfd, serialised, MAXDATASIZE, NULL, 1)) == -1)
-        {
-            print_error("client: receiveData: %s", strerror(errno));
-            return -1;
-        }
-
-        //write it in the file
-        if((ret = write(fd, serialised, ret)) == -1)
-        {
-            print_error("client: write: %s", strerror(errno));
-            close(fd);
-            return -1;
-        }
-
-        received += ret;
-    }
-    close(fd);
-
-    //set the reply header values
-    header.nbelem = 1;
-    header.szelem = received;
-    memset(serialised, 0, sizeof(serialised));
-    pack(serialised, HEAD_F, header.nbelem, header.szelem);
-    bufsz = sizeof(head_t);
-
-    //send the reply header to the server
-    sendData(sockfd, serialised, &bufsz, NULL, 1);
+    prcv(sockfd, &fd);
 
     return 0;
 }
