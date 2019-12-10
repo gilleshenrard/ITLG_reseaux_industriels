@@ -6,39 +6,39 @@ cbin := bin
 #flags necessary to the compilation
 CC := gcc
 CFLAGS:= -fPIC -Wall -Werror -g -I$(chead)
-lib_f:= -lscreen -lnetwork -ldataset -lalgo -lserialisation -lprotocol
-lib_b:= $(clib)/libscreen.so $(clib)/libnetwork.so $(clib)/libdataset.so $(clib)/libalgo.so $(clib)/libserialisation.so $(clib)/libserialisation.so
+LFLAGS:= -lscreen -lnetwork -ldataset -lalgo -lserialisation -lprotocol
 
 
 #executables compilation
-client: client.c blib $(lib_b)
-	echo "Building client"
-	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
+client: client.c blib
+	@ echo "Building client"
+	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c $(LFLAGS) -Wl,-rpath,"$(ORIGIN)$(clib)"
 
-server: server.c blib $(lib_b)
-	echo "Builing server"
-	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c $(lib_f) -Wl,-rpath,"$(ORIGIN)$(clib)"
+server: server.c blib
+	@ echo "Builing server"
+	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c $(LFLAGS) -Wl,-rpath,"$(ORIGIN)$(clib)"
 
 test_algo: test_algo.c balgo $(clib)/libdataset.so $(clib)/libalgo.so
-	echo "Builing $@"
+	@ echo "Builing $@"
 	$(CC) $(CFLAGS) -L$(clib) -o $(cbin)/$@ $@.c -lalgo -ldataset -Wl,-rpath,"$(ORIGIN)$(clib)"
 
 
 .PHONY: blib
 blib:
-	$(MAKE) -f build.mk -C lib all
+	@ $(MAKE) -f build.mk -C$(clib) all
 
 .PHONY: balgo
 balgo:
-	$(MAKE) -f build.mk -C lib libalgo.so
-	$(MAKE) -f build.mk -C lib libdataset.so
+	@ $(MAKE) -f build.mk -C$(clib) libalgo.so
+	@ $(MAKE) -f build.mk -C$(clib) libdataset.so
 
 #overall functions
 all: client server
 
 .PHONY: clean
 clean:
-	rm -rf $(cbin)/*
-	$(MAKE) -f build.mk -C lib clean
+	@ echo "cleaning binaries"
+	@ rm -rf $(cbin)/*
+	@ $(MAKE) -f build.mk -C$(clib) clean
 
 
