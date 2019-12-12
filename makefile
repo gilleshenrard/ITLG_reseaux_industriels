@@ -12,15 +12,15 @@ LFLAGS:= -lscreen -lnetwork -ldataset -lalgo -lserialisation -lprotocol
 #executables compilation
 client: client.c blib
 	@ echo "Building client"
-	$(CC) $(CFLAGS) -L$(clib) -Wl,-rpath,"$(ORIGIN)$(clib)" -o $(cbin)/$@ $@.c $(LFLAGS)
+	$(CC) $(CFLAGS) -L$(clib) -Wl,-rpath,\$$ORIGIN/../lib -o $(cbin)/$@ $@.c $(LFLAGS)
 
 server: server.c blib
 	@ echo "Builing server"
-	$(CC) $(CFLAGS) -L$(clib) -Wl,-rpath,"$(ORIGIN)$(clib)" -o $(cbin)/$@ $@.c $(LFLAGS)
+	$(CC) $(CFLAGS) -L$(clib) -Wl,-rpath,\$$ORIGIN/../lib -o $(cbin)/$@ $@.c $(LFLAGS)
 
-test_algo: test_algo.c balgo $(clib)/libdataset.so $(clib)/libalgo.so
+test_algo: test_algo.c balgo
 	@ echo "Builing $@"
-	$(CC) $(CFLAGS) -L$(clib) -Wl,-rpath,"$(ORIGIN)$(clib)" -o $(cbin)/$@ $@.c -lalgo -ldataset
+	$(CC) $(CFLAGS) -L$(clib) -Wl,-rpath,\$$ORIGIN/../lib -o $(cbin)/$@ $@.c -lalgo -ldataset
 
 
 .PHONY: blib
