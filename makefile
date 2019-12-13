@@ -7,20 +7,21 @@ cbin := bin
 CC := gcc
 CFLAGS:= -fPIC -Wall -Werror -g -I$(chead)
 LFLAGS:= -lscreen -lnetwork -ldataset -lalgo -lserialisation -lprotocol
+LDFLAGS:= -Wl,--disable-new-dtags -Wl,-rpath,\$$ORIGIN/../lib
 
 
 #executables compilation
 client: client.c blib
 	@ echo "Building client"
-	$(CC) $(CFLAGS) -L$(clib) -Wl,-rpath,\$$ORIGIN/../lib -o $(cbin)/$@ $@.c $(LFLAGS)
+	$(CC) $(CFLAGS) -L$(clib) $(LDFLAGS) -o $(cbin)/$@ $@.c $(LFLAGS)
 
 server: server.c blib
 	@ echo "Builing server"
-	$(CC) $(CFLAGS) -L$(clib) -Wl,-rpath,\$$ORIGIN/../lib -o $(cbin)/$@ $@.c $(LFLAGS)
+	$(CC) $(CFLAGS) -L$(clib) $(LDFLAGS) -o $(cbin)/$@ $@.c $(LFLAGS)
 
 test_algo: test_algo.c balgo
 	@ echo "Builing $@"
-	$(CC) $(CFLAGS) -L$(clib) -Wl,-rpath,\$$ORIGIN/../lib -o $(cbin)/$@ $@.c -lalgo -ldataset
+	$(CC) $(CFLAGS) -L$(clib) $(LDFLAGS) -o $(cbin)/$@ $@.c -lalgo -ldataset
 
 
 .PHONY: blib
