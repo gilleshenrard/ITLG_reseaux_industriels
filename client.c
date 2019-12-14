@@ -97,7 +97,7 @@ void sigalrm_handler(int s)
 
 /************************************************************************/
 /*  I : client socket file descriptor                                   */
-/*  P : Handle the phase 1 of a request to the server                   */
+/*  P : Handle the phase 1: receiving the file list from the server     */
 /*  O : 0 if ok                                                         */
 /*      -1 otherwise                                                    */
 /************************************************************************/
@@ -118,7 +118,9 @@ int cli_phase1(int sockfd)
 
 /************************************************************************/
 /*  I : client socket file descriptor                                   */
-/*  P : Handle the phase 1 of a request to the server                   */
+/*      name of the file to choose in the list sent by the server       */
+/*  P : Handle the phase 2: send the choice to the server               */
+/*          and receive filename chosen                                 */
 /*  O : 0 if ok                                                         */
 /*      -1 otherwise                                                    */
 /************************************************************************/
@@ -158,7 +160,8 @@ int cli_phase2(int sockfd, char* filename)
 
 /************************************************************************/
 /*  I : client socket file descriptor                                   */
-/*  P : Handle the phase 2 of a request to the server                   */
+/*      name of the file to choose in the list sent by the server       */
+/*  P : Handle the phase 3: receive the file sent by the server         */
 /*  O : 0 if ok                                                         */
 /*      -1 otherwise                                                    */
 /************************************************************************/
