@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
         close(sockfd);
         exit(EXIT_FAILURE);
     }
+    print_success("client: file %s received", filename);
 
 	close(sockfd);
 	exit(EXIT_SUCCESS);
@@ -173,9 +174,10 @@ int cli_phase3(int sockfd, char* filename)
         print_error("client: open: %s", strerror(errno));
         return -1;
     }
-    memset(buffer, 0, MAXDATASIZE);
+    memset(buffer, 0, FILENAMESZ);
 
     prcv(sockfd, &fd);
 
+    close(fd);
     return 0;
 }
