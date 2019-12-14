@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 06/12/2019
+** Last modified : 14/12/2019
 */
 #include <dirent.h>
 #include "global.h"
@@ -16,26 +16,48 @@
 #include "protocol.h"
 
 void sigchld_handler(int s);
-int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip);
+int ser_phase1(int rem_sock, meta_t* lis, char* rem_ip);
 int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip);
 int ser_phase3(int rem_sock, char* filename, char* rem_ip);
 int sendstring(void* pkg, void* sockfd);
 
 int main(int argc, char *argv[])
 {
+    DIR *d = NULL;
+    struct dirent *dir = NULL;
     meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset, print_error};
 	int loc_socket=0, rem_socket=0;
 	struct sigaction sa;
-	char s[INET6_ADDRSTRLEN]="0", dir[FILENAMESZ]="0";
+	char s[INET6_ADDRSTRLEN]="0", dirname[FILENAMESZ]="0";
 
-	//checks if the port number has been provided
+	//checks if the port number and directory path has been provided
 	if (argc!=3)
 	{
-		print_error("usage: server port <directory name>");
+		print_error("usage: server port [directory name]");
 		exit(EXIT_FAILURE);
 	}
 
-	strcpy(dir, argv[2]);
+    //create a list with all the files in the directory
+    if((d = opendir(argv[2])) != NULL)
+    {
+        while ((dir = readdir(d)) != NULL)
+        {
+            if(insertListSorted(&lis, dir->d_name) == -1)
+            {
+                print_error("server: insertlistbottom: error");
+                exit(EXIT_FAILURE);
+            }
+        }
+        closedir(d);
+    }
+    else
+    {
+        print_error("server: opendir %s: %s", dirname, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    //copy the directory path in a buffer
+	strcpy(dirname, argv[2]);
 
 	//prepare main process for SIGCHLD signals
 	sa.sa_handler = sigchld_handler;
@@ -80,16 +102,16 @@ int main(int argc, char *argv[])
 
                 print_neutral("server: %s -> processing request", s);
 
-                //process the request (remote socket if TCP, local socket if UDP)
-                if(ser_phase1(rem_socket, dir, &lis, s) == -1)
+                //process the phase 1 : sending the files list to the client
+                if(ser_phase1(rem_socket, &lis, s) == -1)
                 {
                     print_error("server: phase1: unable to process the request from %s", s);
                     close(rem_socket);
                     exit(EXIT_FAILURE);
                 }
 
-                //process the request (remote socket if TCP, local socket if UDP)
-                if(ser_phase2(rem_socket, dir, &lis, s) == -1)
+                //process the phase 2 : receiving the client's choice (update dirname)
+                if(ser_phase2(rem_socket, dirname, &lis, s) == -1)
                 {
                     print_error("server: phase2: unable to process the request from %s", s);
                     close(rem_socket);
@@ -99,8 +121,8 @@ int main(int argc, char *argv[])
                 //the list is not needed anymore
                 freeDynList(&lis);
 
-                //process the request (remote socket if TCP, local socket if UDP)
-                if(ser_phase3(rem_socket, dir, s) == -1)
+                //process the phase 3 : sending the file chosen by the client
+                if(ser_phase3(rem_socket, dirname, s) == -1)
                 {
                     print_error("server: phase3: unable to process the request from %s", s);
                     close(rem_socket);
@@ -141,37 +163,17 @@ void sigchld_handler(int s)
 
 /************************************************************************/
 /*  I : socket file descriptor to which send the reply                  */
-/*      name of the directory to list                                   */
+/*      list of the files in te directoty set in program argument       */
 /*      IP address of the client                                        */
-/*  P : Handles the phase 1 of a request received from a client         */
+/*  P : Handles the phase 1: send the files list to the client          */
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
-int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip){
-    DIR *d = NULL;
-    struct dirent *dir = NULL;
+int ser_phase1(int rem_sock, meta_t* lis, char* rem_ip)
+{
     unsigned char serialised[MAXDATASIZE] = {0};
     head_t header = {0, 0, FILENAMESZ};
     int bufsz = 0;
-
-    //create a list with all the files in the directory
-    if((d = opendir(dirname)) != NULL)
-    {
-        while ((dir = readdir(d)) != NULL)
-        {
-            if(insertListSorted(lis, dir->d_name) == -1)
-            {
-                print_error("server: %s -> insertlistbottom: error", rem_ip);
-                return -1;
-            }
-        }
-        closedir(d);
-    }
-    else
-    {
-        print_error("server: %s -> opendir %s: %s", rem_ip, dirname, strerror(errno));
-        return -1;
-    }
 
     //prepare and send the header with the data information
     header.stype = SLIST;
@@ -216,9 +218,11 @@ int ser_phase1(int rem_sock, char* dirname, meta_t* lis, char* rem_ip){
 
 /************************************************************************/
 /*  I : socket file descriptor to which send the reply                  */
-/*      name of the directory to list                                   */
+/*      name of the file chosen by the client                           */
+/*      list of files in the directory set in program argument          */
 /*      IP address of the client                                        */
-/*  P : Handles the phase 1 of a request received from a client         */
+/*  P : Handles the phase 2: wait for the client's choice and update    */
+/*          the full path of the file to send                           */
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/
@@ -237,6 +241,7 @@ int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip)
     }
     print_neutral("server: %s -> client chose %d", rem_ip, choice);
 
+    //interpret the choice number to a filename
     strcpy(filename, (char*)get_listelem(lis, choice-1));
 
     //prepare and send the header with the data information
@@ -255,7 +260,7 @@ int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip)
         return -1;
     }
 
-    //translate the choice into a filename and send it back
+    //send the choice interpreted
     bufsz = FILENAMESZ;
     if(sendData(rem_sock, filename, &bufsz, NULL, 1) == -1)
     {
@@ -263,6 +268,7 @@ int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip)
         return -1;
     }
 
+    //update the full path
     sprintf(fullpath, "%s/%s", dirname, filename);
     memcpy(dirname, fullpath, FILENAMESZ);
 
@@ -273,7 +279,7 @@ int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip)
 /*  I : socket file descriptor to which send the reply                  */
 /*      name of the file to transmit                                    */
 /*      IP address of the client                                        */
-/*  P : Handles the phase 2 of a request received from a client         */
+/*  P : Handles the phase 3: sending the file to the client             */
 /*  O : -1 on error                                                     */
 /*       0 otherwise                                                    */
 /************************************************************************/

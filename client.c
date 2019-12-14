@@ -4,7 +4,7 @@
 ** -------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 06/12/2019
+** Last modified : 14/12/2019
 */
 
 #include "global.h"
@@ -78,6 +78,8 @@ int main(int argc, char *argv[])
         close(sockfd);
         exit(EXIT_FAILURE);
     }
+
+    print_success("client: file %s received", filename);
 
 	close(sockfd);
 	exit(EXIT_SUCCESS);
@@ -173,9 +175,10 @@ int cli_phase3(int sockfd, char* filename)
         print_error("client: open: %s", strerror(errno));
         return -1;
     }
-    memset(buffer, 0, MAXDATASIZE);
+    memset(buffer, 0, sizeof(buffer));
 
     prcv(sockfd, &fd);
 
+    close(fd);
     return 0;
 }
