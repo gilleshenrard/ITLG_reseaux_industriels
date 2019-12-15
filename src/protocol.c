@@ -26,8 +26,8 @@ int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...))
     unsigned char serialised[MAXDATASIZE] = {0};
     char buffer[MAXDATASIZE] = {0};
 	head_t header = {0};
-	meta_t* lis = NULL;
-	int ret = 0, *fd = NULL;
+	meta_t* lis = (meta_t*)structure;
+	int ret = 0, *fd = (int*)structure;
 	uint64_t received = 0, size = 0;
 
 	//wait for the header containing the data info
@@ -57,7 +57,6 @@ int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...))
         switch(header.stype)
         {
             case SLIST: // receive a list
-                lis = (meta_t*)structure;
                 if(insertListSorted(lis, buffer) == -1)
                 {
                     if(doPrint)
@@ -68,8 +67,7 @@ int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...))
                 break;
 
             case SFILE: // receive a file
-                fd = (int*)structure;
-                if(write(*fd, serialised, ret) != ret)
+                if(write(*fd, buffer, ret) != ret)
                 {
                     if(doPrint)
                         (*doPrint)("prcv: writing in the file: %s", strerror(errno));
