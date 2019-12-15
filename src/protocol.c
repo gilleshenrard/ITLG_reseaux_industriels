@@ -144,10 +144,7 @@ int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,vo
             lis = (meta_t*)structure;
             //send the whole list to the client
             if(foreachList(lis, &sockfd, doSendList) == -1)
-            {
-                freeDynList(lis);
                 return -1;
-            }
             break;
 
         case SSTRING:
