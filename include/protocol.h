@@ -17,7 +17,7 @@ typedef struct{
     uint64_t szelem;
 }head_t;
 
-int prcv(int sockfd, void* structure);
-int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,void*));
+int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...));
+int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,void*), void (*doPrint)(char*, ...));
 
 #endif // PROTOCOL_H_INCLUDED

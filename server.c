@@ -177,7 +177,7 @@ int ser_phase1(int rem_sock, meta_t* lis, char* rem_ip)
     header.stype = SLIST;
     header.nbelem = lis->nbelements;
     print_neutral("server: %s -> sending %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
-    if(psnd(rem_sock, lis, &header, sendstring) == -1)
+    if(psnd(rem_sock, lis, &header, sendstring, print_error) == -1)
     {
         print_error("server: %s -> error while sending the list to the client", rem_ip);
         return -1;
@@ -218,7 +218,7 @@ int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip)
     header.nbelem = 1;
     header.szelem = strlen(filename);
     print_neutral("server: %s -> sending %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
-    if(psnd(rem_sock, filename, &header, NULL) == -1)
+    if(psnd(rem_sock, filename, &header, NULL, print_error) == -1)
     {
         print_error("server: %s -> error while sending the filename to the client", rem_ip);
         return -1;
@@ -259,7 +259,7 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
     header.nbelem = 1;
     header.stype = SFILE;
     print_neutral("server: %s -> sending %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
-    if(psnd(rem_sock, &fd, &header, NULL))
+    if(psnd(rem_sock, &fd, &header, NULL, print_error))
     {
         print_error("server: %s -> error while sending the file to the client", rem_ip);
         return -1;

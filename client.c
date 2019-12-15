@@ -106,7 +106,7 @@ int cli_phase1(int sockfd)
     meta_t ds_list = {NULL, 0, FILENAMESZ, compare_dataset, print_error};
 	int index = 1;
 
-	if(prcv(sockfd, &ds_list) == -1)
+	if(prcv(sockfd, &ds_list, print_error) == -1)
         return -1;
 
     //display all elements in the list, then free it
@@ -152,7 +152,7 @@ int cli_phase2(int sockfd, char* filename)
     }
 
     //receive the file name
-    prcv(sockfd, filename);
+    prcv(sockfd, filename, print_error);
     printf("filename: %s\n", filename);
 
     return 0;
@@ -180,7 +180,7 @@ int cli_phase3(int sockfd, char* filename)
     }
     memset(buffer, 0, sizeof(buffer));
 
-    prcv(sockfd, &fd);
+    prcv(sockfd, &fd, print_error);
 
     close(fd);
     return 0;
