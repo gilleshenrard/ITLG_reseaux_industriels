@@ -136,7 +136,6 @@ int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,vo
                 //wipe the buffer
                 memset(serialised, 0, sizeof(serialised));
                 sent += ret;
-                printf("sent: %ld bytes\n", sent);
             }
             break;
 
@@ -145,6 +144,8 @@ int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,vo
             //send the whole list to the client
             if(foreachList(lis, &sockfd, doSendList) == -1)
                 return -1;
+
+            size = lis->nbelements * lis->elementsize;
             break;
 
         case SSTRING:
@@ -152,6 +153,7 @@ int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,vo
             if(sendData(sockfd, buffer, (int*)&header->szelem, NULL, 1) == -1)
                 return -1;
 
+            size = strlen(buffer);
             break;
     }
 
