@@ -259,7 +259,7 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
     header.nbelem = 1;
     header.stype = SFILE;
     print_neutral("server: %s -> sending %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
-    if(psnd(rem_sock, &fd, &header, NULL, print_error))
+    if(psnd(rem_sock, &fd, &header, NULL, print_error) == -1)
     {
         print_error("server: %s -> error while sending the file to the client", rem_ip);
         return -1;
