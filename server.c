@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
                 {
                     print_error("server: phase1: unable to process the request from %s", s);
                     close(rem_socket);
+                    freeDynList(&lis);
                     exit(EXIT_FAILURE);
                 }
 
@@ -115,6 +116,7 @@ int main(int argc, char *argv[])
                 {
                     print_error("server: phase2: unable to process the request from %s", s);
                     close(rem_socket);
+                    freeDynList(&lis);
                     exit(EXIT_FAILURE);
                 }
 
@@ -262,9 +264,11 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
     if(psnd(rem_sock, &fd, &header, NULL, print_error) == -1)
     {
         print_error("server: %s -> error while sending the file to the client", rem_ip);
+        close(fd);
         return -1;
     }
 
+    close(fd);
     return 0;
 }
 
