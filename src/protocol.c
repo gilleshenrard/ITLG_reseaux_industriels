@@ -58,19 +58,23 @@ int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...))
         {
             case SLIST: // receive a list
                 lis = (meta_t*)structure;
-                if((ret = insertListSorted(lis, buffer)) == -1)
+                if(insertListSorted(lis, buffer) == -1)
                 {
                     if(doPrint)
                         (*doPrint)("prcv: error while inserting data in the list");
+
+                    ret = -1;
                 }
                 break;
 
             case SFILE: // receive a file
                 fd = (int*)structure;
-                if((ret = write(*fd, serialised, ret)) == -1)
+                if(write(*fd, serialised, ret) != ret)
                 {
                     if(doPrint)
                         (*doPrint)("prcv: writing in the file: %s", strerror(errno));
+
+                    ret = -1;
                 }
                 break;
 
@@ -158,10 +162,13 @@ int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,vo
                 }
 
                 //send the data
-                if(ret!=-1 && (ret = sendData(sockfd, serialised, &ret, NULL, 1)) == -1)
+                if(ret != -1)
                 {
-                    if(doPrint)
-                        (*doPrint)("psnd: error while sending the file");
+                    if((ret = sendData(sockfd, serialised, &ret, NULL, 1)) == -1)
+                    {
+                        if(doPrint)
+                            (*doPrint)("psnd: error while sending the file");
+                    }
                 }
 
                 //wipe the buffer and update the amount of bytes sent
