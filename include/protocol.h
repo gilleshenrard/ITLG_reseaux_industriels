@@ -18,5 +18,6 @@ typedef struct{
 }head_t;
 
 int prcv(int sockfd, void* structure);
+int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,void*));
 
 #endif // PROTOCOL_H_INCLUDED
