@@ -1,13 +1,13 @@
 # Reseaux Industriels
-## Exercice 3 - Custom Protocol
+## Dossier 1 - Pseudo-FTP + Custom Protocol
 ---
 ### 1. Intro
-This assignment aims to learn the basics of sockets programmation in C on UNIX-based systems by creating a custom data transmission protocol.
+This assignment aims to learn the basics of sockets programmation in C on UNIX-based systems by creating basic FTP transmission based on custom data transmission protocol.
 Two executables are created (client and server) and both will use TCP transmission.
 
 Use :
 ```shell
-./server port
+./server port path
 ./client host port
 ```
 
@@ -36,27 +36,37 @@ int freeDynList(meta_t* meta);
 int foreachList(meta_t*, void*, int (*doAction)(void*, void*));
 ```
 
+* Protocol functions :
+```C
+int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...));
+int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,void*), void (*doPrint)(char*, ...));
+```
+
 A bash script [tests.sh](https://github.com/gilleshenrard/ITLG_reseaux_industriels/blob/master/tests.sh) has been made to execute and test possible errors
 
 ### 3. Protocol
-At any connection via TCP on the port 3490, the server will send :
-* A data header containing the metadata of the round of packages to be sent (serialised)
+#### a. Header structure
+A structure defining a transmission header is defined as such :
 
 |  name  |  type    |             use               |
 |:------:|:--------:|:-----------------------------:|
 | nbelem | uint32_t | Number of packages to be sent |
-| szelem | uint32_t | Size of each package          |
+| stype  | uint32_t | Type of the structure sent    |
+| szelem | uint64_t | Size of each package          |
 
-* The round of packages (serialised)
+#### b. Transmission functioning
+- The sender will prepare a header and send it to the receiver
+- The data is then serialised by the sender and deserialised by the receiver
+- The receiver then prepares a header with the amount of bytes received,
+    and sends it to the sender for acknowledgement
+- The sender then compares the amount to be received and the one actually
+    received
 
-The client will then deserialise the packages and add the data to a linked list, then display it
-For now, the packages consist of
-
-|  name  |  type    |             use               |
-|:------:|:--------:|:-----------------------------:|
-|   id   | uint32_t | ID of the package             |
-|  type  | char[32] | Message contained by the pkg  |
-| price  |   float  | Float value (multiple of Pi)  |
+#### c. Data structures currently implemented
+Currently, the protocol is up and running for:
+- Strings
+- Binary files
+- Linked lists
 
 ### 4. Currently implemented in the final assignment
 * Server
@@ -66,9 +76,12 @@ For now, the packages consist of
 * Algorithmic-related functions
 * Dataset-related functions
 * Serialisation
+* Protocol-related functions
 
 ### 5. To Do
 * improve signals handling
 
 ### 6. Known issues
-n/a
+* RPATH had to be forced in lib/build.mk because libserialisation.so wasn't found at runtime of bin/client
+* On client's side, lists sent by the server don't always come up as they should (blank spaces as first elements, incomplete elements, ...)
+* When trying to send a big file (*.mp3), client gets a segmentation fault error
