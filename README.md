@@ -84,4 +84,3 @@ Currently, the protocol is up and running for:
 ### 6. Known issues
 * RPATH had to be forced in lib/build.mk because libserialisation.so wasn't found at runtime of bin/client
 * On client's side, lists sent by the server don't always come up as they should (blank spaces as first elements, incomplete elements, ...)
-* When trying to send a big file (*.mp3), client gets a segmentation fault error
