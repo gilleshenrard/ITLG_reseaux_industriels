@@ -27,7 +27,7 @@ int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...))
     char buffer[MAXDATASIZE] = {0};
 	head_t header = {0};
 	meta_t* lis = NULL;
-	int ret = 0, *fd = NULL;
+	int ret = 1, *fd = NULL;
 	uint64_t received = 0, size = 0;
 
 	//wait for the header containing the data info
@@ -44,7 +44,7 @@ int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...))
 
     //unpack all the data sent by the sender and store it in the right structure
     size = header.nbelem * header.szelem;
-    while(received < size && ret != -1)
+    while(received < size && ret > 0)
     {
         //receive package from the sender
         if ((ret = receiveData(sockfd, buffer, header.szelem, NULL, 1)) == -1)
@@ -154,7 +154,7 @@ int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,vo
         case SFILE: // send a file
             fd = (int*)structure;
             size = header->nbelem * header->szelem;
-            while(sent < size && ret != -1)
+            while(sent < size && ret > 0)
             {
                 if((ret = read(*fd, serialised, sizeof(serialised))) == -1)
                 {
