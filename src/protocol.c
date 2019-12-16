@@ -47,7 +47,7 @@ int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...))
     while(received < size && ret > 0)
     {
         //receive package from the sender
-        if ((ret = receiveData(sockfd, buffer, header.szelem, NULL, 1)) == -1)
+        if ((ret = receiveData(sockfd, buffer, (header.szelem < sizeof(buffer) ? header.szelem : sizeof(buffer)), NULL, 1)) == -1)
         {
             if(doPrint)
                 (*doPrint)("prcv: error while receiving the data");
@@ -91,7 +91,6 @@ int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...))
             //clear the memory buffers
             memset(&buffer, 0, sizeof(buffer));
             received += ret;
-            printf("received: %ld\n", received);
         }
     }
 
