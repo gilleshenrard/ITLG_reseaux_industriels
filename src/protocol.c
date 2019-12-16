@@ -3,7 +3,7 @@
 ** Library regrouping protocol-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 15/12/2019
+** Last modified : 16/12/2019
 */
 #include "protocol.h"
 
