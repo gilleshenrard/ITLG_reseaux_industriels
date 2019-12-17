@@ -89,9 +89,9 @@ int swap_dyn(dyndata_t* a, dyndata_t* b)
 /*  P : Returns the element located at i in the array       */
 /*  O : /                                                   */
 /************************************************************/
-void* get_arrayelem(meta_t* meta, int i)
+void* get_arrayelem(meta_t* meta, uint64_t i)
 {
-    if(i >= meta->nbelements || i < 0)
+    if(i >= meta->nbelements)
     {
         if(meta->doPError)
             (*meta->doPError)("get_arrayelem: no element at the index %d", i);
@@ -138,7 +138,7 @@ int listToArray(meta_t* dList, meta_t* dArray, e_listtoarray action){
 
     //copy elements one by one in the array
     tmp_list = dList->structure;
-    for(int i=0 ; i<dArray->nbelements ; i++){
+    for(uint64_t i=0 ; i<dArray->nbelements ; i++){
         //position the pointer properly
         tmp_array = get_arrayelem(dArray, i);
         memcpy(tmp_array, tmp_list->data, dList->elementsize);
@@ -174,7 +174,7 @@ int listToArray(meta_t* dList, meta_t* dArray, e_listtoarray action){
 /************************************************************/
 int arrayToList(meta_t* dArray, meta_t* dList, e_listtoarray action){
     //copy elements one by one in the list
-    for(int i=0 ; i<dArray->nbelements ; i++)
+    for(uint64_t i=0 ; i<dArray->nbelements ; i++)
     {
         //insert in the list
         if(insertListSorted(dList,  get_arrayelem(dArray, i)) < 0)
@@ -210,7 +210,7 @@ int arrayToAVL(meta_t* dArray, meta_t* dAVL, e_listtoarray action){
     dyndata_t* tmp_array = dArray->structure;
 
     //copy elements one by one in the list
-    for(int i=0 ; i<dArray->nbelements ; i++){
+    for(uint64_t i=0 ; i<dArray->nbelements ; i++){
         tmp_array = get_arrayelem(dArray, i);
         //insert in the AVL
         dAVL->structure = insertAVL(dAVL, dAVL->structure, tmp_array);
@@ -234,7 +234,7 @@ int arrayToAVL(meta_t* dArray, meta_t* dAVL, e_listtoarray action){
 /*  O :  0 -> Sorted                                        */
 /*      -1 -> Error                                         */
 /************************************************************/
-int bubbleSortArray(meta_t *meta, int nb){
+int bubbleSortArray(meta_t *meta, uint64_t nb){
     void *current=NULL, *next=NULL;
     void* tmp = NULL;
 
@@ -243,6 +243,14 @@ int bubbleSortArray(meta_t *meta, int nb){
     {
         if(meta->doPError)
             (*meta->doPError)("bubbleSortArray: array metadata or mandatory function not defined");
+
+        return -1;
+    }
+
+    if(nb > meta->nbelements)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("bubbleSortArray: wrong number of elements to bubble out : %ld", nb);
 
         return -1;
     }
@@ -261,8 +269,8 @@ int bubbleSortArray(meta_t *meta, int nb){
         return -1;
     }
 
-    for(int i=0 ; i<nb ; i++){
-        for(int j=0 ; j<meta->nbelements-i-1 ; j++){
+    for(uint64_t i=0 ; i<nb ; i++){
+        for(uint64_t j=0 ; j<meta->nbelements-i-1 ; j++){
             //properly place the cursors
             current = get_arrayelem(meta, j);
             next = get_arrayelem(meta, j+1);
@@ -289,15 +297,24 @@ int bubbleSortArray(meta_t *meta, int nb){
 /*  O :  0 -> Sorted                                        */
 /*      -1 -> Error                                         */
 /************************************************************/
-int bubbleSortList(meta_t* meta, int nb){
+int bubbleSortList(meta_t* meta, uint64_t nb){
     dyndata_t *current=NULL, *next=NULL, *right_ptr=NULL;
-    int swapped, count = 0;
+    int swapped;
+    uint64_t count = 0;
 
     //no meta data available
     if(!meta || !meta->doCompare)
     {
         if(meta->doPError)
             (*meta->doPError)("bubbleSortList: list metadata or mandatory function not defined");
+
+        return -1;
+    }
+
+    if(nb > meta->nbelements)
+    {
+        if(meta->doPError)
+            (*meta->doPError)("bubbleSortList: wrong number of elements to bubble out : %ld", nb);
 
         return -1;
     }
@@ -350,9 +367,9 @@ int bubbleSortList(meta_t* meta, int nb){
 /************************************************************/
 /*  WARNING : is solely to be used by the quick sort func.! */
 /************************************************************/
-int quickSortPartitioning(meta_t* meta, long low, long high){
+int quickSortPartitioning(meta_t* meta, uint64_t low, uint64_t high){
     void* pivot = get_arrayelem(meta, high), *elem_i=NULL, *elem_j=NULL, *tmp = NULL;
-    int i = low-1;
+    uint64_t i = low-1;
 
     //allocate the size of a temporary element in order to allow swapping
     tmp = calloc(1, meta->elementsize);
@@ -366,7 +383,7 @@ int quickSortPartitioning(meta_t* meta, long low, long high){
 
     //swap the elements until the pivot is at the right place
     //      with lower elements before, and higher ones after
-    for(int j=low ; j<=high-1 ; j++){
+    for(uint64_t j=low ; j<=high-1 ; j++){
         elem_j = get_arrayelem(meta, j);
         if((*meta->doCompare)(elem_j, pivot) <= 0){
             i++;
@@ -397,8 +414,8 @@ int quickSortPartitioning(meta_t* meta, long low, long high){
 /*  O :  0 -> Sorted                                        */
 /*      -1 -> Error                                         */
 /************************************************************/
-int quickSortArray(meta_t* meta, long low, long high){
-    int pivot=0;
+int quickSortArray(meta_t* meta, uint64_t low, uint64_t high){
+    uint64_t pivot=0;
 
     //no meta data available
     if(!meta || !meta->doCompare)
@@ -438,12 +455,14 @@ int quickSortArray(meta_t* meta, long low, long high){
 /************************************************************/
 /*  I : Meta data necessary to the algorithm                */
 /*      Element to search                                   */
+/*      Scope of the search (any occurrence or the 1st one) */
 /*  P : Searches the key using the Binary search algorithm  */
 /*  O : -1  -> Not found                                    */
 /*     >= 0 -> Index of the first occurence in the array    */
 /************************************************************/
 int binarySearchArray(meta_t *meta, void* toSearch, e_search scope){
-    int i=0, j=meta->nbelements-1, m=0, index=-1;
+    uint64_t i=0, j=meta->nbelements-1, m=0;
+    int index = -1;
     void *current = NULL;
 
     while(i<=j)
@@ -479,10 +498,10 @@ int binarySearchArray(meta_t *meta, void* toSearch, e_search scope){
 /*  O : Element if found                                    */
 /*      NULL otherwise                                      */
 /************************************************************/
-void* get_listelem(meta_t* meta, int i)
+void* get_listelem(meta_t* meta, uint64_t i)
 {
     dyndata_t *tmp = meta->structure, *next = NULL;
-    int index = 0;
+    uint64_t index = 0;
 
     if(i<0 || i>=meta->nbelements)
     {
@@ -763,7 +782,7 @@ int foreachList(meta_t* meta, void* parameter, int (*doAction)(void*, void*)){
 int foreachArray(meta_t* meta, void* parameter, int (*doAction)(void*, void*)){
     void* tmp = NULL;
 
-    for(int i=0 ; i<meta->nbelements ; i++){
+    for(uint64_t i=0 ; i<meta->nbelements ; i++){
         //position the pointer properly
         tmp = get_arrayelem(meta, i);
         //execute action
@@ -878,7 +897,7 @@ void display_AVL_tree(meta_t* meta, dyndata_t* avl, char dir, char* (*toString)(
         display_AVL_tree(meta, avl->right, 'R', toString);
 
         nbc_pad = LG_MAX - (3 * offset) - strlen((*toString)(avl->data));
-        for (int i=0;i<nbc_pad;i++)
+        for (uint64_t i=0;i<nbc_pad;i++)
             strcat(tmp,".");
         strcat(tmp,(*toString)(avl->data));
         printf("%*c%c %s  (H-%d)  L-%14p  T-%14p  R-%14p\n", 3*offset, '-', dir, tmp, height, (void*)avl->left, (void*)avl, (void*)avl->right);
@@ -897,7 +916,7 @@ void display_AVL_tree(meta_t* meta, dyndata_t* avl, char dir, char* (*toString)(
 /************************************************************/
 dyndata_t* rotate_AVL(meta_t* meta, dyndata_t* avl, e_rotation side){
     dyndata_t *newTree=NULL, *child=NULL;
-    int height_l=0, height_r=0;
+    uint64_t height_l=0, height_r=0;
 
     if(side == RIGHT)
     {
@@ -940,7 +959,7 @@ dyndata_t* rotate_AVL(meta_t* meta, dyndata_t* avl, e_rotation side){
 /*  O : Balance                                             */
 /************************************************************/
 int get_AVL_balance(meta_t* meta, dyndata_t* avl){
-    int height_left=0, height_right=0;
+    uint64_t height_left=0, height_right=0;
 
     if(!avl)
         return 0;
