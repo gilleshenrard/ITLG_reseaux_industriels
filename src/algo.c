@@ -523,6 +523,34 @@ void* get_listelem(meta_t* meta, uint64_t i)
 }
 
 /************************************************************/
+/*  I : Element of which get the next one in the structure  */
+/*  P : Returns the address of the next element             */
+/*  O : NULL -> no element to the ritht                     */
+/*      Otherwise -> address of the next element            */
+/************************************************************/
+dyndata_t* getright(dyndata_t* cur)
+{
+    if(cur)
+        return cur->right;
+    else
+        return NULL;
+}
+
+/************************************************************/
+/*  I : Element of which get the data                       */
+/*  P : Returns the data of the element                     */
+/*  O : NULL -> no element to the ritht                     */
+/*      Otherwise -> address of the data element            */
+/************************************************************/
+void* getdata(dyndata_t* cur)
+{
+    if(cur)
+        return cur->data;
+    else
+        return NULL;
+}
+
+/************************************************************/
 /*  I : Metadata necessary to the algorithm                 */
 /*      Element to append in the list                       */
 /*  P : Inserts an element at the top of a linked list      */

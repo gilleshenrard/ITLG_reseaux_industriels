@@ -66,6 +66,8 @@ int binarySearchArray(meta_t*, void*, e_search scope);
 
 //Dynamic lists
 void* get_listelem(meta_t* meta, uint64_t i);
+dyndata_t* getright(dyndata_t* cur);
+void* getdata(dyndata_t* cur);
 int insertListTop(meta_t*, void*);
 int insertListBottom(meta_t* meta, void *toAdd);
 int popListTop(meta_t*);
