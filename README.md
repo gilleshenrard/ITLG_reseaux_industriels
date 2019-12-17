@@ -39,7 +39,7 @@ int foreachList(meta_t*, void*, int (*doAction)(void*, void*));
 * Protocol functions :
 ```C
 int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...));
-int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,void*), void (*doPrint)(char*, ...));
+int psnd(int sockfd, void* structure, head_t* header, void (*doPrint)(char*, ...));
 ```
 
 A bash script [tests.sh](https://github.com/gilleshenrard/ITLG_reseaux_industriels/blob/master/tests.sh) has been made to execute and test possible errors

@@ -118,7 +118,7 @@ int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...))
 /*  I : socket to which send data                                       */
 /*      structure from  which read the data (file, list, ...)           */
 /*      header describing the data structure                            */
-/*      action to perform to send list elements (can be NULL)           */
+/*      function to print error messages (can be NULL)                  */
 /*  P : Follow the established protocol on the sender side:             */
 /*          1- send the header indicating how many bytes and type to    */
 /*              receive                                                 */
@@ -128,13 +128,14 @@ int prcv(int sockfd, void* structure, void (*doPrint)(char*, ...))
 /*  O : -1 if error                                                     */
 /*      0 otherwise                                                     */
 /************************************************************************/
-int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,void*), void (*doPrint)(char*, ...))
+int psnd(int sockfd, void* structure, head_t* header, void (*doPrint)(char*, ...))
 {
     unsigned char serialised[MAXDATASIZE] = {0};
     char* buffer = NULL;
     int ret=0, *fd=NULL;
     uint64_t sent = 0, size = 0;
     meta_t *lis = NULL;
+    dyndata_t* tmp = NULL;
 
     //serialize the header and send it to the receiver
     pack(serialised, HEAD_F, header->nbelem, header->stype, header->szelem);
@@ -182,11 +183,24 @@ int psnd(int sockfd, void* structure, head_t* header, int (*doSendList)(void*,vo
 
         case SLIST: // send a list
             lis = (meta_t*)structure;
-            if((ret = foreachList(lis, &sockfd, doSendList)) == -1)
+            tmp = lis->structure;
+            do
             {
-                if(doPrint)
-                    (*doPrint)("psnd: error while sending the string");
-            }
+                buffer = getdata(tmp);
+                if ((ret = sendData(sockfd, buffer, (int*)&lis->elementsize, NULL, 1)) == -1)
+                {
+                    if(doPrint)
+                        (*doPrint)("psnd: error while sending %s", buffer);
+                }
+
+                tmp = getright(tmp);
+            }while(tmp && ret > 0);
+
+//            if((ret = foreachList(lis, &sockfd, doSendList)) == -1)
+//            {
+//                if(doPrint)
+//                    (*doPrint)("psnd: error while sending the string");
+//            }
 
             // update the amount of bytes sent
             if(ret != -1)

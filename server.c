@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 15/12/2019
+** Last modified : 17/12/2019
 */
 #include <dirent.h>
 #include "global.h"
@@ -19,7 +19,6 @@ void sigchld_handler(int s);
 int ser_phase1(int rem_sock, meta_t* lis, char* rem_ip);
 int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip);
 int ser_phase3(int rem_sock, char* filename, char* rem_ip);
-int sendstring(void* pkg, void* sockfd);
 
 int main(int argc, char *argv[])
 {
@@ -179,7 +178,7 @@ int ser_phase1(int rem_sock, meta_t* lis, char* rem_ip)
     header.stype = SLIST;
     header.nbelem = lis->nbelements;
     print_neutral("server: %s -> sending %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
-    if(psnd(rem_sock, lis, &header, sendstring, print_error) == -1)
+    if(psnd(rem_sock, lis, &header, print_error) == -1)
     {
         print_error("server: %s -> error while sending the list to the client", rem_ip);
         return -1;
@@ -220,7 +219,7 @@ int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip)
     header.nbelem = 1;
     header.szelem = strlen(filename);
     print_neutral("server: %s -> sending %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
-    if(psnd(rem_sock, filename, &header, NULL, print_error) == -1)
+    if(psnd(rem_sock, filename, &header, print_error) == -1)
     {
         print_error("server: %s -> error while sending the filename to the client", rem_ip);
         return -1;
@@ -261,7 +260,7 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
     header.nbelem = 1;
     header.stype = SFILE;
     print_neutral("server: %s -> sending %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
-    if(psnd(rem_sock, &fd, &header, NULL, print_error) == -1)
+    if(psnd(rem_sock, &fd, &header, print_error) == -1)
     {
         print_error("server: %s -> error while sending the file to the client", rem_ip);
         close(fd);
@@ -269,24 +268,5 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
     }
 
     close(fd);
-    return 0;
-}
-
-/************************************************************************/
-/*  I : socket file descriptor to which send the string                 */
-/*      string to send                                                  */
-/*  P : Sends the string to the socket                                  */
-/*  O : -1 on error                                                     */
-/*       0 otherwise                                                    */
-/************************************************************************/
-int sendstring(void* pkg, void* sockfd)
-{
-    int* sock = (int*)sockfd, bufsz = FILENAMESZ;
-
-    if (sendData(*sock, pkg, &bufsz, NULL, 1) == -1)
-    {
-        print_error("server: sendData: %s", strerror(errno));
-        return -1;
-    }
     return 0;
 }
