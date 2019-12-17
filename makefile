@@ -21,7 +21,7 @@ server: server.c blib
 
 test_algo: test_algo.c balgo
 	@ echo "Builing $@"
-	$(CC) $(CFLAGS) -L$(clib) $(LDFLAGS) -o $(cbin)/$@ $@.c -lalgo -ldataset
+	$(CC) $(CFLAGS) -L$(clib) $(LDFLAGS) -o $(cbin)/$@ $@.c -lalgo -ldataset_test
 
 
 .PHONY: blib
@@ -31,7 +31,7 @@ blib:
 .PHONY: balgo
 balgo:
 	@ $(MAKE) -f build.mk -C$(clib) libalgo.so
-	@ $(MAKE) -f build.mk -C$(clib) libdataset.so
+	@ $(MAKE) -f build.mk -C$(clib) libdataset_test.so
 
 #overall functions
 all: client server

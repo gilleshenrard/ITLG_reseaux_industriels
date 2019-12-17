@@ -8,7 +8,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include "algo.h"
-#include "dataset.h"
+#include "dataset_test.h"
 
 int setup_data(dataset_t** data, long nb);
 int tst_bubblesortarray(void);
@@ -26,16 +26,16 @@ int main(int argc, char *argv[])
 {
     srand(time(NULL));
 
-    //tst_bubblesortarray();
-    //tst_quicksortarray();
+    tst_bubblesortarray();
+    tst_quicksortarray();
     tst_binarysearcharray();
-    //tst_inserttoplist();
-    //tst_insertlistsorted();
-    //tst_bubblesortlist();
-    //tst_structuresconversion();
-    //tst_insertavl();
-    //tst_removeavl();
-    //st_searchavl();
+    tst_inserttoplist();
+    tst_insertlistsorted();
+    tst_bubblesortlist();
+    tst_structuresconversion();
+    tst_insertavl();
+    tst_removeavl();
+    tst_searchavl();
 
 	exit(EXIT_SUCCESS);
 }

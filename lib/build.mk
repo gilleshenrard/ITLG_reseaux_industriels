@@ -41,6 +41,12 @@ libdataset.so : ../src/dataset.o
 	ldconfig -n . -l $@.1.2
 	ln -sf $@.1 $@
 
+libdataset_test.so : ../src/dataset_test.o
+	@ echo "Building $@"
+	$(CC) -shared -fPIC -lc -Wl,-soname,$@.1 -o $@.1.0 $<
+	ldconfig -n . -l $@.1.0
+	ln -sf $@.1 $@
+
 libserialisation.so : ../src/serialisation.o
 	@ echo "Building $@"
 	$(CC) -shared -fPIC -lc -Wl,-soname,$@.1 -o $@.1.1 $<
