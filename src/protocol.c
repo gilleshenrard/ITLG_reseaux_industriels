@@ -196,13 +196,6 @@ int psnd(int sockfd, void* structure, head_t* header, void (*doPrint)(char*, ...
                 tmp = getright(tmp);
             }while(tmp && ret > 0);
 
-//            if((ret = foreachList(lis, &sockfd, doSendList)) == -1)
-//            {
-//                if(doPrint)
-//                    (*doPrint)("psnd: error while sending the string");
-//            }
-
-            // update the amount of bytes sent
             if(ret != -1)
                 size = lis->nbelements * lis->elementsize;
             break;
