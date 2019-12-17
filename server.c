@@ -209,10 +209,10 @@ int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip)
         print_error("server: %s -> receiveData: %s", strerror(errno));
         return -1;
     }
-    print_neutral("server: %s -> client chose %d", rem_ip, choice);
 
     //interpret the choice number to a filename
     strcpy(filename, (char*)get_listelem(lis, choice-1));
+    print_neutral("server: %s -> client chose %s", rem_ip, filename);
 
     //prepare and send the header with the data information
     header.stype = SSTRING;
