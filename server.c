@@ -4,7 +4,11 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
+<<<<<<< HEAD
 ** Last modified : 17/12/2019
+=======
+** Last modified : 14/12/2019
+>>>>>>> 12a17f1a6079156026cc16f3ecf88fb6db2e3fbe
 */
 #include <dirent.h>
 #include "global.h"
