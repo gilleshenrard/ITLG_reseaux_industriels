@@ -31,9 +31,9 @@ libnetwork.so : ../src/network.o
 
 libalgo.so : ../src/algo.o
 	@ echo "Building $@"
-	$(CC) -shared -fPIC -lc -Wl,-soname,$@.3 -o $@.3.0 $<
-	ldconfig -n . -l $@.3.0
-	ln -sf $@.3 $@
+	$(CC) -shared -fPIC -lc -Wl,-soname,$@.2 -o $@.2.0 $<
+	ldconfig -n . -l $@.2.0
+	ln -sf $@.2 $@
 
 libdataset.so : ../src/dataset.o
 	@ echo "Building $@"
