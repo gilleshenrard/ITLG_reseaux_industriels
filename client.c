@@ -171,7 +171,6 @@ int cli_phase3(int sockfd, char* filename)
 	int fd = 0;
 
 	//open the soon to be file
-	//strcpy(buffer, "data/output.mp3");
 	sprintf(buffer, "data/%s", filename);
     if((fd = open(buffer, O_WRONLY|O_CREAT)) == -1)
     {
