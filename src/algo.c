@@ -3,7 +3,7 @@
 ** Library regrouping algorithmic-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 26/11/2019
+** Last modified : 17/12/2019
 */
 #include "algo.h"
 
@@ -787,7 +787,7 @@ int foreachArray(meta_t* meta, void* parameter, int (*doAction)(void*, void*)){
 /*      NULL otherwise                                      */
 /************************************************************/
 dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
-    int height_left=0, height_right=0, balance=0;
+    uint32_t height_left=0, height_right=0, balance=0;
 
     //if tree is empty
     if(!avl){
@@ -864,7 +864,7 @@ dyndata_t* insertAVL(meta_t* meta, dyndata_t* avl, void* toAdd){
 /************************************************************/
 void display_AVL_tree(meta_t* meta, dyndata_t* avl, char dir, char* (*toString)(void*)){
     char tmp[80]={0};
-    int height = 0;
+    uint32_t height = 0;
     int nbc_pad = 0;
 
     if(!avl)

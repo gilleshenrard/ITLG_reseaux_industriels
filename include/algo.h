@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <stdint.h>
 
 /*
 * NOTE about data structures:
@@ -20,7 +21,7 @@ typedef struct dyndata_t dyndata_t;
 struct dyndata_t
 {
     void*       data;
-    int32_t     height;
+    uint32_t    height;
     dyndata_t*  left;
     dyndata_t*  right;
 };
