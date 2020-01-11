@@ -4,6 +4,8 @@
 ### 1. Intro
 This assignment aims to learn the basics of sockets programmation in C on UNIX-based systems by creating basic FTP transmission based on custom data transmission protocol.
 Two executables are created (client and server) and both will use TCP transmission.
+At each connection by a client, the server will send the content of the directory set as program argument.
+The client will then choose which file to download, and will save it in the data/ directory
 
 Use :
 ```shell
