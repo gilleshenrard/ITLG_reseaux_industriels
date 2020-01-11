@@ -19,6 +19,10 @@
 
 #! /bin/bash
 
+#
+# Errors tests
+#
+
 #test 1
 echo -e '\e[1m1- test of the client application with an improper number of arguments\e[0m'
 echo -e '\e[1mbin/client clapton\e[0m'
@@ -44,32 +48,37 @@ bin/client 456.123.1.468 3490 2> /dev/null
 
 #test 5
 echo ''
-echo -e '\e[1m5- test with stdout ignored\e[0m'
-echo -e '\e[1mbin/client clapton 3490 1> /dev/null\e[0m'
-bin/client clapton 3490 1> /dev/null
-
-#test 6
-echo ''
-echo -e '\e[1m6- test of a wrong port (will timeout after 5 sec.)\e[0m'
+echo -e '\e[1m5- test of a wrong port (will timeout after 5 sec.)\e[0m'
 echo -e '\e[1mbin/client clapton 79456\e[0m'
 bin/client clapton 79456
 
-#test 7
+#test 6
 echo ''
-echo -e '\e[1m7- test of a port blocked by firewall (will timeout after 5 sec.)\e[0m'
+echo -e '\e[1m6- test of a port blocked by firewall (will timeout after 5 sec.)\e[0m'
 echo -e '\e[1mbin/client clapton 80\e[0m'
 bin/client clapton 80
 
-#test 8
+#
+# Successes tests
+#
+
+#test 7
 echo ''
-echo -e '\e[1m8- test of the server application via hostname\e[0m'
+echo -e '\e[1m7- test of the server application via hostname\e[0m'
 echo -e '\e[1mbin/client clapton 3490\e[0m'
+
+echo "Before the transfer, data/ contains:"
+ls -l data/
+echo ""
+
 bin/client clapton 3490
 
-#test 9
-echo ''
-echo -e '\e[1m9- test of the server application via direct IP\e[0m'
-echo -e '\e[1mbin/client 192.168.56.10 3490\e[0m'
-bin/client 192.168.56.10 3490
+echo "After the transfer, data/ contains:"
+ls -l data/
 
+diff -u music.mp3 data/music.mp3
+if [[ $? -eq 0 ]]
+then
+	echo "Source and destination files are equal"
+fi
 
