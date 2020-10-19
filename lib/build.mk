@@ -7,8 +7,8 @@ chead:= ../include
 
 #flags necessary to the compilation
 CC := gcc
-CFLAGS:= -fPIC -Wall -Werror -g -I$(chead)
-lib_b:= libscreen.so libnetwork.so libdataset.so libalgo.so libserialisation.so libprotocol.so
+CFLAGS:= -fPIC -Wall -Werror -g -I$(chead) -Icstructures/include
+lib_b:= libscreen.so libnetwork.so libdataset.so libserialisation.so libprotocol.so balgo
 
 #objects compilation from the source files
 %.o: %.c
@@ -29,22 +29,10 @@ libnetwork.so : ../src/network.o
 	@ ldconfig -n . -l $@.2.0
 	@ ln -sf $@.2 $@
 
-libalgo.so : ../src/algo.o
-	@ echo "Building $@"
-	@ $(CC) -shared -fPIC -lc -Wl,-soname,$@.2 -o $@.2.1 $<
-	@ ldconfig -n . -l $@.2.1
-	@ ln -sf $@.2 $@
-
 libdataset.so : ../src/dataset.o
 	@ echo "Building $@"
 	@ $(CC) -shared -fPIC -lc -Wl,-soname,$@.1 -o $@.1.2 $<
 	@ ldconfig -n . -l $@.1.2
-	@ ln -sf $@.1 $@
-
-libdataset_test.so : ../src/dataset_test.o
-	@ echo "Building $@"
-	@ $(CC) -shared -fPIC -lc -Wl,-soname,$@.1 -o $@.1.0 $<
-	@ ldconfig -n . -l $@.1.0
 	@ ln -sf $@.1 $@
 
 libserialisation.so : ../src/serialisation.o
@@ -53,9 +41,9 @@ libserialisation.so : ../src/serialisation.o
 	@ ldconfig -n . -l $@.1.1
 	@ ln -sf $@.1 $@
 
-libprotocol.so : ../src/protocol.o libalgo.so libnetwork.so libserialisation.so
+libprotocol.so : ../src/protocol.o balgo libnetwork.so libserialisation.so
 	@ echo "Building $@"
-	@ $(CC) -shared -fPIC -lc -L. -Wl,-soname,$@.2 -o $@.2.0 $< -lalgo -lnetwork -lserialisation
+	@ $(CC) -shared -fPIC -lc -L. -Lcstructures/lib -Wl,-soname,$@.2 -o $@.2.0 $< -lalgo -lnetwork -lserialisation
 	@ ldconfig -n . -l $@.2.0
 	@ ln -sf $@.2 $@
 
@@ -63,7 +51,13 @@ libprotocol.so : ../src/protocol.o libalgo.so libnetwork.so libserialisation.so
 #overall functions
 all: $(lib_b)
 
+#phony rules to build needed libraries and to clean builds
+.PHONY: balgo
+balgo:
+	@ $(MAKE) -f makefile -Ccstructures balgo
+
 .PHONY= clean
 clean:
 	@ echo "cleaning libraries *.so files"
 	@ rm -rf *.so* ../src/*.o
+	@ $(MAKE) -f makefile -Ccstructures clean
