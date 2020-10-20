@@ -13,11 +13,13 @@ LDFLAGS:= -Wl,--disable-new-dtags -Wl,-rpath,\$$ORIGIN/../lib -Wl,-rpath,\$$ORIG
 #executables compilation
 client: blib
 	@ echo "Building client"
-	@$(CC) $(CFLAGS) $(LDFLAGS) -o $(cbin)/$@ $@.c $(LFLAGS)
+	@ mkdir -p bin
+	@ $(CC) $(CFLAGS) $(LDFLAGS) -o $(cbin)/$@ $@.c $(LFLAGS)
 
 server: blib
 	@ echo "Builing server"
-	@$(CC) $(CFLAGS) -o $(cbin)/$@ $@.c $(LFLAGS)
+	@ mkdir -p bin
+	@ $(CC) $(CFLAGS) -o $(cbin)/$@ $@.c $(LFLAGS)
 
 
 .PHONY: blib
