@@ -19,7 +19,7 @@ client: blib
 server: blib
 	@ echo "Builing server"
 	@ mkdir -p bin
-	@ $(CC) $(CFLAGS) -o $(cbin)/$@ $@.c $(LFLAGS)
+	@ $(CC) $(CFLAGS) $(LDFLAGS) -o $(cbin)/$@ $@.c $(LFLAGS)
 
 
 .PHONY: blib
