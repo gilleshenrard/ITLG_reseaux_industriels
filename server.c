@@ -4,11 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-<<<<<<< HEAD
-** Last modified : 17/12/2019
-=======
-** Last modified : 14/12/2019
->>>>>>> 12a17f1a6079156026cc16f3ecf88fb6db2e3fbe
+** Last modified : 27/10/2020
 */
 #include <dirent.h>
 #include "global.h"
@@ -203,7 +199,7 @@ int ser_phase1(int rem_sock, meta_t* lis, char* rem_ip)
 /************************************************************************/
 int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip)
 {
-    char filename[FILENAMESZ]={0}, fullpath[FILENAMESZ]={0};
+    char filename[FILENAMESZ]={0}, fullpath[FILENAMESZ*2]={0};
     int choice=0;
     head_t header = {0};
 
