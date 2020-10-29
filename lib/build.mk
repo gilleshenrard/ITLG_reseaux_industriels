@@ -7,7 +7,7 @@ chead:= ../include
 
 #flags necessary to the compilation
 CC := gcc
-CFLAGS:= -fPIC -Wall -Werror -g -I$(chead) -Icstructures/include
+CFLAGS:= -fPIC -Wall -Werror -Wextra -g -I$(chead) -Icstructures/include
 lib_b:= libscreen.so libnetwork.so libdataset.so libserialisation.so libprotocol.so balgo
 
 #objects compilation from the source files
