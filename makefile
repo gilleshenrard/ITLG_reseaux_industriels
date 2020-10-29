@@ -5,7 +5,7 @@ cbin := bin
 
 #flags necessary to the compilation
 CC := gcc
-CFLAGS:= -fPIC -Wall -Werror -g -I$(chead) -Ilib/cstructures/include
+CFLAGS:= -fPIC -Wall -Werror -Wextra -g -I$(chead) -Ilib/cstructures/include
 LFLAGS:= -lscreen -lnetwork -ldataset -lalgo -lserialisation -lprotocol
 LDFLAGS:= -Wl,--disable-new-dtags -Wl,-rpath,\$$ORIGIN/../lib -Wl,-rpath,\$$ORIGIN/../lib/cstructures/lib -L$(clib) -L$(clib)/cstructures/lib
 
