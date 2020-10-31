@@ -245,7 +245,7 @@ int ser_phase2(int rem_sock, char* dirname, meta_t* lis, char* rem_ip)
 /************************************************************************/
 int ser_phase3(int rem_sock, char* filename, char* rem_ip)
 {
-    head_t header = {0, FILENAMESZ};
+    head_t header = {0};
     int fd = 0;
     uint64_t fsize = 0;
 
@@ -262,6 +262,8 @@ int ser_phase3(int rem_sock, char* filename, char* rem_ip)
     header.szelem = fsize;
     header.nbelem = 1;
     header.stype = SFILE;
+
+    //send the file
     print_neutral("server: %s -> sending %d elements of %ld bytes", rem_ip, header.nbelem, header.szelem);
     if(psnd(rem_sock, &fd, &header, print_error) == -1)
     {
