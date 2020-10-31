@@ -3,7 +3,7 @@
 ** Library regrouping dataset-based functions
 ** ------------------------------------------
 ** Made by Gilles Henrard
-** Last modified : 23/11/2019
+** Last modified : 31/10/2020
 */
 #include "dataset.h"
 

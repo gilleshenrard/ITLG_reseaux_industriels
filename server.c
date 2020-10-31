@@ -4,7 +4,7 @@
 ** -------------------------------------------------------
 ** Based on Brian 'Beej Jorgensen' Hall's code
 ** Made by Gilles Henrard
-** Last modified : 27/10/2020
+** Last modified : 31/10/2020
 */
 #include <dirent.h>
 #include "global.h"
