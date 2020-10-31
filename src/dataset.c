@@ -12,6 +12,9 @@
 /*  P : Prints an dataset record                                                        */
 /*  O : /                                                                               */
 /****************************************************************************************/
+#ifdef __GNUC__
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 int Print_dataset(void* rec, void* nullable){
     char* ds = (char*)rec;
 

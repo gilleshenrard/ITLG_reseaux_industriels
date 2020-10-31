@@ -151,6 +151,9 @@ int main(int argc, char *argv[])
 /*  P : Make sure to avoid any zombie child process                     */
 /*  O : /                                                               */
 /************************************************************************/
+#ifdef __GNUC__
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 void sigchld_handler(int s)
 {
     // waitpid() might overwrite errno, so we save and restore it:

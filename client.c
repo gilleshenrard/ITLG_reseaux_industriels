@@ -93,6 +93,9 @@ int main(int argc, char *argv[])
 /*  P : Quit program when getting a connection timeout                  */
 /*  O : /                                                               */
 /************************************************************************/
+#ifdef __GNUC__
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 void sigalrm_handler(int s)
 {
     print_error("client: connection attempt timeout");
