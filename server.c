@@ -11,7 +11,7 @@
 #include "network.h"
 #include "screen.h"
 #include "dataset.h"
-#include "algo.h"
+#include "cstructures.h"
 #include "serialisation.h"
 #include "protocol.h"
 
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 {
     DIR *d = NULL;
     struct dirent *dir = NULL;
-    meta_t lis = {NULL, 0, FILENAMESZ, compare_dataset, print_error};
+    meta_t lis = {NULL, NULL, 0, FILENAMESZ, compare_dataset, print_error};
 	int loc_socket=0, rem_socket=0;
 	struct sigaction sa;
 	char s[INET6_ADDRSTRLEN]="0", dirname[FILENAMESZ]="0";

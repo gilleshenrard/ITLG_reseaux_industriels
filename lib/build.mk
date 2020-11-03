@@ -8,7 +8,7 @@ chead:= ../include
 #flags necessary to the compilation
 CC := gcc
 CFLAGS:= -fPIC -Wall -Werror -Wextra -g -I$(chead) -Icstructures/include
-lib_b:= libscreen.so libnetwork.so libdataset.so libserialisation.so libprotocol.so balgo
+lib_b:= libscreen.so libnetwork.so libdataset.so libserialisation.so libprotocol.so bcstructures
 
 #objects compilation from the source files
 %.o: %.c
@@ -41,9 +41,9 @@ libserialisation.so : ../src/serialisation.o
 	@ ldconfig -n . -l $@.1.1
 	@ ln -sf $@.1 $@
 
-libprotocol.so : ../src/protocol.o balgo libnetwork.so libserialisation.so
+libprotocol.so : ../src/protocol.o bcstructures libnetwork.so libserialisation.so
 	@ echo "Building $@"
-	@ $(CC) -shared -fPIC -lc -L. -Lcstructures/lib -Wl,-soname,$@.2 -o $@.2.0 $< -lalgo -lnetwork -lserialisation
+	@ $(CC) -shared -fPIC -lc -L. -Lcstructures/lib -Wl,-soname,$@.2 -o $@.2.0 $< -lcstructures -lnetwork -lserialisation
 	@ ldconfig -n . -l $@.2.0
 	@ ln -sf $@.2 $@
 
@@ -52,9 +52,9 @@ libprotocol.so : ../src/protocol.o balgo libnetwork.so libserialisation.so
 all: $(lib_b)
 
 #phony rules to build needed libraries and to clean builds
-.PHONY: balgo
-balgo:
-	@ $(MAKE) -f makefile -Ccstructures balgo
+.PHONY: bcstructures
+bcstructures:
+	@ $(MAKE) -f makefile -Ccstructures bcstructures
 
 .PHONY= clean
 clean:

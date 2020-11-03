@@ -11,7 +11,7 @@
 #include "network.h"
 #include "screen.h"
 #include "dataset.h"
-#include "algo.h"
+#include "cstructures.h"
 #include "serialisation.h"
 #include "protocol.h"
 
@@ -105,7 +105,7 @@ void sigalrm_handler(int s)
 /************************************************************************/
 int cli_phase1(int sockfd)
 {
-    meta_t ds_list = {NULL, 0, FILENAMESZ, compare_dataset, print_error};
+    meta_t ds_list = {NULL, NULL, 0, FILENAMESZ, compare_dataset, print_error};
 	int index = 1;
 
 	if(prcv(sockfd, &ds_list, print_error) == -1)

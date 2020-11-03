@@ -1,6 +1,6 @@
 #ifndef PROTOCOL_H_INCLUDED
 #define PROTOCOL_H_INCLUDED
-#include "algo.h"
+#include "cstructures.h"
 #include "network.h"
 #include "serialisation.h"
 
